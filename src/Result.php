@@ -807,7 +807,8 @@ final class Result
      */
     private function runChain(callable|object|array $next, mixed $input, array $meta): self
     {
-        $steps = is_array($next) ? $next : [$next];
+        // Allow callable arrays like [$service, 'handle'] to be treated as a single step
+        $steps = (! is_array($next) || is_callable($next)) ? [$next] : $next;
 
         $acc = $this;
         $current = $input;

@@ -190,6 +190,29 @@ it('runChain handles arrays, exceptions, and value propagation', function () {
     expect($r3->meta())->toBe($meta);
 });
 
+it('accepts callable array steps without splitting them', function () {
+    $service = new class
+    {
+        public array $calledWith = [];
+
+        public function handle($value, $meta)
+        {
+            $this->calledWith = [$value, $meta];
+
+            return Result::ok($value + 5, array_merge($meta, ['from' => 'service']));
+        }
+    };
+
+    $result = Result::ok(10, ['base' => true])
+        ->then([$service, 'handle']) // should be treated as a single callable, not two steps
+        ->then(fn ($v, $m) => Result::ok($v * 2, $m));
+
+    expect($result->isOk())->toBeTrue();
+    expect($result->value())->toBe(30);
+    expect($service->calledWith)->toBe([10, ['base' => true]]);
+    expect($result->meta())->toBe(['base' => true, 'from' => 'service']);
+});
+
 it('converts thrown exception in then() to failure and unwrap throws', function () {
     $ex = new RuntimeException('crash!');
     $r = Result::ok(42)->then(function () use ($ex) {
