@@ -127,11 +127,11 @@ foreach ($orders as $label => $order) {
         $result = processOrder($order);
 
         echo $result->match(
-            onSuccess: fn($payload, array $meta) => 'OK   '.json_encode(
+            onSuccess: fn ($payload, array $meta) => 'OK   '.json_encode(
                 ['payload' => $payload, 'meta' => $meta],
                 JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT
             ),
-            onFailure: fn($error, array $meta) => 'FAIL '.json_encode(
+            onFailure: fn ($error, array $meta) => 'FAIL '.json_encode(
                 ['error' => $error, 'meta' => $meta],
                 JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT
             ),

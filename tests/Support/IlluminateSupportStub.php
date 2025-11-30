@@ -17,11 +17,10 @@ if (class_exists(ServiceProvider::class)) {
 abstract class ServiceProvider
 {
     public static array $publishes = [];
+
     public static array $publishGroups = [];
 
-    public function __construct(protected $app = null)
-    {
-    }
+    public function __construct(protected $app = null) {}
 
     protected function mergeConfigFrom(string $path, string $key): void
     {

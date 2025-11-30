@@ -30,7 +30,7 @@ function chargePayment(array $order, array $meta): Result
 function checkout(array $order): Result
 {
     return Result::ok($order, ['request_id' => $order['id'] ?? 'demo-order'])
-        ->ensure(fn($payload) => ! empty($payload['items']), 'Cart is empty')
+        ->ensure(fn ($payload) => ! empty($payload['items']), 'Cart is empty')
         ->then('chargePayment')
         ->otherwise(function ($error, array $meta) use ($order) {
             if ($error === 'Card declined') {
@@ -72,11 +72,11 @@ foreach ($examples as $label => $order) {
     echo PHP_EOL.'['.$label.'] '.PHP_EOL;
 
     echo $result->match(
-        onSuccess: fn($payload, array $meta) => 'OK   '.json_encode(
+        onSuccess: fn ($payload, array $meta) => 'OK   '.json_encode(
             ['payload' => $payload, 'meta' => $meta],
             JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT
         ),
-        onFailure: fn($error, array $meta) => 'FAIL '.json_encode(
+        onFailure: fn ($error, array $meta) => 'FAIL '.json_encode(
             ['error' => $error, 'meta' => $meta],
             JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT
         ),
