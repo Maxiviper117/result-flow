@@ -54,6 +54,20 @@ Use annotated tags only. Never modify or re-push an existing tag.
 4. Paste the corresponding `CHANGELOG.md` section into the description.
 5. Add upgrade notes if the release includes breaking changes.
 6. Publish.
+7. (Optional but recommended) Add the release link to the bottom of `CHANGELOG.md` so the changelog contains a permalink for the release. Example:
+
+```markdown
+[vX.Y.Z]: https://github.com/Maxiviper117/result-flow/releases/tag/vX.Y.Z
+```
+
+   You can automate this step with a changelog updater GitHub Action (see `.github/workflows/update-changelog.yml`).
+
+**Note (automated flow):** You should not need to manually edit `CHANGELOG.md` after publishing a release. Instead:
+
+- Prepare the `Unreleased` section while developing (or put intended notes in the Release body when creating the GitHub Release).
+- Publish the GitHub Release with the version as the Release title (e.g. `v0.1.0`) and release notes in the Release body.
+
+The workflow at `.github/workflows/update-changelog.yml` will run on the `released` event, insert the release notes into `CHANGELOG.md`, and commit the updated changelog back to `main` automatically. Manual edits are only necessary to correct formatting or to add custom links that the updater didn't create.
 
 Alternatively, GitHub Actions will auto-generate a release when a tag matching `v*` is pushed.
 
@@ -78,23 +92,3 @@ For major versions:
 
 ---
 
-## 6. Release structure
-
-Each version entry in `CHANGELOG.md` should follow:
-
-```markdown
-## [X.Y.Z] - YYYY-MM-DD
-
-### Added
-### Changed
-### Fixed
-### Deprecated
-### Removed
-### Security
-```
-
-Sections that are empty may be omitted.
-
-Updated in the PR that introduces the changes.
-
----
