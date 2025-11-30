@@ -46,6 +46,10 @@ return $result->match(
 
 The full guide, API reference, patterns, and testing notes live in [docs/result-guide.md](docs/result-guide.md).
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, and PR expectations.
+
 ## Testing
 
 ```bash
