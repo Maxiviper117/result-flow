@@ -19,8 +19,12 @@ class ResultFlowServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
+            $target = function_exists('config_path')
+                ? config_path('result-flow.php')
+                : (__DIR__ . '/../../config/result-flow.php'); // fallback for non-Laravel contexts / static analysis
+
             $this->publishes([
-                __DIR__.'/../../config/result-flow.php' => config_path('result-flow.php'),
+                __DIR__ . '/../../config/result-flow.php' => $target,
             ], 'result-flow-config');
         }
     }
