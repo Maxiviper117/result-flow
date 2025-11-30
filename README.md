@@ -1,10 +1,15 @@
 # Result Flow
 
+[![run-tests](https://github.com/Maxiviper117/result-flow/actions/workflows/run-tests.yml/badge.svg)](https://github.com/Maxiviper117/result-flow/actions/workflows/run-tests.yml)
+[![PHPStan](https://github.com/Maxiviper117/result-flow/actions/workflows/phpstan.yml/badge.svg)](https://github.com/Maxiviper117/result-flow/actions/workflows/phpstan.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Minimal, type-safe Result monad for explicit success/failure handling in PHP.
 
 > **Primary class:** `Maxiviper117\ResultFlow\Result` (see `src/Result.php`)
 
 ## Why
+
 - Keep success and failure paths explicit
 - Chain actions fluently with metadata propagation
 - Convert exceptions to failures automatically
@@ -39,10 +44,15 @@ return $result->match(
 
 ## Documentation
 
-The full guide, API reference, patterns, and testing notes live in `docs/result-guide.md`.
+The full guide, API reference, patterns, and testing notes live in [docs/result-guide.md](docs/result-guide.md).
 
 ## Testing
 
 ```bash
 composer test
 ```
+
+## License
+
+The MIT License (MIT). Please see [LICENSE.md](LICENSE.md) for more information.
+

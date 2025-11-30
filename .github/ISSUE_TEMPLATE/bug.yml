@@ -42,11 +42,11 @@ body:
     - type: input
       id: laravel-version
       attributes:
-        label: Laravel Version
-        description: What version of Laravel are you running? Please be as specific as possible
-        placeholder: 9.0.0
+        label: Laravel Version (if applicable)
+        description: If you are using this package with Laravel, what version are you running?
+        placeholder: 11.0.0
       validations:
-        required: true
+        required: false
     - type: dropdown
       id: operating-systems
       attributes:
