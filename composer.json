@@ -42,7 +42,10 @@
     "autoload-dev": {
         "psr-4": {
             "Maxiviper117\\ResultFlow\\Tests\\": "tests/"
-        }
+        },
+        "files": [
+            "tests/Support/IlluminateSupportStub.php"
+        ]
     },
     "scripts": {
         "analyse": "vendor/bin/phpstan analyse",
