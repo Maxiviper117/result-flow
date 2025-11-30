@@ -32,6 +32,13 @@
             "Maxiviper117\\ResultFlow\\": "src/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Maxiviper117\\ResultFlow\\Laravel\\ResultFlowServiceProvider"
+            ]
+        }
+    },
     "autoload-dev": {
         "psr-4": {
             "Maxiviper117\\ResultFlow\\Tests\\": "tests/"
