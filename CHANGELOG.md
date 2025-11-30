@@ -1,3 +1,4 @@
 # Changelog
 
-All notable changes to `:package_name` will be documented in this file.
+All notable changes to `maxiviper117/result-flow` will be documented in this file.
+ 
