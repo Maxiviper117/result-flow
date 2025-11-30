@@ -11,7 +11,7 @@ class ResultFlowServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../../config/result-flow.php',
+            __DIR__.'/../../config/result-flow.php',
             'result-flow'
         );
     }
@@ -20,7 +20,7 @@ class ResultFlowServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../../config/result-flow.php' => config_path('result-flow.php'),
+                __DIR__.'/../../config/result-flow.php' => config_path('result-flow.php'),
             ], 'result-flow-config');
         }
     }

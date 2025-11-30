@@ -255,7 +255,7 @@ final class Result
         $debugConfig = self::debugConfig();
         $enabled = ($debugConfig['enabled'] ?? true) === true;
         $redaction = $debugConfig['redaction'] ?? '***REDACTED***';
-        $sensitiveKeys = $debugConfig['sensitive_keys'] ?? ['password','pass','secret','token','api_key','apikey','ssn','card','authorization'];
+        $sensitiveKeys = $debugConfig['sensitive_keys'] ?? ['password', 'pass', 'secret', 'token', 'api_key', 'apikey', 'ssn', 'card', 'authorization'];
         $max = is_int($debugConfig['max_string_length'] ?? null) ? $debugConfig['max_string_length'] : 200;
         $truncateStrings = ($debugConfig['truncate_strings'] ?? true) === true;
 
@@ -280,13 +280,14 @@ final class Result
                     $out[$k] = self::defaultSanitizer($v);
                 }
             }
+
             return $out;
         }
 
         if (is_string($value)) {
             // Truncate very long strings (tokens, dumps) to avoid leaking full contents.
             if ($truncateStrings && mb_strlen($value) > $max) {
-                return mb_substr($value, 0, $max) . '…';
+                return mb_substr($value, 0, $max).'…';
             }
 
             return $value;

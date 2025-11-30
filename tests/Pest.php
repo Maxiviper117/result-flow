@@ -17,7 +17,7 @@ if (! function_exists('config')) {
 if (! function_exists('config_path')) {
     function config_path($path = '')
     {
-        return '/tmp/' . ltrim($path, '/');
+        return '/tmp/'.ltrim($path, '/');
     }
 }
 

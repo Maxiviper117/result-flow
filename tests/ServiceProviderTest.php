@@ -24,7 +24,7 @@ it('merges config defaults and registers publishable config', function () {
     $publishedSource = array_key_first($paths);
     $publishedTarget = $paths[$publishedSource] ?? null;
 
-    $expectedSource = dirname((new \ReflectionClass(ResultFlowServiceProvider::class))->getFileName(), 3) . '/config/result-flow.php';
+    $expectedSource = dirname((new \ReflectionClass(ResultFlowServiceProvider::class))->getFileName(), 3).'/config/result-flow.php';
     $expectedTarget = config_path('result-flow.php');
 
     expect(realpath($publishedSource))->toBe(realpath($expectedSource));

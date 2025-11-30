@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Maxiviper117\ResultFlow\Tests\Support;
 
-use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
-
 /**
  * Minimal Laravel-like application stub to exercise ServiceProvider behaviors.
  */
@@ -15,7 +13,7 @@ final class FakeApplication
 
     public function __construct(private bool $inConsole = true)
     {
-        $this->config = new FakeConfig();
+        $this->config = new FakeConfig;
     }
 
     public function runningInConsole(): bool
@@ -39,7 +37,9 @@ final class FakeApplication
 
     // No-op stubs to satisfy ServiceProvider expectations.
     public function call(callable $callback): void {}
+
     public function afterResolving($name, $callback = null): void {}
+
     public function resolved($name): bool
     {
         return false;
