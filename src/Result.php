@@ -253,9 +253,15 @@ final class Result
     {
         // Pull overrides from Laravel config if available; fall back to hardcoded defaults.
         $debugConfig = self::debugConfig();
+        $enabled = ($debugConfig['enabled'] ?? true) === true;
         $redaction = $debugConfig['redaction'] ?? '***REDACTED***';
         $sensitiveKeys = $debugConfig['sensitive_keys'] ?? ['password','pass','secret','token','api_key','apikey','ssn','card','authorization'];
         $max = is_int($debugConfig['max_string_length'] ?? null) ? $debugConfig['max_string_length'] : 200;
+        $truncateStrings = ($debugConfig['truncate_strings'] ?? true) === true;
+
+        if (! $enabled) {
+            return $value;
+        }
 
         if (is_array($value)) {
             $out = [];
@@ -279,7 +285,11 @@ final class Result
 
         if (is_string($value)) {
             // Truncate very long strings (tokens, dumps) to avoid leaking full contents.
-            return mb_strlen($value) > $max ? mb_substr($value, 0, $max) . '…' : $value;
+            if ($truncateStrings && mb_strlen($value) > $max) {
+                return mb_substr($value, 0, $max) . '…';
+            }
+
+            return $value;
         }
 
         return $value;
@@ -288,7 +298,7 @@ final class Result
     /**
      * Fetch debug config from Laravel if the helper is available; otherwise return defaults.
      *
-     * @return array{redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int}
+     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool}
      */
     private static function debugConfig(): array
     {

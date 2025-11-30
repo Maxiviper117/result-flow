@@ -79,9 +79,11 @@ Edit `config/result-flow.php` to match your policies:
 ```php
 return [
     'debug' => [
+        'enabled' => true, // turn sanitization on/off
         'redaction' => '***REDACTED***',
         'sensitive_keys' => ['password', 'token', 'ssn', 'card'],
-        'max_string_length' => 200,
+        'max_string_length' => 200, // used when truncate_strings is true
+        'truncate_strings' => true,
     ],
 ];
 ```
@@ -292,7 +294,7 @@ $data = $result->toArray();
 
 #### `toDebugArray(?callable $sanitizer = null): array`
 
-Converts the result to a debug-safe array (hides sensitive data, shows types). You can pass a custom sanitizer to control redaction/truncation; by default it redacts values for keys containing `password`, `secret`, `token`, `api_key`, `ssn`, `card`, etc., and truncates long strings. In Laravel, these defaults can be overridden via `config/result-flow.php` (see installation section).
+Converts the result to a debug-safe array (hides sensitive data, shows types). You can pass a custom sanitizer to control redaction/truncation; by default it redacts values for keys containing `password`, `secret`, `token`, `api_key`, `ssn`, `card`, etc., and truncates long strings. In Laravel, these defaults can be overridden via `config/result-flow.php` (see installation section) including toggles for `enabled` and `truncate_strings`.
 
 ```php
 $data = $result->toDebugArray();

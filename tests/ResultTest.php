@@ -73,6 +73,7 @@ describe('toDebugArray()', function () {
             'redaction' => '[redacted]',
             'sensitive_keys' => ['secretstuff'],
             'max_string_length' => 5,
+            'truncate_strings' => true,
         ]);
 
         $result = Result::fail('helloworld', ['secretstuff' => 'token-value', 'note' => 'abcdef']);
@@ -81,6 +82,35 @@ describe('toDebugArray()', function () {
         expect($debug['error_message'])->toBe('hello…'); // truncated to 5 + ellipsis
         expect($debug['meta']['secretstuff'])->toBe('[redacted]');
         expect($debug['meta']['note'])->toBe('abcde…');
+    });
+
+    it('can disable sanitization via config', function () {
+        ConfigStub::set('result-flow.debug', [
+            'enabled' => false,
+            'max_string_length' => 5, // should be ignored
+        ]);
+
+        $meta = ['password' => 'secret', 'long' => str_repeat('x', 50)];
+        $result = Result::fail('helloworld', $meta);
+        $debug = $result->toDebugArray();
+
+        expect($debug['meta']['password'])->toBe('secret'); // not redacted
+        expect($debug['meta']['long'])->toBe(str_repeat('x', 50)); // not truncated
+        expect($debug['error_message'])->toBe('helloworld'); // not truncated
+    });
+
+    it('can disable string truncation via config', function () {
+        ConfigStub::set('result-flow.debug', [
+            'truncate_strings' => false,
+            'max_string_length' => 5,
+            'sensitive_keys' => [], // ensure no redaction occurs
+        ]);
+
+        $result = Result::fail('helloworld', ['token' => 'abcdefghij']);
+        $debug = $result->toDebugArray();
+
+        expect($debug['error_message'])->toBe('helloworld'); // full length
+        expect($debug['meta']['token'])->toBe('abcdefghij'); // not truncated
     });
 });
 

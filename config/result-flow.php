@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 return [
     'debug' => [
+        // Enable or disable built-in sanitization in toDebugArray().
+        'enabled' => true,
+
         // Override the string used when redacting sensitive values in meta/debug output.
         'redaction' => '***REDACTED***',
 
@@ -12,5 +15,8 @@ return [
 
         // Maximum length for strings before truncation in debug output.
         'max_string_length' => 200,
+
+        // Whether to truncate strings longer than max_string_length.
+        'truncate_strings' => true,
     ],
 ];
