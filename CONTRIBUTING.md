@@ -11,6 +11,7 @@ Thanks for wanting to help! This project is small, so the process is lightweight
 - Add or update tests in `tests/` for any behavior change (Pest is already configured).
 - For user-facing changes, add a release note in the PR description; the GitHub workflow updates `CHANGELOG.md` when a release is published (no manual edits needed unless fixing formatting).
 - Keep commits scoped and descriptive; avoid version bumps in PRs.
+- Do not push git tags—releases and tagging are handled by maintainers.
 
 ## Quality checks
 - Format: `composer format`
