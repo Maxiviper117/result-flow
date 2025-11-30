@@ -27,6 +27,14 @@ Import and use:
 use Maxiviper117\ResultFlow\Result;
 ```
 
+## Examples
+
+Standalone scripts (not autoloaded by the package) you can run to explore behaviors:
+
+- `php examples/basic.php` — chaining, ensure/otherwise, debug output
+- `php examples/actions.php` — action objects with `handle`/`execute`, `thenUnsafe`, recovery
+- `php examples/combine.php` — validating multiple fields with `combine` vs `combineAll`
+
 ### Laravel config publish (optional)
 
 The package is framework-agnostic, but if you're using Laravel the service provider is auto-discovered. Publish the config to override debug sanitization settings (redaction token, sensitive keys, max string length):
