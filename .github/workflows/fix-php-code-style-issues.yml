@@ -1,11 +1,9 @@
 name: Fix PHP code style issues
 
 on:
-  pull_request:
-    branches: [main]
+  push:
     paths:
       - '**.php'
-  workflow_dispatch:
 
 permissions:
   contents: write
