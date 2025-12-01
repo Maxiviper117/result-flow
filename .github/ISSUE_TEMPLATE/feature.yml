@@ -39,32 +39,6 @@ body:
           placeholder: I tried ... but ...
       validations:
           required: false
-    - type: input
-      id: package-version
-      attributes:
-          label: Package Version
-          description: Which version of the package are you using?
-          placeholder: 2.0.0
-      validations:
-          required: false
-    - type: input
-      id: php-version
-      attributes:
-          label: PHP Version
-          description: What version of PHP are you running?
-          placeholder: 8.2.0
-      validations:
-          required: false
-    - type: dropdown
-      id: platforms
-      attributes:
-        label: Which operating systems does this matter for?
-        description: Select all that apply.
-        multiple: true
-        options:
-        - macOS
-        - Windows
-        - Linux
     - type: textarea
       id: notes
       attributes:
