@@ -1,0 +1,74 @@
+name: Feature Request
+description: Suggest a new feature or improvement for the package
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for taking the time to suggest a feature! Please provide as much detail as you can to help us evaluate and implement it.
+    - type: input
+      id: summary
+      attributes:
+          label: Summary
+          description: A short, descriptive summary of the feature you are requesting
+          placeholder: Allow X to do Y
+      validations:
+          required: true
+    - type: textarea
+      id: use-case
+      attributes:
+          label: Use case
+          description: Describe the problem this feature would solve and when you would use it
+          placeholder: When I ..., I want to ... so that ...
+      validations:
+          required: true
+    - type: textarea
+      id: proposed-solution
+      attributes:
+          label: Proposed solution
+          description: Explain how you think this should work. Include API/usage examples, config and expected behavior if possible.
+          placeholder: I imagine an API like ... or configuration like ...
+      validations:
+          required: false
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Alternatives considered
+          description: Any workarounds or alternatives you tried
+          placeholder: I tried ... but ...
+      validations:
+          required: false
+    - type: input
+      id: package-version
+      attributes:
+          label: Package Version
+          description: Which version of the package are you using?
+          placeholder: 2.0.0
+      validations:
+          required: false
+    - type: input
+      id: php-version
+      attributes:
+          label: PHP Version
+          description: What version of PHP are you running?
+          placeholder: 8.2.0
+      validations:
+          required: false
+    - type: dropdown
+      id: platforms
+      attributes:
+        label: Which operating systems does this matter for?
+        description: Select all that apply.
+        multiple: true
+        options:
+        - macOS
+        - Windows
+        - Linux
+    - type: textarea
+      id: notes
+      attributes:
+          label: Additional notes
+          description: Any other details, links to RFCs, related issues, or screenshots that might help
+      validations:
+          required: false
