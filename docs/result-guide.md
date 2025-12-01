@@ -66,6 +66,30 @@ Import it in your code:
 use Maxiviper117\ResultFlow\Result;
 ```
 
+### Optional: Laravel config override
+
+The package is framework-agnostic, but if you're using Laravel the service provider is auto-discovered and you can override the default debug sanitizer settings (redaction token, sensitive keys, and max string length) by publishing the config:
+
+```bash
+php artisan vendor:publish --tag=result-flow-config
+```
+
+Edit `config/result-flow.php` to match your policies:
+
+```php
+return [
+    'debug' => [
+        'enabled' => true, // turn sanitization on/off
+        'redaction' => '***REDACTED***',
+        'sensitive_keys' => ['password', 'token', 'ssn', 'card'],
+        'max_string_length' => 200, // used when truncate_strings is true
+        'truncate_strings' => true,
+    ],
+];
+```
+
+When Laravel's `config()` helper is available, `Result::toDebugArray()` will use these settings automatically. In non-Laravel environments it falls back to the built-in defaults.
+
 ---
 
 ## Quick Start
@@ -268,9 +292,9 @@ $data = $result->toArray();
 // ['ok' => true, 'value' => ..., 'error' => null, 'meta' => [...]]
 ```
 
-#### `toDebugArray(): array`
+#### `toDebugArray(?callable $sanitizer = null): array`
 
-Converts the result to a debug-safe array (hides sensitive data, shows types).
+Converts the result to a debug-safe array (hides sensitive data, shows types). You can pass a custom sanitizer to control redaction/truncation; by default it redacts values for keys containing `password`, `secret`, `token`, `api_key`, `ssn`, `card`, etc., and truncates long strings. In Laravel, these defaults can be overridden via `config/result-flow.php` (see installation section) including toggles for `enabled` and `truncate_strings`.
 
 ```php
 $data = $result->toDebugArray();
@@ -284,6 +308,7 @@ $data = $result->toDebugArray();
 ```
 
 Note: `error_message` will be populated for `Throwable` errors and for string errors; for other error types (arrays, objects without string representation) it will be null to avoid leaking sensitive information.
+The default sanitizer also recurses through `meta` and nested arrays, replacing sensitive-looking keys with `***REDACTED***` and shortening very long strings to avoid leaking full tokens or dumps. Provide your own `$sanitizer` if you need different logic.
 
 ---
 
@@ -1340,7 +1365,7 @@ $result->value()         // TSuccess|null
 $result->error()         // TFailure|null
 $result->meta()          // array
 $result->toArray()       // Full array representation
-$result->toDebugArray()  // Safe debug representation
+$result->toDebugArray()  // Safe debug representation (optional sanitizer)
 ```
 
 ### Transforming

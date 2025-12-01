@@ -231,19 +231,88 @@ final class Result
     /**
      * Convert the Result to a debug-safe array (hides sensitive data).
      *
+     * @param  callable(mixed): mixed|null  $sanitizer
      * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: string|null, meta: array<string,mixed>}
      */
-    public function toDebugArray(): array
+    public function toDebugArray(?callable $sanitizer = null): array
     {
+        $sanitizer = $sanitizer ?? [self::class, 'defaultSanitizer'];
+
         return [
             'ok' => $this->ok,
             'value_type' => $this->ok ? get_debug_type($this->value) : null,
             'error_type' => ! $this->ok ? get_debug_type($this->error) : null,
             'error_message' => ! $this->ok && $this->error instanceof Throwable
-                ? $this->error->getMessage()
-                : (! $this->ok && is_string($this->error) ? $this->error : null),
-            'meta' => $this->meta,
+                ? $sanitizer($this->error->getMessage())
+                : (! $this->ok && is_string($this->error) ? $sanitizer($this->error) : null),
+            'meta' => $sanitizer($this->meta),
         ];
+    }
+
+    private static function defaultSanitizer(mixed $value): mixed
+    {
+        // Pull overrides from Laravel config if available; fall back to hardcoded defaults.
+        $debugConfig = self::debugConfig();
+        $enabled = ($debugConfig['enabled'] ?? true) === true;
+        $redaction = $debugConfig['redaction'] ?? '***REDACTED***';
+        $sensitiveKeys = $debugConfig['sensitive_keys'] ?? ['password', 'pass', 'secret', 'token', 'api_key', 'apikey', 'ssn', 'card', 'authorization'];
+        $max = is_int($debugConfig['max_string_length'] ?? null) ? $debugConfig['max_string_length'] : 200;
+        $truncateStrings = ($debugConfig['truncate_strings'] ?? true) === true;
+
+        if (! $enabled) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            $out = [];
+            foreach ($value as $k => $v) {
+                $lowerKey = is_string($k) ? strtolower($k) : '';
+                $isSensitive = false;
+                foreach ($sensitiveKeys as $s) {
+                    if ($s !== '' && str_contains($lowerKey, $s)) {
+                        $isSensitive = true;
+                        break;
+                    }
+                }
+                if ($isSensitive) {
+                    $out[$k] = $redaction;
+                } else {
+                    $out[$k] = self::defaultSanitizer($v);
+                }
+            }
+
+            return $out;
+        }
+
+        if (is_string($value)) {
+            // Truncate very long strings (tokens, dumps) to avoid leaking full contents.
+            if ($truncateStrings && mb_strlen($value) > $max) {
+                return mb_substr($value, 0, $max).'…';
+            }
+
+            return $value;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Fetch debug config from Laravel if the helper is available; otherwise return defaults.
+     *
+     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool}
+     */
+    private static function debugConfig(): array
+    {
+        if (function_exists('config')) {
+            /** @var array{redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int}|null $config */
+            $config = config('result-flow.debug');
+
+            if (is_array($config)) {
+                return $config;
+            }
+        }
+
+        return [];
     }
 
     // =========================================================================

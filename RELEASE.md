@@ -19,7 +19,7 @@ Before creating a tag:
    ```bash
    composer test
    composer phpstan
-   composer cs
+   composer format
    ```
 
 3. Update `CHANGELOG.md`:
