@@ -22,7 +22,11 @@ All methods live on `Maxiviper117\ResultFlow\Result`. Generic template annotatio
 - `error(): mixed` — error payload or `null`.
 - `meta(): array<string,mixed>` — metadata.
 - `toArray(): array{ok, value, error, meta}` — raw representation.
+- `toApiArray(): array{ok, data|error, meta}` — API-friendly success/error shape.
+- `toJson(int $flags = JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE): string` — JSON-encode the API payload.
 - `toDebugArray(?callable $sanitizer = null): array{ok, value_type, error_type, error_message, meta}` — safe, sanitized representation.
+- `toProblemArray(): array{ok: bool, status?: int, data?: mixed, type?: string, title?: string, detail?: string|null, meta: array}` — RFC 7807-friendly array (success remains a 200-style payload).
+- `toProblemJson(bool $asArray = false, int $flags = JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE): array|string` — RFC 7807 payload for failures; passes through successes with a 200-style body.
 
 ## Transformations
 
