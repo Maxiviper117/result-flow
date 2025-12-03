@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   srcDir: "docs",
+  base: "/result-flow/",
   
   title: "Result Flow",
   description: "A lightweight, type-safe Result monad for PHP",
