@@ -36,6 +36,7 @@ return $result->match(
 ## Start Here
 
 - Read [Getting Started](/getting-started) for installation and the mental model.
+- Dive into the [Result class deep dives](/result/) for constructors, chaining, matching, and debugging walkthroughs.
 - Browse the [API reference](/api) when you need signatures and return types.
 - Check [Usage Patterns](/guides/patterns) and [Anti-Patterns](/guides/anti-patterns) for practical do/do-not guidance.
 - Peek into [Internals](/guides/internals) if you want to understand chaining and metadata propagation.
