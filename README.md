@@ -3,12 +3,14 @@
 [![run-tests](https://github.com/Maxiviper117/result-flow/actions/workflows/run-tests.yml/badge.svg)](https://github.com/Maxiviper117/result-flow/actions/workflows/run-tests.yml)
 [![PHPStan](https://github.com/Maxiviper117/result-flow/actions/workflows/phpstan.yml/badge.svg)](https://github.com/Maxiviper117/result-flow/actions/workflows/phpstan.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![version](https://img.shields.io/github/v/release/Maxiviper117/result-flow?label=version)
 
-Minimal, type-safe Result monad for explicit success/failure handling in PHP.
+I built a minimal, type-safe Result monad for explicit success/failure handling in PHP.
+It has no runtime dependencies; only PHP is required.
 
 > **Primary class:** `Maxiviper117\ResultFlow\Result` (see `src/Result.php`)
 
-## Why
+## Why I built this
 
 - Keep success and failure paths explicit
 - Chain actions fluently with metadata propagation
@@ -29,7 +31,7 @@ use Maxiviper117\ResultFlow\Result;
 
 ### Laravel config publish (optional)
 
-The package is framework-agnostic, but if you're using Laravel the service provider is auto-discovered. Publish the config to override debug sanitization settings (redaction token, sensitive keys, max string length):
+I've kept this package framework-agnostic, but if you're using Laravel, the service provider is auto-discovered. Publish the config to override debug sanitization settings (redaction token, sensitive keys, max string length):
 
 ```bash
 php artisan vendor:publish --tag=result-flow-config
@@ -54,11 +56,11 @@ return $result->match(
 
 ## Documentation
 
-The full guide, API reference, patterns, and testing notes live in [instructions/result-guide.md](instructions/result-guide.md).
+I host the full guide, API reference, patterns, and testing notes on my GitHub Pages site: [https://maxiviper117.github.io/result-flow/](https://maxiviper117.github.io/result-flow/).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, and PR expectations.
+Please see my [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, and PR expectations.
 
 ## Testing
 
