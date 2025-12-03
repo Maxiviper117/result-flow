@@ -35,6 +35,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .phpunit.result.cache
 /build
 
+# VitePress cache
+.vitepress/cache
+
 # IDE Helper
 _ide_helper.php
 _ide_helper_models.php

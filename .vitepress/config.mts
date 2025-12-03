@@ -67,6 +67,9 @@ export default defineConfig({
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/Maxiviper117/result-flow' }
-    ]
+    ],
+    search: {
+      provider: 'local'
+    }
   }
 })
