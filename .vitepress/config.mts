@@ -12,6 +12,7 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Getting Started', link: '/getting-started' },
+      { text: 'Result Deep Dive', link: '/result/' },
       { text: 'API', link: '/api' },
       {
         text: 'Guides',
@@ -30,6 +31,16 @@ export default defineConfig({
           { text: 'Overview', link: '/' },
           { text: 'Installation & Basics', link: '/getting-started' },
         ]
+      },
+      {
+        text: 'Result Deep Dive',
+        items: [
+          { text: 'Result overview', link: '/result/' },
+          { text: 'Constructing & Combining', link: '/result/constructing' },
+          { text: 'Chaining & Transformations', link: '/result/chaining' },
+          { text: 'Matching & Unwrapping', link: '/result/matching-unwrapping' },
+          { text: 'Metadata & Debugging', link: '/result/metadata-debugging' },
+        ],
       },
       {
         text: 'API Reference',
@@ -56,6 +67,9 @@ export default defineConfig({
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/Maxiviper117/result-flow' }
-    ]
+    ],
+    search: {
+      provider: 'local'
+    }
   }
 })
