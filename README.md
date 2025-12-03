@@ -54,7 +54,7 @@ return $result->match(
 
 ## Documentation
 
-The full guide, API reference, patterns, and testing notes live in [docs/result-guide.md](docs/result-guide.md).
+The full guide, API reference, patterns, and testing notes live in [instructions/result-guide.md](instructions/result-guide.md).
 
 ## Contributing
 
