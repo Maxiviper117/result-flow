@@ -14,6 +14,8 @@ use Throwable;
  */
 final class Result
 {
+    private const DEFAULT_JSON_FLAGS = JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+
     /**
      * @param  TSuccess|null  $value
      * @param  TFailure|null  $error
@@ -226,6 +228,93 @@ final class Result
             'error' => $this->error,
             'meta' => $this->meta,
         ];
+    }
+
+    /**
+     * Convert the Result into an API-friendly payload.
+     *
+     * @return array{ok: true, data: TSuccess, meta: array<string,mixed>}|array{ok: false, error: TFailure, meta: array<string,mixed>}
+     */
+    public function toApiArray(): array
+    {
+        if ($this->ok) {
+            return [
+                'ok' => true,
+                'data' => $this->value,
+                'meta' => $this->meta,
+            ];
+        }
+
+        return [
+            'ok' => false,
+            'error' => $this->error,
+            'meta' => $this->meta,
+        ];
+    }
+
+    /**
+     * Encode the API payload as JSON.
+     */
+    public function toJson(int $flags = self::DEFAULT_JSON_FLAGS): string
+    {
+        return json_encode($this->toApiArray(), $flags);
+    }
+
+    /**
+     * Convert the Result into an RFC 7807-compliant problem detail structure.
+     *
+     * @return array{ok: true, status: int, data: TSuccess, meta: array<string,mixed>}|array{ok: false, type: string, title: string, detail: string|null, status: int, meta: array<string,mixed>}
+     */
+    public function toProblemArray(): array
+    {
+        if ($this->ok) {
+            return [
+                'ok' => true,
+                'status' => is_int($this->meta['status'] ?? null) ? $this->meta['status'] : 200,
+                'data' => $this->value,
+                'meta' => $this->meta,
+            ];
+        }
+
+        $status = is_int($this->meta['status'] ?? null)
+            ? $this->meta['status']
+            : ($this->error instanceof Throwable ? 500 : 400);
+
+        $detailFromMeta = $this->meta['detail'] ?? null;
+        $detail = is_string($detailFromMeta)
+            ? $detailFromMeta
+            : ($this->error instanceof Throwable
+                ? $this->error->getMessage()
+                : (is_string($this->error) ? $this->error : json_encode($this->error)));
+
+        $titleFromMeta = $this->meta['title'] ?? null;
+        $title = is_string($titleFromMeta)
+            ? $titleFromMeta
+            : ($this->error instanceof Throwable ? (new \ReflectionClass($this->error))->getShortName() : 'Error');
+
+        $typeFromMeta = $this->meta['type'] ?? null;
+        $type = is_string($typeFromMeta) ? $typeFromMeta : 'about:blank';
+
+        return [
+            'ok' => false,
+            'type' => $type,
+            'title' => $title,
+            'detail' => $detail,
+            'status' => $status,
+            'meta' => $this->meta,
+        ];
+    }
+
+    /**
+     * Encode the problem detail payload as JSON. Returns the array if requested.
+     *
+     * @return array{ok: true, status: int, data: TSuccess, meta: array<string,mixed>}|array{ok: false, type: string, title: string, detail: string|null, status: int, meta: array<string,mixed>}|string
+     */
+    public function toProblemJson(bool $asArray = false, int $flags = self::DEFAULT_JSON_FLAGS): array|string
+    {
+        $payload = $this->toProblemArray();
+
+        return $asArray ? $payload : json_encode($payload, $flags);
     }
 
     /**
