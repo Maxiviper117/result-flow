@@ -2,6 +2,23 @@
 
 All notable changes to `maxiviper117/result-flow` will be documented in this file.
 
+## Unreleased
+
+### Changed
+
+- Adjusted `toDebugArray()` typing to reflect custom sanitizer output.
+- `failed_step` metadata now records the most recent failure in a chain.
+
+### Fixed
+
+- `toDebugArray()` no longer depends on mbstring being installed.
+- `ensure()` treats string errors as values, even if they match callable names.
+- `throwIfFail()` now produces deterministic error messages for non-encodable values.
+
+### Documentation
+
+- Updated failure metadata and `ensure()` behavior notes in the guides.
+
 ## v0.1.2 - 2025-12-01
 
 ### What's Changed
