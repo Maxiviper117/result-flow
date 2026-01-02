@@ -22,9 +22,27 @@ Before creating a tag:
    composer format
    ```
 
-3. Update `CHANGELOG.md`:
+3. Prepare release notes:
 
-   * Move items from **Unreleased** into a new version section.
+   * Determine the next version number based on the latest tag (follow semantic versioning: `MAJOR.MINOR.PATCH`).
+     - Check the current latest version: `git describe --tags --abbrev=0` (or `gh release list --limit 1`).
+   * Ensure `CHANGELOG.md` has an **Unreleased** section with the changes for this release (to be used by the automated workflow), or prepare the notes to paste into the GitHub release description.
+   * Use bullet points for each change, grouped under categories like `### Added`, `### Fixed`, `### Changed`, etc., following the "Keep a Changelog" format.
+   * Example:
+
+     ```markdown
+     ## [Unreleased](https://github.com/Maxiviper117/result-flow/compare/v1.0.0...HEAD)
+
+     ### Added
+     - New feature description
+
+     ### Fixed
+     - Bug fix description
+
+     ### Changed
+     - Change description
+     ```
+
    * Follow semantic versioning (`MAJOR.MINOR.PATCH`).
 
 4. Verify `composer.json` constraints (PHP version, dependencies, branch-alias if used).
@@ -48,28 +66,13 @@ Use annotated tags only. Never modify or re-push an existing tag.
 
 ## 3. Publish the GitHub Release
 
-1. Go to **Releases** → **New Release**.
-2. Select the pushed tag.
-3. Title it: `vX.Y.Z`.
-4. Paste the corresponding `CHANGELOG.md` section into the description.
-5. Add upgrade notes if the release includes breaking changes.
-6. Publish.
-7. (Optional but recommended) Add the release link to the bottom of `CHANGELOG.md` so the changelog contains a permalink for the release. Example:
+Create and publish the release using GitHub CLI (ensure `gh` is authenticated and the tag is pushed):
 
-```markdown
-[vX.Y.Z]: https://github.com/Maxiviper117/result-flow/releases/tag/vX.Y.Z
+```bash
+gh release create vX.Y.Z --title "vX.Y.Z" --notes "Paste release notes here (copy from the Unreleased section in CHANGELOG.md or use prepared notes). Include upgrade notes if the release includes breaking changes."
 ```
 
-   You can automate this step with a changelog updater GitHub Action (see `.github/workflows/update-changelog.yml`).
-
-**Note (automated flow):** You should not need to manually edit `CHANGELOG.md` after publishing a release. Instead:
-
-- Prepare the `Unreleased` section while developing (or put intended notes in the Release body when creating the GitHub Release).
-- Publish the GitHub Release with the version as the Release title (e.g. `v0.1.0`) and release notes in the Release body.
-
-The workflow at `.github/workflows/update-changelog.yml` will run on the `released` event, insert the release notes into `CHANGELOG.md`, and commit the updated changelog back to `main` automatically. Manual edits are only necessary to correct formatting or to add custom links that the updater didn't create.
-
-Alternatively, GitHub Actions will auto-generate a release when a tag matching `v*` is pushed.
+The workflow at `.github/workflows/update-changelog.yml` will automatically update `CHANGELOG.md` with the release notes, add the version heading, and commit the changes back to `main`. Manual edits to `CHANGELOG.md` are only necessary for formatting corrections or adding custom links.
 
 ---
 

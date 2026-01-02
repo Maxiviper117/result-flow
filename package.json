@@ -1,6 +1,6 @@
 {
   "name": "result-flow",
-  "version": "1.0.0",
+  "version": "0.1.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "docs:preview": "vitepress preview"
   },
   "keywords": [],
-  "author": "",
+  "author": "Maxiviper117",
   "license": "ISC",
   "packageManager": "pnpm@10.23.0",
   "devDependencies": {
