@@ -232,7 +232,7 @@ final class Result
      * Convert the Result to a debug-safe array (hides sensitive data).
      *
      * @param  callable(mixed): mixed|null  $sanitizer
-     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: string|null, meta: array<string,mixed>}
+     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: mixed, meta: mixed}
      */
     public function toDebugArray(?callable $sanitizer = null): array
     {
@@ -286,8 +286,8 @@ final class Result
 
         if (is_string($value)) {
             // Truncate very long strings (tokens, dumps) to avoid leaking full contents.
-            if ($truncateStrings && mb_strlen($value) > $max) {
-                return mb_substr($value, 0, $max).'…';
+            if ($truncateStrings && self::stringLength($value) > $max) {
+                return self::stringSlice($value, 0, $max).'…';
             }
 
             return $value;
@@ -481,7 +481,9 @@ final class Result
             return $this;
         }
 
-        $err = is_callable($error) ? $error($this->value, $this->meta) : $error;
+        $err = (is_callable($error) && ! is_string($error))
+            ? $error($this->value, $this->meta)
+            : $error;
 
         return self::fail($err, $this->meta);
     }
@@ -860,7 +862,7 @@ final class Result
             throw $err;
         }
 
-        throw new \RuntimeException(is_string($err) ? $err : json_encode($err));
+        throw new \RuntimeException(self::stringifyError($err));
     }
 
     // =========================================================================
@@ -886,7 +888,7 @@ final class Result
             try {
                 $out = $this->invokeStep($step, $current, $meta);
             } catch (Throwable $e) {
-                return self::fail($e, $meta + ['failed_step' => $this->stepName($step)]);
+                return self::fail($e, array_merge($meta, ['failed_step' => $this->stepName($step)]));
             }
 
             if ($out instanceof self) {
@@ -929,6 +931,29 @@ final class Result
     private function withMeta(array $meta): self
     {
         return new self($this->ok, $this->value, $this->error, $meta);
+    }
+
+    private static function stringLength(string $value): int
+    {
+        return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+    }
+
+    private static function stringSlice(string $value, int $start, int $length): string
+    {
+        return function_exists('mb_substr') ? mb_substr($value, $start, $length) : substr($value, $start, $length);
+    }
+
+    private static function stringifyError(mixed $error): string
+    {
+        if (is_string($error)) {
+            return $error;
+        }
+
+        try {
+            return json_encode($error, JSON_THROW_ON_ERROR);
+        } catch (Throwable) {
+            return var_export($error, true);
+        }
     }
 
     /**

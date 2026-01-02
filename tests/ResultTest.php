@@ -267,6 +267,18 @@ it('runChain handles arrays, exceptions, and value propagation', function () {
     expect($r3->meta())->toBe($meta);
 });
 
+it('overwrites failed_step metadata on failure', function () {
+    $result = Result::ok(1, ['failed_step' => 'previous'])
+        ->then([
+            function () {
+                throw new RuntimeException('boom');
+            },
+        ]);
+
+    expect($result->isFail())->toBeTrue();
+    expect($result->meta()['failed_step'])->toBe('Closure');
+});
+
 it('accepts callable array steps without splitting them', function () {
     $service = new class
     {
@@ -459,6 +471,14 @@ describe('ensure()', function () {
 
         expect($result->isFail())->toBeTrue();
         expect($result->error())->toBe('Value must be greater than 5');
+    });
+
+    it('treats string error as value, not callable', function () {
+        $result = Result::ok('value')
+            ->ensure(fn () => false, 'strlen');
+
+        expect($result->isFail())->toBeTrue();
+        expect($result->error())->toBe('strlen');
     });
 
     it('fails when predicate is false with callable error', function () {
@@ -782,6 +802,13 @@ describe('throwIfFail()', function () {
         $this->expectExceptionMessage('{"code":500,"message":"Server error"}');
 
         Result::fail(['code' => 500, 'message' => 'Server error'])->throwIfFail();
+    });
+
+    it('throws RuntimeException with fallback for non-encodable error', function () {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('INF');
+
+        Result::fail(INF)->throwIfFail();
     });
 });
 
