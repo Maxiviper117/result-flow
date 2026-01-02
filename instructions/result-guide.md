@@ -355,6 +355,7 @@ $result = Result::ok($user)
 - `$error`: Static error value or `fn(TSuccess $value, array $meta): TFailure`
 
 > **Note:** The predicate uses PHP's truthiness — any truthy value (including `1`, `"yes"`, non-empty arrays) passes the check. For explicit boolean logic, ensure your predicate returns a strict `true` or `false`.
+> **Note:** If `$error` is a string, it is treated as a value even if it matches a callable name.
 
 ---
 
@@ -1102,7 +1103,7 @@ All steps within `then()` and `otherwise()` are wrapped in try/catch:
 try {
     $out = $this->invokeStep($step, $current, $meta);
 } catch (Throwable $e) {
-    return self::fail($e, $meta + ['failed_step' => $this->stepName($step)]);
+    return self::fail($e, array_merge($meta, ['failed_step' => $this->stepName($step)]));
 }
 ```
 
@@ -1110,11 +1111,11 @@ This ensures:
 - Exceptions don't escape the chain
 - `onFailure()` handlers always run
 - The `failed_step` meta key identifies where the failure occurred. Typical values recorded by `stepName()` include:
-    - `closure` for anonymous / callable steps
+    - `Closure` for anonymous / callable steps
     - The class name for object steps (e.g. `App\Actions\MyAction`)
     - `ClassName::method` for [class, 'method'] step tuples
 
-> **Note:** The `failed_step` key uses array union (`$meta + ['failed_step' => ...]`), meaning the **first failure wins**. If a previous step already set `failed_step` in the metadata, it will be preserved. This ensures you always see where the chain originally failed.
+> **Note:** The `failed_step` key is overwritten on failure, so the **latest failure wins**. If a previous step already set `failed_step`, it will be replaced with the most recent failure context.
 
 > Note: The new `catchException()` and `matchException()` helpers sit on top of this behavior — they let you handle specific Throwable subclasses once the chain has converted exceptions to failures.
 
@@ -1311,7 +1312,7 @@ it('converts exceptions to failures', function () {
     
     expect($result->isFail())->toBeTrue();
     expect($result->error())->toBeInstanceOf(RuntimeException::class);
-    expect($result->meta()['failed_step'])->toBe('closure');
+    expect($result->meta()['failed_step'])->toBe('Closure');
 });
 ```
 
