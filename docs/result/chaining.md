@@ -34,6 +34,7 @@ $ready = Result::ok($order)
 ```
 
 If the predicate fails, `ensure()` returns `Result::fail($error, $meta)` while keeping the metadata untouched.
+If `$error` is a string, it is treated as a value even if it matches a callable name.
 
 ## Success-path chaining
 

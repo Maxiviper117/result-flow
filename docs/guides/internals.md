@@ -10,7 +10,7 @@ title: Internals
 
 1. Normalize the next step(s) into an array (single callable/object stays as one step).
 2. Invoke each step with `(currentValue, meta)`.
-3. If the step throws, return `Result::fail($exception, $meta + ['failed_step' => stepName])`.
+3. If the step throws, return `Result::fail($exception, array_merge($meta, ['failed_step' => stepName]))`.
 4. If the step returns a `Result`, propagate its metadata to subsequent steps. Short-circuit on failure.
 5. If the step returns a raw value, wrap it as `Result::ok($value, $meta)`.
 

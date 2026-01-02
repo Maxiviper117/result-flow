@@ -101,7 +101,7 @@ $result = Result::ok('x')
 
 expect($result->isFail())->toBeTrue();
 expect($result->error())->toBeInstanceOf(RuntimeException::class);
-expect($result->meta()['failed_step'])->toBe('closure');
+expect($result->meta()['failed_step'])->toBe('Closure');
 ```
 
 ## Running the Suite
