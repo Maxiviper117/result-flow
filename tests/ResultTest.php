@@ -200,6 +200,70 @@ it('otherwise chains failure into success', function () {
     expect($r->unwrap())->toBe('recovered');
 });
 
+describe('API serialization helpers', function () {
+    it('exports ok payloads to arrays and JSON', function () {
+        $result = Result::ok(['id' => 1], ['request_id' => 'abc']);
+
+        expect($result->toApiArray())->toBe([
+            'ok' => true,
+            'data' => ['id' => 1],
+            'meta' => ['request_id' => 'abc'],
+        ]);
+
+        expect(json_decode($result->toJson(), true))->toBe([
+            'ok' => true,
+            'data' => ['id' => 1],
+            'meta' => ['request_id' => 'abc'],
+        ]);
+    });
+
+    it('exports failures to arrays and JSON', function () {
+        $result = Result::fail('nope', ['status' => 422]);
+
+        expect($result->toApiArray())->toBe([
+            'ok' => false,
+            'error' => 'nope',
+            'meta' => ['status' => 422],
+        ]);
+
+        expect(json_decode($result->toJson(), true))->toBe([
+            'ok' => false,
+            'error' => 'nope',
+            'meta' => ['status' => 422],
+        ]);
+    });
+
+    it('builds RFC 7807 problem details for failures and keeps success payloads', function () {
+        $fail = Result::fail(new RuntimeException('Invalid thing'), [
+            'status' => 400,
+            'type' => 'https://example.com/errors/invalid-thing',
+        ]);
+
+        expect($fail->toProblemJson(asArray: true))->toBe([
+            'ok' => false,
+            'type' => 'https://example.com/errors/invalid-thing',
+            'title' => 'RuntimeException',
+            'detail' => 'Invalid thing',
+            'status' => 400,
+            'meta' => [
+                'status' => 400,
+                'type' => 'https://example.com/errors/invalid-thing',
+            ],
+        ]);
+
+        $ok = Result::ok('ready');
+
+        expect($ok->toProblemJson(asArray: true))->toBe([
+            'ok' => true,
+            'status' => 200,
+            'data' => 'ready',
+            'meta' => [],
+        ]);
+
+        expect(json_decode($fail->toProblemJson(), true)['title'])->toBe('RuntimeException');
+    });
+});
+
 it('then accepts objects with __invoke', function () {
     $obj = new class
     {
