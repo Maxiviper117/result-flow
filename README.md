@@ -54,7 +54,7 @@ return $result->match(
 
 ## Documentation
 
-The full guide, API reference, patterns, and testing notes live in [instructions/result-guide.md](instructions/result-guide.md).
+The full guide, API reference, patterns, and testing notes are available at [https://maxiviper117.github.io/result-flow/result/](https://maxiviper117.github.io/result-flow/result/).
 
 ## Contributing
 
