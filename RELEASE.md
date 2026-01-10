@@ -1,97 +1,55 @@
-Here is a clean, ready-to-drop `RELEASE.md` file you can put in any PHP package repo. It’s short, strict, and follows everything a Composer package maintainer actually needs.
+# Release Process
 
----
+This project uses [Google's Release Please](https://github.com/googleapis/release-please) to automate the release process. This automation handles version bumping, changelog generation, and creating GitHub releases based on **Conventional Commits**.
 
-# RELEASE.md
+## 1. Commit Messages
 
-This document describes the workflow for creating a new release of this package.
+All commits to the `main` branch **must** follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. This is crucial because `release-please` analyzes these messages to determine the next version number and generate the changelog.
 
----
+**Common Types:**
 
-## 1. Prepare the release
+*   `feat: ...` -> Triggers a **MINOR** version bump (e.g., `1.1.0` -> `1.2.0`).
+*   `fix: ...` -> Triggers a **PATCH** version bump (e.g., `1.1.0` -> `1.1.1`).
+*   `perf: ...` -> Triggers a **PATCH** version bump.
+*   `chore: ...` -> No release trigger (usually).
+*   `docs: ...` -> No release trigger (usually).
+*   `test: ...` -> No release trigger (usually).
+*   `refactor: ...` -> No release trigger (usually).
+*   `style: ...` -> No release trigger (usually).
+*   `ci: ...` -> No release trigger (usually).
 
-Before creating a tag:
+**Breaking Changes:**
 
-1. Ensure the latest PRs are merged into `main`.
+To trigger a **MAJOR** version bump (e.g., `1.0.0` -> `2.0.0`), append `!` to the type or include `BREAKING CHANGE:` in the footer.
 
-2. Confirm tests, static analysis, and coding standards pass:
+*   `feat!: remove deprecated API`
+*   `fix!: change return type of public method`
 
-   ```bash
-   composer test
-   composer phpstan
-   composer format
-   ```
+## 2. The Release Workflow
 
-3. Prepare release notes:
+The release process is fully automated via GitHub Actions:
 
-   * Determine the next version number based on the latest tag (follow semantic versioning: `MAJOR.MINOR.PATCH`).
-     - Check the current latest version: `git describe --tags --abbrev=0` (or `gh release list --limit 1`).
-   * Ensure `CHANGELOG.md` has an **Unreleased** section with the changes for this release (to be used by the automated workflow), or prepare the notes to paste into the GitHub release description.
-   * Use bullet points for each change, grouped under categories like `### Added`, `### Fixed`, `### Changed`, etc., following the "Keep a Changelog" format.
-   * Example:
+1.  **Work as usual**: Create branches, open PRs, and merge them into `main`. Ensure commit messages are "conventional".
+2.  **Release PR**: When changes are merged to `main`, the `release-please` action runs. If it detects releasable changes (feat, fix, etc.), it will **automatically open (or update) a Pull Request** titled something like `chore(main): release 1.x.x`.
+    *   This PR contains the updated `CHANGELOG.md` and the version bump in `.release-please-manifest.json` (and `composer.json` if configured).
+3.  **Review**: Review the Release PR. You can wait for more features to be merged; the PR will update automatically.
+4.  **Merge**: When you are ready to release, **merge the Release PR**.
+5.  **Release**: Once merged, the action will automatically:
+    *   Create a new GitHub Release.
+    *   Create a git tag (e.g., `v1.2.0`).
+    *   Publish the release notes.
 
-     ```markdown
-     ## [Unreleased](https://github.com/Maxiviper117/result-flow/compare/v1.0.0...HEAD)
+## 3. Manual Triggers (Force Release)
 
-     ### Added
-     - New feature description
+If `release-please` is not picking up a change or you need to force a release, you can:
 
-     ### Fixed
-     - Bug fix description
-
-     ### Changed
-     - Change description
-     ```
-
-   * Follow semantic versioning (`MAJOR.MINOR.PATCH`).
-
-4. Verify `composer.json` constraints (PHP version, dependencies, branch-alias if used).
-
----
-
-## 2. Create the version tag
-
-Tags **must** be created on the `main` branch **AFTER** merging:
-
-```bash
-git checkout main
-git pull
-git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push origin vX.Y.Z
-```
-
-Use annotated tags only. Never modify or re-push an existing tag.
-
----
-
-## 3. Publish the GitHub Release
-
-Create and publish the release using GitHub CLI (ensure `gh` is authenticated and the tag is pushed):
-
-```bash
-gh release create vX.Y.Z --title "vX.Y.Z" --notes "Paste release notes here (copy from the Unreleased section in CHANGELOG.md or use prepared notes). Include upgrade notes if the release includes breaking changes."
-```
-
-The workflow at `.github/workflows/update-changelog.yml` will automatically update `CHANGELOG.md` with the release notes, add the version heading, and commit the changes back to `main`. Manual edits to `CHANGELOG.md` are only necessary for formatting corrections or adding custom links.
-
----
+1.  Run the workflow manually from the "Actions" tab if configured with `workflow_dispatch`.
+2.  Or, create an empty commit with a conventional message to trigger the desired bump:
+    ```bash
+    git commit --allow-empty -m "chore: release 1.0.1" -m "Release-As: 1.0.1"
+    git push
+    ```
 
 ## 4. Packagist
 
-If the package is on Packagist:
-
-* Versions update automatically when new Git tags are pushed.
-* Use the Packagist “Update” button only if the version doesn't appear.
-
----
-
-## 5. Breaking changes
-
-For major versions:
-
-* Document changes in `UPGRADE-X.Y.md`.
-* Deprecate features in the previous minor before removing them.
-* Avoid mixing unrelated breaking changes in the same release.
-
----
-
+Packagist is configured to automatically update when a new tag is pushed to the repository. No manual action is required after the Release PR is merged.
