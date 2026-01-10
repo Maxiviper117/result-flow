@@ -39,6 +39,7 @@ export default defineConfig({
           { text: 'Constructing & Combining', link: '/result/constructing' },
           { text: 'Chaining & Transformations', link: '/result/chaining' },
           { text: 'Matching & Unwrapping', link: '/result/matching-unwrapping' },
+          { text: 'Transformers (JSON/XML)', link: '/result/transformers' },
           { text: 'Metadata & Debugging', link: '/result/metadata-debugging' },
         ],
       },
