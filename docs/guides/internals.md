@@ -6,7 +6,7 @@ title: Internals
 
 ## Chain Execution
 
-`then()` and `otherwise()` both funnel into `runChain()`:
+`then()` and `otherwise()` both delegate to `Support/ResultPipeline::run()`:
 
 1. Normalize the next step(s) into an array (single callable/object stays as one step).
 2. Invoke each step with `(currentValue, meta)`.
@@ -16,7 +16,7 @@ title: Internals
 
 ## Step Resolution Priority
 
-`invokeStep()` chooses how to call the step:
+`Support/ResultPipeline::invokeStep()` chooses how to call the step:
 
 1. `is_callable($step)` → `$step($arg, $meta)` (includes closures and `__invoke`).
 2. `handle($arg, $meta)` if it exists.
