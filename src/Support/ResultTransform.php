@@ -1,0 +1,101 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Maxiviper117\ResultFlow\Support;
+
+use Maxiviper117\ResultFlow\Result;
+
+/**
+ * @internal
+ */
+final class ResultTransform
+{
+    /**
+     * @template TSuccess
+     * @template TFailure
+     * @template U
+     *
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  callable(TSuccess, array<string,mixed>): U  $map
+     * @return Result<U, TFailure>
+     */
+    public static function map(Result $result, callable $map): Result
+    {
+        if ($result->isFail()) {
+            /** @var Result<U, TFailure> $result */
+            return $result;
+        }
+
+        return Result::ok($map($result->value(), $result->meta()), $result->meta());
+    }
+
+    /**
+     * @template TSuccess
+     * @template TFailure
+     * @template E
+     *
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  callable(TFailure, array<string,mixed>): E  $map
+     * @return Result<TSuccess, E>
+     */
+    public static function mapError(Result $result, callable $map): Result
+    {
+        if ($result->isOk()) {
+            /** @var Result<TSuccess, E> $result */
+            return $result;
+        }
+
+        return Result::fail($map($result->error(), $result->meta()), $result->meta());
+    }
+
+    /**
+     * @template TSuccess
+     * @template TFailure
+     *
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  callable(TSuccess, array<string,mixed>): bool  $predicate
+     * @param  TFailure|callable(TSuccess, array<string,mixed>): TFailure  $error
+     * @return Result<TSuccess, TFailure>
+     */
+    public static function ensure(Result $result, callable $predicate, mixed $error): Result
+    {
+        if ($result->isFail()) {
+            return $result;
+        }
+
+        if ($predicate($result->value(), $result->meta())) {
+            return $result;
+        }
+
+        $err = (is_callable($error) && ! is_string($error))
+            ? $error($result->value(), $result->meta())
+            : $error;
+
+        return Result::fail($err, $result->meta());
+    }
+
+    /**
+     * @template TSuccess
+     * @template TFailure
+     * @template U
+     *
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  callable(TFailure, array<string,mixed>): U  $fn
+     * @return Result<TSuccess|U, never>
+     */
+    public static function recover(Result $result, callable $fn): Result
+    {
+        if ($result->isOk()) {
+            $ok = Result::ok($result->value(), $result->meta());
+
+            /** @var Result<TSuccess|U, never> $ok */
+            return $ok;
+        }
+
+        $ok = Result::ok($fn($result->error(), $result->meta()), $result->meta());
+
+        /** @var Result<TSuccess|U, never> $ok */
+        return $ok;
+    }
+}
