@@ -2,7 +2,7 @@
 
 use Maxiviper117\ResultFlow\Result;
 
-describe('Result Transformers', function () {
+describe('Result Output', function () {
 
     it('toJson returns valid JSON string for success result', function () {
         $result = Result::ok(['user_id' => 123], ['timestamp' => 1000]);
