@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.0](https://github.com/Maxiviper117/result-flow/compare/v1.3.0...v1.4.0) (2026-01-11)
+
+
+### Features
+
+* slim down Result responsibilities ([#30](https://github.com/Maxiviper117/result-flow/issues/30)) ([1fd66a7](https://github.com/Maxiviper117/result-flow/commit/1fd66a73a5aa5585a22b28400888dd4ac7dfc06f))
+
+
+### Bug Fixes
+
+* Correct structure of release-please configuration file ([17898b1](https://github.com/Maxiviper117/result-flow/commit/17898b1bb9607873e664a997adb1552e87b2ae85))
+
+
+### Miscellaneous Chores
+
+* enhance test scripts for parallel execution and coverage ([38ddb59](https://github.com/Maxiviper117/result-flow/commit/38ddb594406f6cc84198cf62d1f7d6a4ebb822b0))
+
 ## [1.3.0](https://github.com/Maxiviper117/result-flow/compare/result-flow-v1.2.0...result-flow-v1.3.0) (2026-01-10)
 
 
