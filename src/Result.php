@@ -866,6 +866,63 @@ final class Result
     }
 
     // =========================================================================
+    // Output Transformers
+    // =========================================================================
+
+    /**
+     * Convert the result to JSON.
+     *
+     * @param  int  $options  JSON encoding options
+     */
+    public function toJson(int $options = 0): string
+    {
+        return json_encode($this->toArray(), $options | JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Convert the result to XML.
+     */
+    public function toXml(string $rootElement = 'result'): string
+    {
+        $xml = new \SimpleXMLElement("<$rootElement/>");
+        $this->arrayToXml($this->toArray(), $xml);
+
+        return (string) $xml->asXML();
+    }
+
+    /**
+     * Convert the result to an HTTP response (Laravel-compatible if available).
+     */
+    public function toResponse(): mixed
+    {
+        $payload = $this->toArray();
+        $status = $this->ok ? 200 : 400;
+
+        if (function_exists('response')) {
+            return response()->json($payload, $status);
+        }
+
+        return [
+            'status' => $status,
+            'headers' => ['Content-Type' => 'application/json'],
+            'body' => json_encode($payload),
+        ];
+    }
+
+    private function arrayToXml(array $data, \SimpleXMLElement $xml): void
+    {
+        foreach ($data as $key => $value) {
+            $key = is_numeric($key) ? "item$key" : $key;
+            if (is_array($value)) {
+                $subnode = $xml->addChild($key);
+                $this->arrayToXml($value, $subnode);
+            } else {
+                $xml->addChild($key, htmlspecialchars((string) $value));
+            }
+        }
+    }
+
+    // =========================================================================
     // Internal Pipeline Execution
     // =========================================================================
 
