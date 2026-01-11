@@ -13,12 +13,12 @@ $command
 Remove-Item Env:\\XDEBUG_MODE -ErrorAction SilentlyContinue
 PS;
 
-    $tmp = sys_get_temp_dir() . '\\pest-coverage.ps1';
+    $tmp = sys_get_temp_dir().'\\pest-coverage.ps1';
     file_put_contents($tmp, $psScript);
 
-    $fullCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File ' . escapeshellarg($tmp);
+    $fullCommand = 'powershell -NoProfile -ExecutionPolicy Bypass -File '.escapeshellarg($tmp);
 } else {
-    $fullCommand = 'XDEBUG_MODE=coverage ' . $command;
+    $fullCommand = 'XDEBUG_MODE=coverage '.$command;
 }
 
 passthru($fullCommand, $exitCode);
