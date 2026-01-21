@@ -92,16 +92,11 @@ final class ResultDebug
      */
     private static function matchThrowableLogLevel(Throwable $error, array $map): ?string
     {
-        static $classCache = [];
+        $parents = class_parents($error) ?: [];
+        $implements = class_implements($error) ?: [];
+        $classes = array_merge([$error::class], $parents, $implements);
 
-        $class = $error::class;
-        if (! isset($classCache[$class])) {
-            $parents = class_parents($error) ?: [];
-            $implements = class_implements($error) ?: [];
-            $classCache[$class] = array_merge([$class], $parents, $implements);
-        }
-
-        foreach ($classCache[$class] as $name) {
+        foreach ($classes as $name) {
             if (array_key_exists($name, $map) && is_string($map[$name])) {
                 return $map[$name];
             }
@@ -128,6 +123,7 @@ final class ResultDebug
         }
 
         if (is_string($key)) {
+            // Support numeric strings (including signed) since PHP casts them to int keys.
             $trimmed = ltrim($key, '+-');
             if ($trimmed !== '' && ctype_digit($trimmed)) {
                 $intKey = (int) $key;
