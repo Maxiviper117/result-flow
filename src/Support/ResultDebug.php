@@ -92,17 +92,23 @@ final class ResultDebug
      */
     private static function matchThrowableLogLevel(Throwable $error, array $map): ?string
     {
-        $parents = class_parents($error);
-        if ($parents === false) {
-            $parents = [];
-        }
-        $implements = class_implements($error);
-        if ($implements === false) {
-            $implements = [];
-        }
-        $classes = array_merge([$error::class], $parents, $implements);
+        static $classCache = [];
 
-        foreach ($classes as $name) {
+        $class = $error::class;
+        if (! isset($classCache[$class])) {
+            $parents = class_parents($error);
+            if ($parents === false) {
+                $parents = [];
+            }
+            $implements = class_implements($error);
+            if ($implements === false) {
+                $implements = [];
+            }
+            // Lookup order: exact class, then parents, then interfaces.
+            $classCache[$class] = array_merge([$class], $parents, $implements);
+        }
+
+        foreach ($classCache[$class] as $name) {
             if (array_key_exists($name, $map) && is_string($map[$name])) {
                 return $map[$name];
             }
