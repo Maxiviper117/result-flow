@@ -4,7 +4,7 @@ use Maxiviper117\ResultFlow\Result;
 use RuntimeException;
 use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
-describe('toDebugArray()', function () {
+describe('toDebugArray sanitization', function () {
     it('sanitizes sensitive keys and truncates long strings with defaults', function () {
         ConfigStub::reset();
 
@@ -111,7 +111,7 @@ describe('toDebugArray()', function () {
     });
 });
 
-describe('toDebugArray()', function () {
+describe('toDebugArray output', function () {
     it('returns debug-safe array for success', function () {
         $result = Result::ok(['sensitive' => 'data'], ['request_id' => 'abc']);
         $debug = $result->toDebugArray();

@@ -92,8 +92,14 @@ final class ResultDebug
      */
     private static function matchThrowableLogLevel(Throwable $error, array $map): ?string
     {
-        $parents = class_parents($error) ?: [];
-        $implements = class_implements($error) ?: [];
+        $parents = class_parents($error);
+        if ($parents === false) {
+            $parents = [];
+        }
+        $implements = class_implements($error);
+        if ($implements === false) {
+            $implements = [];
+        }
         $classes = array_merge([$error::class], $parents, $implements);
 
         foreach ($classes as $name) {
@@ -110,22 +116,17 @@ final class ResultDebug
      */
     private static function matchLogLevelKey(array $map, int|string $key): ?string
     {
-        if (array_key_exists($key, $map) && is_string($map[$key])) {
-            return $map[$key];
-        }
-
+        $keysToCheck = [$key];
         // Handle numeric string keys that may be cast to ints in PHP arrays.
         if (is_int($key)) {
-            $stringKey = (string) $key;
-            if (array_key_exists($stringKey, $map) && is_string($map[$stringKey])) {
-                return $map[$stringKey];
-            }
+            $keysToCheck[] = (string) $key;
+        } elseif (is_string($key) && ctype_digit($key)) {
+            $keysToCheck[] = (int) $key;
         }
 
-        if (is_string($key) && ctype_digit($key)) {
-            $intKey = (int) $key;
-            if (array_key_exists($intKey, $map) && is_string($map[$intKey])) {
-                return $map[$intKey];
+        foreach ($keysToCheck as $lookupKey) {
+            if (array_key_exists($lookupKey, $map) && is_string($map[$lookupKey])) {
+                return $map[$lookupKey];
             }
         }
 
