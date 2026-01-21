@@ -92,7 +92,7 @@ final class ResultDebug
      */
     private static function matchThrowableLogLevel(Throwable $error, array $map): ?string
     {
-        $classes = array_merge([$error::class], array_values(class_parents($error)), array_values(class_implements($error)));
+        $classes = array_merge([$error::class], class_parents($error), class_implements($error));
 
         foreach ($classes as $class) {
             if (array_key_exists($class, $map) && is_string($map[$class])) {
@@ -112,6 +112,7 @@ final class ResultDebug
             return $map[$key];
         }
 
+        // Handle numeric string keys that may be cast to ints in PHP arrays.
         if (is_int($key)) {
             $stringKey = (string) $key;
             if (array_key_exists($stringKey, $map) && is_string($map[$stringKey])) {
