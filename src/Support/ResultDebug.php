@@ -92,13 +92,18 @@ final class ResultDebug
      */
     private static function matchThrowableLogLevel(Throwable $error, array $map): ?string
     {
-        $parents = class_parents($error) ?: [];
-        $implements = class_implements($error) ?: [];
-        $classes = array_merge([$error::class], $parents, $implements);
+        static $classCache = [];
 
-        foreach ($classes as $class) {
-            if (array_key_exists($class, $map) && is_string($map[$class])) {
-                return $map[$class];
+        $class = $error::class;
+        if (! isset($classCache[$class])) {
+            $parents = class_parents($error) ?: [];
+            $implements = class_implements($error) ?: [];
+            $classCache[$class] = array_merge([$class], $parents, $implements);
+        }
+
+        foreach ($classCache[$class] as $name) {
+            if (array_key_exists($name, $map) && is_string($map[$name])) {
+                return $map[$name];
             }
         }
 
@@ -122,10 +127,13 @@ final class ResultDebug
             }
         }
 
-        if (is_string($key) && preg_match('/^-?\d+$/', $key) === 1) {
-            $intKey = (int) $key;
-            if (array_key_exists($intKey, $map) && is_string($map[$intKey])) {
-                return $map[$intKey];
+        if (is_string($key)) {
+            $trimmed = ltrim($key, '+-');
+            if ($trimmed !== '' && ctype_digit($trimmed)) {
+                $intKey = (int) $key;
+                if (array_key_exists($intKey, $map) && is_string($map[$intKey])) {
+                    return $map[$intKey];
+                }
             }
         }
 
