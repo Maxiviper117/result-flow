@@ -1,6 +1,7 @@
 <?php
 
 use Maxiviper117\ResultFlow\Result;
+use RuntimeException;
 use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
 describe('toDebugArray()', function () {
