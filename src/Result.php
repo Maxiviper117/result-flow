@@ -236,7 +236,7 @@ final class Result
      * Convert the Result to a debug-safe array (hides sensitive data).
      *
      * @param  callable(mixed): mixed|null  $sanitizer
-     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: mixed, meta: mixed}
+     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: mixed, log_level: string|null, meta: mixed}
      */
     public function toDebugArray(?callable $sanitizer = null): array
     {

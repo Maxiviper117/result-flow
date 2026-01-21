@@ -29,13 +29,13 @@ use Maxiviper117\ResultFlow\Result;
 
 ### Laravel config publish (optional)
 
-The package is framework-agnostic, but if you're using Laravel the service provider is auto-discovered. Publish the config to override debug sanitization settings (redaction token, sensitive keys, max string length):
+The package is framework-agnostic, but if you're using Laravel the service provider is auto-discovered. Publish the config to override debug sanitization settings (redaction token, sensitive keys, max string length, log level mapping):
 
 ```bash
 php artisan vendor:publish --tag=result-flow-config
 ```
 
-Edit `config/result-flow.php` to match your policies. Keys include `enabled`, `redaction`, `sensitive_keys`, `max_string_length`, and `truncate_strings`. `Result::toDebugArray()` will pick up these values via the `config()` helper when present.
+Edit `config/result-flow.php` to match your policies. Keys include `enabled`, `redaction`, `sensitive_keys`, `max_string_length`, `truncate_strings`, `log_level_map`, and `default_log_level`. `Result::toDebugArray()` will pick up these values via the `config()` helper when present.
 
 ## Quick Start
 
@@ -69,4 +69,3 @@ composer test
 ## License
 
 The MIT License (MIT). Please see [LICENSE.md](LICENSE.md) for more information.
-

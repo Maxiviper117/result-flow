@@ -22,7 +22,7 @@ All methods live on `Maxiviper117\ResultFlow\Result`. Generic template annotatio
 - `error(): mixed` — error payload or `null`.
 - `meta(): array<string,mixed>` — metadata.
 - `toArray(): array{ok, value, error, meta}` — raw representation.
-- `toDebugArray(?callable $sanitizer = null): array{ok, value_type, error_type, error_message, meta}` — safe, sanitized representation.
+- `toDebugArray(?callable $sanitizer = null): array{ok, value_type, error_type, error_message, log_level, meta}` — safe, sanitized representation.
 
 ## Transformations
 

@@ -77,6 +77,37 @@ describe('toDebugArray()', function () {
         expect($debug['error_message'])->toBe('helloworld'); // full length
         expect($debug['meta']['token'])->toBe('abcdefghij'); // not truncated
     });
+
+    it('maps exception classes to log levels via config', function () {
+        ConfigStub::set('result-flow.debug', [
+            'log_level_map' => [
+                RuntimeException::class => 'critical',
+            ],
+        ]);
+
+        $result = Result::fail(new RuntimeException('Boom'));
+        $debug = $result->toDebugArray();
+
+        expect($debug['log_level'])->toBe('critical');
+    });
+
+    it('maps error codes and falls back to default log level', function () {
+        ConfigStub::set('result-flow.debug', [
+            'log_level_map' => [
+                404 => 'notice',
+                'E_TIMEOUT' => 'warning',
+            ],
+            'default_log_level' => 'error',
+        ]);
+
+        $codeResult = Result::fail(['code' => 404]);
+        $stringResult = Result::fail('E_TIMEOUT');
+        $fallbackResult = Result::fail('E_UNKNOWN');
+
+        expect($codeResult->toDebugArray()['log_level'])->toBe('notice');
+        expect($stringResult->toDebugArray()['log_level'])->toBe('warning');
+        expect($fallbackResult->toDebugArray()['log_level'])->toBe('error');
+    });
 });
 
 describe('toDebugArray()', function () {
