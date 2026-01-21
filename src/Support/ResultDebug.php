@@ -92,7 +92,9 @@ final class ResultDebug
      */
     private static function matchThrowableLogLevel(Throwable $error, array $map): ?string
     {
-        $classes = array_merge([$error::class], class_parents($error), class_implements($error));
+        $parents = class_parents($error) ?: [];
+        $implements = class_implements($error) ?: [];
+        $classes = array_merge([$error::class], $parents, $implements);
 
         foreach ($classes as $class) {
             if (array_key_exists($class, $map) && is_string($map[$class])) {
@@ -117,6 +119,13 @@ final class ResultDebug
             $stringKey = (string) $key;
             if (array_key_exists($stringKey, $map) && is_string($map[$stringKey])) {
                 return $map[$stringKey];
+            }
+        }
+
+        if (is_string($key) && preg_match('/^-?\d+$/', $key) === 1) {
+            $intKey = (int) $key;
+            if (array_key_exists($intKey, $map) && is_string($map[$intKey])) {
+                return $map[$intKey];
             }
         }
 
