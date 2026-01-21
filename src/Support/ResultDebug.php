@@ -122,14 +122,10 @@ final class ResultDebug
             }
         }
 
-        if (is_string($key)) {
-            // Support numeric strings (including signed) since PHP casts them to int keys.
-            $trimmed = ltrim($key, '+-');
-            if ($trimmed !== '' && ctype_digit($trimmed)) {
-                $intKey = (int) $key;
-                if (array_key_exists($intKey, $map) && is_string($map[$intKey])) {
-                    return $map[$intKey];
-                }
+        if (is_string($key) && ctype_digit($key)) {
+            $intKey = (int) $key;
+            if (array_key_exists($intKey, $map) && is_string($map[$intKey])) {
+                return $map[$intKey];
             }
         }
 
@@ -203,7 +199,7 @@ final class ResultDebug
     private static function debugConfig(): array
     {
         if (function_exists('config')) {
-            /** @var array{redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int}|null $config */
+            /** @var array{redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, log_level_map?: array<int|string,string>, default_log_level?: string|null}|null $config */
             $config = config('result-flow.debug');
 
             if (is_array($config)) {
