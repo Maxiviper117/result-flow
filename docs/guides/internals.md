@@ -70,7 +70,7 @@ Common transformations:
 
 `toDebugArray()` uses a built-in sanitizer that:
 
-- Redacts values whose keys contain sensitive substrings (`password`, `token`, `api_key`, `ssn`, `card`, etc.).
+- Redacts values whose keys match configured sensitive patterns (supports glob patterns `*` and `?`; plain words remain substring matches) such as `password`, `token`, `api_key`, `ssn`, `card`, etc.
 - Optionally truncates long strings (`max_string_length`, default 200).
 - Accepts a custom sanitizer callable to override the defaults.
 - Reads overrides from Laravel's `config('result-flow.debug')` when available.

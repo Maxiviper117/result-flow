@@ -62,15 +62,8 @@ final class ResultDebug
         if (is_array($value)) {
             $out = [];
             foreach ($value as $k => $v) {
-                $lowerKey = is_string($k) ? strtolower($k) : '';
-                $isSensitive = false;
-                foreach ($sensitiveKeys as $s) {
-                    if ($s !== '' && str_contains($lowerKey, $s)) {
-                        $isSensitive = true;
-                        break;
-                    }
-                }
-                if ($isSensitive) {
+                // Only string keys are considered for sensitive matching.
+                if (is_string($k) && self::matchesSensitiveKey($k, $sensitiveKeys)) {
                     $out[$k] = $redaction;
                 } else {
                     $out[$k] = self::defaultSanitizer($v);
@@ -109,6 +102,44 @@ final class ResultDebug
         }
 
         return [];
+    }
+
+    private static function matchesSensitiveKey(string $key, array $patterns): bool
+    {
+        // Cache compiled regexes per pattern list to avoid repeated compilation.
+        static $cache = [];
+
+        if ($key === '') {
+            return false;
+        }
+
+        $cacheKey = sha1(serialize($patterns));
+
+        if (! isset($cache[$cacheKey])) {
+            $regexes = [];
+            foreach ($patterns as $p) {
+                if (! is_string($p) || $p === '') {
+                    continue;
+                }
+                $hasGlob = strpbrk($p, '*?') !== false;
+                $pattern = $hasGlob ? $p : '*'.$p.'*';
+                $escaped = preg_quote($pattern, '/');
+                $regex = '/^'.str_replace(['\\*', '\\?'], ['.*', '.'], $escaped).'$/i';
+                $regexes[] = $regex;
+            }
+            $cache[$cacheKey] = $regexes;
+        }
+
+        foreach ($cache[$cacheKey] as $regex) {
+            if ($regex === '') {
+                continue;
+            }
+            if (preg_match($regex, $key) === 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function stringLength(string $value): int

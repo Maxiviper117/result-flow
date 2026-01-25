@@ -58,7 +58,7 @@ $result = Result::ok($payload)
 
 ### `toDebugArray()` for safe logging
 
-`toDebugArray()` hides sensitive data using a sanitizer. By default, it redacts common keys (`password`, `token`, `authorization`, etc.) and truncates long strings. You can override the sanitizer or configure defaults via Laravel's `config('result-flow.debug')` if available.
+`toDebugArray()` hides sensitive data using a sanitizer. By default, it redacts common keys (`password`, `token`, `authorization`, etc.) and truncates long strings. The `sensitive_keys` configuration supports glob-style patterns using `*` (matches any sequence) and `?` (matches any single character); plain words are treated as substring matches for backward compatibility. You can override the sanitizer or configure defaults via Laravel's `config('result-flow.debug')` if available.
 
 ```php
 $config = [

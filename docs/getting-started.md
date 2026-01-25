@@ -27,7 +27,7 @@ return [
     'debug' => [
         'enabled' => true,
         'redaction' => '***REDACTED***',
-        'sensitive_keys' => ['password', 'token', 'ssn', 'card'],
+        'sensitive_keys' => ['password', 'token', 'ssn', 'card'], // supports glob patterns '*' and '?'
         'max_string_length' => 200,
         'truncate_strings' => true,
     ],
