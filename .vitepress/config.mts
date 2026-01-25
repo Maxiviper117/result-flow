@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   srcDir: "docs",
   base: "/result-flow/",
-  
+
   title: "Result Flow",
   description: "A lightweight, type-safe Result monad for PHP",
   themeConfig: {
