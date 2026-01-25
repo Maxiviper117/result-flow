@@ -110,7 +110,7 @@ final class ResultMatch
             return Result::ok($out, $result->meta());
         }
 
-        /** @var Result<TSuccess, UFailure> $result */
+        /** @var Result<TSuccess, UFailure> $result @phpstan-ignore varTag.nativeType */
         return $result;
     }
 }
