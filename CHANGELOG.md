@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/Maxiviper117/result-flow/compare/v1.4.0...v1.4.1) (2026-01-25)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dependabot/fetch-metadata from 2.4.0 to 2.5.0 ([#32](https://github.com/Maxiviper117/result-flow/issues/32)) ([cc69579](https://github.com/Maxiviper117/result-flow/commit/cc69579b0fca9430bbe8f998502d267803b3d8df))
+
 ## [1.4.0](https://github.com/Maxiviper117/result-flow/compare/v1.3.0...v1.4.0) (2026-01-11)
 
 
