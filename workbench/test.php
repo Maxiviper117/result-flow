@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 require __DIR__.'/../vendor/autoload.php';
 
@@ -16,6 +17,7 @@ if (! function_exists('config')) {
                 'truncate_strings' => true,
             ];
         }
+
         return $default;
     }
 }
