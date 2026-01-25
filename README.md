@@ -35,7 +35,7 @@ The package is framework-agnostic, but if you're using Laravel the service provi
 php artisan vendor:publish --tag=result-flow-config
 ```
 
-Edit `config/result-flow.php` to match your policies. Keys include `enabled`, `redaction`, `sensitive_keys`, `max_string_length`, and `truncate_strings`. `Result::toDebugArray()` will pick up these values via the `config()` helper when present.
+Edit `config/result-flow.php` to match your policies. The `sensitive_keys` option supports glob-style patterns (e.g., `*token`, `api_*`, `?id`) and is case-insensitive. `Result::toDebugArray()` will pick up these values via the `config()` helper when present.
 
 ## Quick Start
 
