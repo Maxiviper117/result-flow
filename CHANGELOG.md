@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.5.0](https://github.com/Maxiviper117/result-flow/compare/v1.4.0...v1.5.0) (2026-01-25)
+
+
+### Features
+
+* Add glob pattern support for sensitive keys and update docs ([#35](https://github.com/Maxiviper117/result-flow/issues/35)) ([d83d70e](https://github.com/Maxiviper117/result-flow/commit/d83d70eaa5d1cb70806d83e1c7c1fa39ec1f02b4))
+* add sanitization and safety guide, update documentation for sensitive data handling ([d83d70e](https://github.com/Maxiviper117/result-flow/commit/d83d70eaa5d1cb70806d83e1c7c1fa39ec1f02b4))
+* add VitePress skill documentation for inspection and operation ([d83d70e](https://github.com/Maxiviper117/result-flow/commit/d83d70eaa5d1cb70806d83e1c7c1fa39ec1f02b4))
+
+
+### Bug Fixes
+
+* clarify sensitive_keys option in configuration instructions ([d83d70e](https://github.com/Maxiviper117/result-flow/commit/d83d70eaa5d1cb70806d83e1c7c1fa39ec1f02b4))
+* remove unnecessary whitespace in VitePress config ([d83d70e](https://github.com/Maxiviper117/result-flow/commit/d83d70eaa5d1cb70806d83e1c7c1fa39ec1f02b4))
+* update redaction string and improve formatting in test output ([d83d70e](https://github.com/Maxiviper117/result-flow/commit/d83d70eaa5d1cb70806d83e1c7c1fa39ec1f02b4))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump dependabot/fetch-metadata from 2.4.0 to 2.5.0 ([#32](https://github.com/Maxiviper117/result-flow/issues/32)) ([cc69579](https://github.com/Maxiviper117/result-flow/commit/cc69579b0fca9430bbe8f998502d267803b3d8df))
+
 ## [1.4.0](https://github.com/Maxiviper117/result-flow/compare/v1.3.0...v1.4.0) (2026-01-11)
 
 
