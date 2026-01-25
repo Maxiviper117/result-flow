@@ -1,8 +1,8 @@
 <?php
 
 use Maxiviper117\ResultFlow\Result;
-use RuntimeException;
 use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
+use RuntimeException;
 
 describe('toDebugArray sanitization', function () {
     it('sanitizes sensitive keys and truncates long strings with defaults', function () {
