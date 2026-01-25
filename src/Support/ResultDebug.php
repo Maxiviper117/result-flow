@@ -14,13 +14,14 @@ final class ResultDebug
 {
     /**
      * @param  callable(mixed): mixed|null  $sanitizer
-     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: mixed, meta: mixed}
+     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: mixed, log_level: string|null, meta: mixed}
      */
     public static function toDebugArray(Result $result, ?callable $sanitizer = null): array
     {
         $sanitizer = $sanitizer ?? [self::class, 'defaultSanitizer'];
         $ok = $result->isOk();
         $error = $result->error();
+        $logLevel = ! $ok ? self::resolveLogLevel($error) : null;
 
         return [
             'ok' => $ok,
@@ -29,8 +30,113 @@ final class ResultDebug
             'error_message' => ! $ok && $error instanceof Throwable
                 ? $sanitizer($error->getMessage())
                 : (! $ok && is_string($error) ? $sanitizer($error) : null),
+            'log_level' => $logLevel,
             'meta' => $sanitizer($result->meta()),
         ];
+    }
+
+    private static function resolveLogLevel(mixed $error): ?string
+    {
+        $debugConfig = self::debugConfig();
+        $map = is_array($debugConfig['log_level_map'] ?? null) ? $debugConfig['log_level_map'] : [];
+        $default = $debugConfig['default_log_level'] ?? 'error';
+
+        $level = self::findLogLevel($error, $map);
+
+        if ($level !== null) {
+            return $level;
+        }
+
+        return is_string($default) ? $default : null;
+    }
+
+    /**
+     * @param  array<int|string,string>  $map
+     */
+    private static function findLogLevel(mixed $error, array $map): ?string
+    {
+        if ($error instanceof Throwable) {
+            $level = self::matchThrowableLogLevel($error, $map);
+            if ($level !== null) {
+                return $level;
+            }
+
+            $code = $error->getCode();
+            if (is_int($code) || is_string($code)) {
+                $level = self::matchLogLevelKey($map, $code);
+                if ($level !== null) {
+                    return $level;
+                }
+            }
+        }
+
+        if (is_array($error) && array_key_exists('code', $error)) {
+            $code = $error['code'];
+            if (is_int($code) || is_string($code)) {
+                $level = self::matchLogLevelKey($map, $code);
+                if ($level !== null) {
+                    return $level;
+                }
+            }
+        }
+
+        if (is_int($error) || is_string($error)) {
+            return self::matchLogLevelKey($map, $error);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<int|string,string>  $map
+     */
+    private static function matchThrowableLogLevel(Throwable $error, array $map): ?string
+    {
+        static $classCache = [];
+
+        $class = $error::class;
+        if (! isset($classCache[$class])) {
+            $parents = class_parents($error);
+            if ($parents === false) {
+                $parents = [];
+            }
+            $implements = class_implements($error);
+            if ($implements === false) {
+                $implements = [];
+            }
+            // Lookup order: exact class, then parents, then interfaces.
+            $classCache[$class] = array_merge([$class], $parents, $implements);
+        }
+
+        foreach ($classCache[$class] as $name) {
+            if (array_key_exists($name, $map) && is_string($map[$name])) {
+                return $map[$name];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<int|string,string>  $map
+     */
+    private static function matchLogLevelKey(array $map, int|string $key): ?string
+    {
+        $keysToCheck = [$key];
+        // Handle numeric string keys that may be cast to ints in PHP arrays.
+        if (is_int($key)) {
+            $keysToCheck[] = (string) $key;
+        } elseif (is_string($key) && ctype_digit($key)) {
+            $keysToCheck[] = (int) $key;
+        }
+
+        foreach ($keysToCheck as $lookupKey) {
+            if (array_key_exists($lookupKey, $map) && is_string($map[$lookupKey])) {
+                return $map[$lookupKey];
+            }
+        }
+
+        return null;
     }
 
     private static function defaultSanitizer(mixed $value): mixed
@@ -95,12 +201,12 @@ final class ResultDebug
     /**
      * Fetch debug config from Laravel if the helper is available; otherwise return defaults.
      *
-     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool}
+     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, log_level_map?: array<int|string,string>, default_log_level?: string|null}
      */
     private static function debugConfig(): array
     {
         if (function_exists('config')) {
-            /** @var array{redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int}|null $config */
+            /** @var array{redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, log_level_map?: array<int|string,string>, default_log_level?: string|null}|null $config */
             $config = config('result-flow.debug');
 
             if (is_array($config)) {

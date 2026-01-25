@@ -67,6 +67,10 @@ $config = [
     'sensitive_keys' => ['token', 'secret'],
     'max_string_length' => 64,
     'truncate_strings' => true,
+    'log_level_map' => [
+        RuntimeException::class => 'critical',
+    ],
+    'default_log_level' => 'error',
 ];
 
 $debug = Result::ok(['token' => 'super-long-secret'], ['request_id' => $rid])
@@ -78,6 +82,7 @@ $debug = Result::ok(['token' => 'super-long-secret'], ['request_id' => $rid])
 //   'value_type' => 'array',
 //   'error_type' => null,
 //   'error_message' => null,
+//   'log_level' => null,
 //   'meta' => ['request_id' => $rid],
 // ]
 ```

@@ -21,6 +21,7 @@ title: Debugging & Metadata
   'value_type' => string|null,
   'error_type' => string|null,
   'error_message' => string|null, // Throwable message or string error
+  'log_level' => string|null,     // Resolved log level for the error
   'meta' => [...],                // sanitized recursively
 ]
 ```
@@ -30,6 +31,7 @@ Behavior:
 - Sensitive keys (password, token, api_key, ssn, card, etc.) are redacted to `***REDACTED***`.
 - Long strings are truncated (`max_string_length`, default 200) when `truncate_strings` is true.
 - When Laravel's `config()` helper is available, settings are read from `config('result-flow.debug')`. Otherwise defaults are used.
+- Log levels can be derived from a mapping of exception classes or error codes (`log_level_map`) with a `default_log_level` fallback.
 
 Pass a custom sanitizer to override the defaults:
 
@@ -40,6 +42,24 @@ $result->toDebugArray(function ($value) {
         ? ['secret' => '***']
         : $value;
 });
+```
+
+### Log level mapping
+
+Use `log_level_map` to associate error classes/codes with log levels for observability:
+
+```php
+$config = [
+    'log_level_map' => [
+        RuntimeException::class => 'critical',
+        404 => 'notice',
+        'E_TIMEOUT' => 'warning',
+    ],
+    'default_log_level' => 'error',
+];
+
+$result = Result::fail(new RuntimeException('Boom'));
+$result->toDebugArray()['log_level']; // "critical"
 ```
 
 ## Observability Hooks

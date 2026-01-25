@@ -18,5 +18,16 @@ return [
 
         // Whether to truncate strings longer than max_string_length.
         'truncate_strings' => true,
+
+        // Map error codes/classes to log levels for debug/log helpers.
+        // Supports class-string keys for Throwable types and int/string codes.
+        'log_level_map' => [
+            // \RuntimeException::class => 'error',
+            // 404 => 'notice',
+            // 'E_TIMEOUT' => 'warning',
+        ],
+
+        // Default log level when no mapping matches (null disables log_level output).
+        'default_log_level' => 'error',
     ],
 ];
