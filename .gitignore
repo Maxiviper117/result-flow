@@ -60,3 +60,5 @@ testbench.yaml
 
 # Environment Files
 .env
+
+.vitepress/cache/

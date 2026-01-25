@@ -29,7 +29,9 @@ Behavior:
 
 - Sensitive keys (password, token, api_key, ssn, card, etc.) are redacted to `***REDACTED***`.
 - Long strings are truncated (`max_string_length`, default 200) when `truncate_strings` is true.
-- When Laravel's `config()` helper is available, settings are read from `config('result-flow.debug')`. Otherwise defaults are used.
+- When Laravel's `config()` helper is available, settings are read from `config('result-flow.debug')`.
+
+For detailed information on configuring redaction, using glob patterns, and custom sanitizers, see the [Sanitization & Safety guide](/sanitization).
 
 Pass a custom sanitizer to override the defaults:
 

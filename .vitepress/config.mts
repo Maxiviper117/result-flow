@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   srcDir: "docs",
   base: "/result-flow/",
-  
+
   title: "Result Flow",
   description: "A lightweight, type-safe Result monad for PHP",
   themeConfig: {
@@ -41,6 +41,7 @@ export default defineConfig({
           { text: 'Matching & Unwrapping', link: '/result/matching-unwrapping' },
           { text: 'Transformers (JSON/XML)', link: '/result/transformers' },
           { text: 'Metadata & Debugging', link: '/result/metadata-debugging' },
+          { text: 'Sanitization & Safety', link: '/sanitization' },
         ],
       },
       {
@@ -48,6 +49,7 @@ export default defineConfig({
         items: [
           { text: 'Result API', link: '/api' },
           { text: 'Debugging & Meta', link: '/debugging' },
+          { text: 'Sanitization Guide', link: '/sanitization' },
         ],
       },
       {
