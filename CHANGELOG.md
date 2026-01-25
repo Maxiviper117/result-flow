@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/Maxiviper117/result-flow/compare/v1.5.0...v1.5.1) (2026-01-25)
+
+
+### Bug Fixes
+
+* resolve phpstan varTag.nativeType in ResultMatch.php ([#37](https://github.com/Maxiviper117/result-flow/issues/37)) ([498026d](https://github.com/Maxiviper117/result-flow/commit/498026db43b434358b33437a41cfd41d90155147))
+
 ## [1.5.0](https://github.com/Maxiviper117/result-flow/compare/v1.4.0...v1.5.0) (2026-01-25)
 
 
