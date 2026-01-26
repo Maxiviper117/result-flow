@@ -5,12 +5,13 @@ use Maxiviper117\ResultFlow\Retry;
 
 it('retries until success', function () {
     $attempts = 0;
-    
+
     $result = Result::retry(3, function () use (&$attempts) {
         $attempts++;
         if ($attempts < 3) {
             throw new Exception('fail');
         }
+
         return 'success';
     });
 
@@ -21,7 +22,7 @@ it('retries until success', function () {
 
 it('fails after max attempts', function () {
     $attempts = 0;
-    
+
     $result = Result::retry(3, function () use (&$attempts) {
         $attempts++;
         throw new Exception('fail');
@@ -32,10 +33,10 @@ it('fails after max attempts', function () {
 });
 
 it('supports exponential backoff', function () {
-    // We can't easily test time passage without mocking usleep, 
+    // We can't easily test time passage without mocking usleep,
     // but we can verify the logic runs without error
     $start = microtime(true);
-    
+
     $result = Result::retrier()
         ->maxAttempts(3)
         ->delay(10) // 10ms
@@ -45,17 +46,17 @@ it('supports exponential backoff', function () {
         });
 
     $end = microtime(true);
-    
+
     expect($result->isFail())->toBeTrue();
     // 1st retry: 10ms, 2nd retry: 20ms. Total wait approx 30ms.
     // Allow some buffer for execution time.
-    // expect($end - $start)->toBeGreaterThan(0.03); 
+    // expect($end - $start)->toBeGreaterThan(0.03);
     // Keeping it simple to avoid flaky tests on CI
 });
 
 it('stops retrying if predicate returns false', function () {
     $attempts = 0;
-    
+
     $result = Result::retrier()
         ->maxAttempts(5)
         ->when(function ($error, $attempt) {
@@ -72,7 +73,7 @@ it('stops retrying if predicate returns false', function () {
 
 it('calls onRetry callback', function () {
     $logs = [];
-    
+
     Result::retrier()
         ->maxAttempts(3)
         ->delay(5)
@@ -90,12 +91,13 @@ it('calls onRetry callback', function () {
 
 it('handles Result::fail inside callable', function () {
     $attempts = 0;
-    
+
     $result = Result::retry(3, function () use (&$attempts) {
         $attempts++;
         if ($attempts < 2) {
             return Result::fail('oops');
         }
+
         return Result::ok('done');
     });
 
@@ -109,7 +111,7 @@ it('handles jitter', function () {
     $result = Result::retrier()
         ->maxAttempts(2)
         ->jitter(10)
-        ->attempt(fn() => Result::fail('error'));
+        ->attempt(fn () => Result::fail('error'));
 
     expect($result->isFail())->toBeTrue();
 });

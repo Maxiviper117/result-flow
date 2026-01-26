@@ -4,63 +4,74 @@ declare(strict_types=1);
 
 namespace Maxiviper117\ResultFlow;
 
-use Maxiviper117\ResultFlow\Result;
 use Throwable;
 
 final class Retry
 {
     private int $maxAttempts = 1;
+
     private int $delayMs = 0;
+
     private bool $exponential = false;
+
     private int $jitterMs = 0;
+
     /** @var callable(mixed, int): bool */
     private $predicate;
+
     /** @var callable(int, mixed, int): void */
     private $onRetry;
 
-    private function __construct() {
-        $this->predicate = fn() => true;
-        $this->onRetry = fn() => null;
+    private function __construct()
+    {
+        $this->predicate = fn () => true;
+        $this->onRetry = fn () => null;
     }
 
     public static function config(): self
     {
-        return new self();
+        return new self;
     }
 
     public function maxAttempts(int $times): self
     {
         $this->maxAttempts = max(1, $times);
+
         return $this;
     }
 
     public function delay(int $ms): self
     {
         $this->delayMs = max(0, $ms);
+
         return $this;
     }
 
     public function exponential(bool $enabled = true): self
     {
         $this->exponential = $enabled;
+
         return $this;
     }
 
     public function jitter(int $ms): self
     {
         $this->jitterMs = max(0, $ms);
+
         return $this;
     }
 
     public function when(callable $predicate): self
     {
         $this->predicate = $predicate;
+
         return $this;
     }
 
     public function onRetry(callable $callback): self
     {
         $this->onRetry = $callback;
+
         return $this;
     }
 
@@ -72,10 +83,10 @@ final class Retry
 
         while (true) {
             $attempts++;
-            
+
             try {
                 $value = $fn();
-                
+
                 if ($value instanceof Result) {
                     if ($value->isOk()) {
                         return $value;
