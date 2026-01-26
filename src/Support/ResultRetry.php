@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Maxiviper117\ResultFlow;
+namespace Maxiviper117\ResultFlow\Support;
 
+use Maxiviper117\ResultFlow\Result;
 use Throwable;
 
-final class Retry
+/**
+ * @internal
+ */
+final class ResultRetry
 {
     private int $maxAttempts = 1;
 
