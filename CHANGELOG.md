@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0](https://github.com/Maxiviper117/result-flow/compare/v1.5.1...v1.6.0) (2026-01-26)
+
+
+### Features
+
+* add Retry helper and Result::retry integration ([58e8741](https://github.com/Maxiviper117/result-flow/commit/58e874166e08f51c42f112652b322dd7390bd323))
+* Add retry helpers for transient failures (optional utility) ([58e8741](https://github.com/Maxiviper117/result-flow/commit/58e874166e08f51c42f112652b322dd7390bd323))
+* Add retry helpers for transient failures (optional utility) ([#39](https://github.com/Maxiviper117/result-flow/issues/39)) ([58e8741](https://github.com/Maxiviper117/result-flow/commit/58e874166e08f51c42f112652b322dd7390bd323)), closes [#17](https://github.com/Maxiviper117/result-flow/issues/17)
+
 ## [1.5.1](https://github.com/Maxiviper117/result-flow/compare/v1.5.0...v1.5.1) (2026-01-25)
 
 
