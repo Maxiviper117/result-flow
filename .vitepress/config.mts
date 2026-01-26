@@ -38,6 +38,7 @@ export default defineConfig({
           { text: 'Result overview', link: '/result/' },
           { text: 'Constructing & Combining', link: '/result/constructing' },
           { text: 'Chaining & Transformations', link: '/result/chaining' },
+          { text: 'Retrying Operations', link: '/result/retrying' },
           { text: 'Matching & Unwrapping', link: '/result/matching-unwrapping' },
           { text: 'Transformers (JSON/XML)', link: '/result/transformers' },
           { text: 'Metadata & Debugging', link: '/result/metadata-debugging' },
