@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/Maxiviper117/result-flow/compare/v1.6.0...v1.6.1) (2026-01-26)
+
+
+### Bug Fixes
+
+* relocate retry helper ([#41](https://github.com/Maxiviper117/result-flow/issues/41)) ([f98259a](https://github.com/Maxiviper117/result-flow/commit/f98259af35c109f170d920f3b6106102e414fece))
+
 ## [1.6.0](https://github.com/Maxiviper117/result-flow/compare/v1.5.1...v1.6.0) (2026-01-26)
 
 
