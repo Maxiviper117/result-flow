@@ -24,6 +24,7 @@ title: Result class overview
 
 - [Construct and combine results](/result/constructing)
 - [Transform and chain results](/result/chaining)
+- [Retrying Operations](/result/retrying)
 - [Match, unwrap, and recover](/result/matching-unwrapping)
 - [Output transformers (JSON, XML)](/result/transformers)
 - [Metadata, taps, and debugging](/result/metadata-debugging)
