@@ -9,6 +9,7 @@ use Maxiviper117\ResultFlow\Support\ResultDebug;
 use Maxiviper117\ResultFlow\Support\ResultMatch;
 use Maxiviper117\ResultFlow\Support\ResultMetaOps;
 use Maxiviper117\ResultFlow\Support\ResultPipeline;
+use Maxiviper117\ResultFlow\Support\ResultRetry;
 use Maxiviper117\ResultFlow\Support\ResultSerialization;
 use Maxiviper117\ResultFlow\Support\ResultTaps;
 use Maxiviper117\ResultFlow\Support\ResultTransform;
@@ -110,7 +111,7 @@ final class Result
      */
     public static function retry(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result
     {
-        return Retry::config()
+        return ResultRetry::config()
             ->maxAttempts($times)
             ->delay($delay)
             ->exponential($exponential)
@@ -126,9 +127,9 @@ final class Result
      *     ->jitter(100)
      *     ->attempt(fn() => ...);
      */
-    public static function retrier(): Retry
+    public static function retrier(): ResultRetry
     {
-        return Retry::config();
+        return ResultRetry::config();
     }
 
     /**
