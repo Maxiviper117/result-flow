@@ -105,6 +105,33 @@ final class Result
     }
 
     /**
+     * Simple retry with optional delay and exponential backoff.
+     * For advanced config (jitter, callbacks), use Result::retrier().
+     */
+    public static function retry(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result
+    {
+        return Retry::config()
+            ->maxAttempts($times)
+            ->delay($delay)
+            ->exponential($exponential)
+            ->attempt($fn);
+    }
+
+    /**
+     * Access the fluent Retry builder for advanced configuration.
+     *
+     * Usage:
+     * Result::retrier()
+     *     ->maxAttempts(5)
+     *     ->jitter(100)
+     *     ->attempt(fn() => ...);
+     */
+    public static function retrier(): Retry
+    {
+        return Retry::config();
+    }
+
+    /**
      * Combine multiple results into one. Fails on first failure (short-circuit).
      *
      * @template T
