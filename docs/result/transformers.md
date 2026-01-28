@@ -25,6 +25,8 @@ You can pass standard `json_encode` options as the first argument:
 $result->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 ```
 
+`toJson()` uses `JSON_THROW_ON_ERROR`, so it may throw `JsonException` if encoding fails. Wrap it if you need to handle invalid UTF-8 or other encoding errors.
+
 ## XML
 
 Convert a result to an XML string using `toXml()`.

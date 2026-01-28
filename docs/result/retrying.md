@@ -49,6 +49,9 @@ $result = Result::retrier()
     ->attempt(fn() => $service->performAction());
 ```
 
+`onRetry()` receives the attempt number, the last error (Throwable or failure payload), and the computed wait time in milliseconds.
+`when()` receives the error and attempt number and returns `true` to continue retrying.
+
 ### Jitter
 
 Adding "jitter" (randomness) to retry delays is a best practice to prevent "thundering herd" problems where many clients retry exactly at the same time.

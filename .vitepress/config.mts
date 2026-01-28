@@ -14,6 +14,7 @@ export default defineConfig({
       { text: 'Getting Started', link: '/getting-started' },
       { text: 'Result Deep Dive', link: '/result/' },
       { text: 'API', link: '/api' },
+      { text: 'FAQ', link: '/faq' },
       {
         text: 'Guides',
         items: [
@@ -30,6 +31,7 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/' },
           { text: 'Installation & Basics', link: '/getting-started' },
+          { text: 'FAQ', link: '/faq' },
         ]
       },
       {
@@ -46,7 +48,7 @@ export default defineConfig({
         ],
       },
       {
-        text: 'API Reference',
+        text: 'Reference',
         items: [
           { text: 'Result API', link: '/api' },
           { text: 'Debugging & Meta', link: '/debugging' },

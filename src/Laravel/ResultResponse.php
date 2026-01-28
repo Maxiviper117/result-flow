@@ -8,10 +8,17 @@ use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Support\ResultSerialization;
 
 /**
+ * Convert Result instances to HTTP responses when Laravel is available.
+ *
  * @internal
  */
 final class ResultResponse
 {
+    /**
+     * Convert a Result to a JSON HTTP response or fallback array shape.
+     *
+     * @return mixed
+     */
     public static function toResponse(Result $result): mixed
     {
         $payload = ResultSerialization::toArray($result);

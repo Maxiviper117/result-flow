@@ -9,11 +9,15 @@ use Maxiviper117\ResultFlow\Result;
 use Throwable;
 
 /**
+ * Pipeline execution helpers for chaining Result operations.
+ *
  * @internal
  */
 final class ResultPipeline
 {
     /**
+     * Execute one or more pipeline steps with exception handling.
+     *
      * @param  callable|object|array<callable|object>  $next
      * @param  array<string,mixed>  $meta
      * @return Result<mixed, mixed>
@@ -53,6 +57,7 @@ final class ResultPipeline
      * Invoke a single pipeline step.
      *
      * @param  array<string,mixed>  $meta
+     * @return mixed
      *
      * @throws InvalidArgumentException
      */
@@ -73,7 +78,7 @@ final class ResultPipeline
         throw new InvalidArgumentException(
             sprintf(
                 'Step of type %s is not callable and has no handle() or execute() method.',
-                $step::class
+                    $step::class
             )
         );
     }

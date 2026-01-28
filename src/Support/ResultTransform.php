@@ -7,6 +7,8 @@ namespace Maxiviper117\ResultFlow\Support;
 use Maxiviper117\ResultFlow\Result;
 
 /**
+ * Transformation helpers for Result values and errors.
+ *
  * @internal
  */
 final class ResultTransform

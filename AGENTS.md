@@ -22,6 +22,10 @@
 - Static analysis: `composer analyse` (or `composer phpstan`)
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
 
+## Python usage
+- Do not use Python to check files, verify contents, or perform any file validation tasks.
+- Stick to agent tooling available in your environment.
+
 ## Testing guidance
 - Prefer small, explicit test cases that cover both success and failure paths.
 - When changing chaining behavior, include tests for metadata propagation.

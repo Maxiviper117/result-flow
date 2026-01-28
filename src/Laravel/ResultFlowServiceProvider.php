@@ -6,8 +6,14 @@ namespace Maxiviper117\ResultFlow\Laravel;
 
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * Laravel service provider for ResultFlow configuration publishing.
+ */
 class ResultFlowServiceProvider extends ServiceProvider
 {
+    /**
+     * Register package configuration.
+     */
     public function register(): void
     {
         $this->mergeConfigFrom(
@@ -16,6 +22,9 @@ class ResultFlowServiceProvider extends ServiceProvider
         );
     }
 
+    /**
+     * Bootstrap package configuration publishing.
+     */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
