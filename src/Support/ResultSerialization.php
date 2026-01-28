@@ -30,7 +30,6 @@ final class ResultSerialization
      * Convert the Result to JSON.
      *
      * @param  int  $options  JSON encoding options
-     * @return string
      *
      * @throws \JsonException
      */
@@ -41,9 +40,6 @@ final class ResultSerialization
 
     /**
      * Convert the Result to XML.
-     *
-     * @param  string  $rootElement
-     * @return string
      */
     public static function toXml(Result $result, string $rootElement = 'result'): string
     {

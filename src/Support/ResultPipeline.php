@@ -57,7 +57,6 @@ final class ResultPipeline
      * Invoke a single pipeline step.
      *
      * @param  array<string,mixed>  $meta
-     * @return mixed
      *
      * @throws InvalidArgumentException
      */
@@ -78,7 +77,7 @@ final class ResultPipeline
         throw new InvalidArgumentException(
             sprintf(
                 'Step of type %s is not callable and has no handle() or execute() method.',
-                    $step::class
+                $step::class
             )
         );
     }

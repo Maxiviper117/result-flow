@@ -126,8 +126,8 @@ final class Result
 
     /**
      * Access the fluent Retry builder for advanced configuration.
-        *
-        * @return ResultRetry
+     *
+     * @return ResultRetry
      *
      * Usage:
      * Result::retrier()
@@ -732,7 +732,6 @@ final class Result
      * Convert the result to JSON.
      *
      * @param  int  $options  JSON encoding options
-     * @return string
      *
      * @throws \JsonException
      */
@@ -743,9 +742,6 @@ final class Result
 
     /**
      * Convert the result to XML.
-     *
-     * @param  string  $rootElement
-     * @return string
      */
     public function toXml(string $rootElement = 'result'): string
     {
@@ -754,8 +750,6 @@ final class Result
 
     /**
      * Convert the result to an HTTP response (Laravel-compatible if available).
-     *
-     * @return mixed
      */
     public function toResponse(): mixed
     {
