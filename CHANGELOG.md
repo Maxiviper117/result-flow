@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/Maxiviper117/result-flow/compare/v1.6.1...v1.6.2) (2026-01-28)
+
+
+### Miscellaneous Chores
+
+* retry helpers plan ([f82bb9f](https://github.com/Maxiviper117/result-flow/commit/f82bb9f4441aea0814c8461159108fc464efa380))
+
 ## [1.6.1](https://github.com/Maxiviper117/result-flow/compare/v1.6.0...v1.6.1) (2026-01-26)
 
 
