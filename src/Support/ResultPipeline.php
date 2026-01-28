@@ -9,11 +9,15 @@ use Maxiviper117\ResultFlow\Result;
 use Throwable;
 
 /**
+ * Pipeline execution helpers for chaining Result operations.
+ *
  * @internal
  */
 final class ResultPipeline
 {
     /**
+     * Execute one or more pipeline steps with exception handling.
+     *
      * @param  callable|object|array<callable|object>  $next
      * @param  array<string,mixed>  $meta
      * @return Result<mixed, mixed>

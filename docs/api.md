@@ -12,6 +12,8 @@ All methods live on `Maxiviper117\ResultFlow\Result`. Generic template annotatio
 - `Result::fail(mixed $error, array $meta = []): Result<never, E>` — failure.
 - `Result::failWithValue(mixed $error, mixed $failedValue, array $meta = []): Result` — failure + `meta['failed_value']`.
 - `Result::of(callable $fn): Result<T, Throwable>` — wrap callable, exceptions become `fail(Throwable)`.
+- `Result::retry(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result` — retry helper for transient failures.
+- `Result::retrier(): ResultRetry` — fluent retry configuration builder.
 - `Result::combine(array $results): Result<array<T>, E>` — fail-fast; merges meta.
 - `Result::combineAll(array $results): Result<array<T>, array<E>>` — collects all errors.
 
@@ -23,6 +25,9 @@ All methods live on `Maxiviper117\ResultFlow\Result`. Generic template annotatio
 - `meta(): array<string,mixed>` — metadata.
 - `toArray(): array{ok, value, error, meta}` — raw representation.
 - `toDebugArray(?callable $sanitizer = null): array{ok, value_type, error_type, error_message, meta}` — safe, sanitized representation.
+- `toJson(int $options = 0): string` — serialize to JSON (throws `JsonException` on encoding errors).
+- `toXml(string $rootElement = 'result'): string` — serialize to XML.
+- `toResponse(): mixed` — JSON response in Laravel, array fallback otherwise.
 
 ## Transformations
 
@@ -63,3 +68,8 @@ All methods live on `Maxiviper117\ResultFlow\Result`. Generic template annotatio
 - `unwrapOrElse(callable $fn): mixed`
 - `getOrThrow(callable $exceptionFactory): mixed` — map error to custom exception and throw.
 - `throwIfFail(): Result` — throw on failure, otherwise return `$this` (useful after `thenUnsafe()`).
+
+## Output Transformers
+
+- `toJson()` uses `json_encode(..., JSON_THROW_ON_ERROR)` so it can throw `JsonException`.
+- `toResponse()` returns a Laravel `JsonResponse` when available; otherwise a plain array with `status`, `headers`, and `body`.

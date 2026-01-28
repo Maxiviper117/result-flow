@@ -7,6 +7,8 @@ namespace Maxiviper117\ResultFlow\Support;
 use Maxiviper117\ResultFlow\Result;
 
 /**
+ * Tap helpers for side-effect callbacks on Result branches.
+ *
  * @internal
  */
 final class ResultTaps
