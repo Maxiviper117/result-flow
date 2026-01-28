@@ -7,6 +7,8 @@ namespace Maxiviper117\ResultFlow\Support;
 use Maxiviper117\ResultFlow\Result;
 
 /**
+ * Metadata manipulation helpers for Result.
+ *
  * @internal
  */
 final class ResultMetaOps

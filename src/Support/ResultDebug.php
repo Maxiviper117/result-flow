@@ -8,6 +8,8 @@ use Maxiviper117\ResultFlow\Result;
 use Throwable;
 
 /**
+ * Debug-friendly serialization with optional sanitization.
+ *
  * @internal
  */
 final class ResultDebug
@@ -33,13 +35,16 @@ final class ResultDebug
         ];
     }
 
+    /**
+     * Default sanitizer that redacts sensitive keys and truncates long strings.
+     */
     private static function defaultSanitizer(mixed $value): mixed
     {
         // Pull overrides from Laravel config if available; fall back to hardcoded defaults.
         $debugConfig = self::debugConfig();
         $enabled = ($debugConfig['enabled'] ?? true) === true;
         $redaction = $debugConfig['redaction'] ?? '***REDACTED***';
-        $sensitiveKeys = $debugConfig['sensitive_keys'] ?? [
+        $defaultSensitiveKeys = [
             'password',
             'pass',
             'secret',
@@ -50,6 +55,14 @@ final class ResultDebug
             'card',
             'authorization',
         ];
+        $rawSensitiveKeys = $debugConfig['sensitive_keys'] ?? null;
+        /** @var array<int, mixed> $sensitiveKeys */
+        $sensitiveKeys = is_array($rawSensitiveKeys) ? $rawSensitiveKeys : $defaultSensitiveKeys;
+        $sensitiveKeys = array_values(array_filter(
+            $sensitiveKeys,
+            static fn ($value): bool => is_string($value) && $value !== ''
+        ));
+        /** @var array<int, string> $sensitiveKeys */
         $max = is_int($debugConfig['max_string_length'] ?? null)
             ? $debugConfig['max_string_length']
             : 200;
@@ -104,6 +117,11 @@ final class ResultDebug
         return [];
     }
 
+    /**
+     * Determine whether a key matches any sensitive key pattern.
+     *
+     * @param  array<int, string>  $patterns
+     */
     private static function matchesSensitiveKey(string $key, array $patterns): bool
     {
         // Cache compiled regexes per pattern list to avoid repeated compilation.
@@ -118,7 +136,7 @@ final class ResultDebug
         if (! isset($cache[$cacheKey])) {
             $regexes = [];
             foreach ($patterns as $p) {
-                if (! is_string($p) || $p === '') {
+                if ($p === '') {
                     continue;
                 }
                 $hasGlob = strpbrk($p, '*?') !== false;
@@ -142,11 +160,17 @@ final class ResultDebug
         return false;
     }
 
+    /**
+     * Calculate string length with multibyte support when available.
+     */
     private static function stringLength(string $value): int
     {
         return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
     }
 
+    /**
+     * Slice strings with multibyte support when available.
+     */
     private static function stringSlice(string $value, int $start, int $length): string
     {
         return function_exists('mb_substr') ? mb_substr($value, $start, $length) : substr($value, $start, $length);

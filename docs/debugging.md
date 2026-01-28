@@ -20,7 +20,7 @@ title: Debugging & Metadata
   'ok' => bool,
   'value_type' => string|null,
   'error_type' => string|null,
-  'error_message' => string|null, // Throwable message or string error
+  'error_message' => string|null, // Throwable message or string error (non-string errors yield null)
   'meta' => [...],                // sanitized recursively
 ]
 ```
@@ -29,6 +29,7 @@ Behavior:
 
 - Sensitive keys (password, token, api_key, ssn, card, etc.) are redacted to `***REDACTED***`.
 - Long strings are truncated (`max_string_length`, default 200) when `truncate_strings` is true.
+- `error_message` is populated only for `Throwable` errors and string errors; other error payloads yield `null`.
 - When Laravel's `config()` helper is available, settings are read from `config('result-flow.debug')`.
 
 For detailed information on configuring redaction, using glob patterns, and custom sanitizers, see the [Sanitization & Safety guide](/sanitization).

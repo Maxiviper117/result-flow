@@ -8,6 +8,8 @@ use Maxiviper117\ResultFlow\Result;
 use Throwable;
 
 /**
+ * Fluent retry configuration for Result operations.
+ *
  * @internal
  */
 final class ResultRetry
@@ -26,17 +28,26 @@ final class ResultRetry
     /** @var callable(int, mixed, int): void */
     private $onRetry;
 
+    /**
+     * Initialize defaults for retry behavior.
+     */
     private function __construct()
     {
         $this->predicate = fn () => true;
         $this->onRetry = fn () => null;
     }
 
+    /**
+     * Create a new retry configuration instance.
+     */
     public static function config(): self
     {
         return new self;
     }
 
+    /**
+     * Set the maximum number of attempts (minimum 1).
+     */
     public function maxAttempts(int $times): self
     {
         $this->maxAttempts = max(1, $times);
@@ -44,6 +55,9 @@ final class ResultRetry
         return $this;
     }
 
+    /**
+     * Set the base delay between attempts in milliseconds.
+     */
     public function delay(int $ms): self
     {
         $this->delayMs = max(0, $ms);
@@ -51,6 +65,9 @@ final class ResultRetry
         return $this;
     }
 
+    /**
+     * Enable or disable exponential backoff for delays.
+     */
     public function exponential(bool $enabled = true): self
     {
         $this->exponential = $enabled;
@@ -58,6 +75,9 @@ final class ResultRetry
         return $this;
     }
 
+    /**
+     * Add random jitter up to the given milliseconds.
+     */
     public function jitter(int $ms): self
     {
         $this->jitterMs = max(0, $ms);
@@ -65,6 +85,11 @@ final class ResultRetry
         return $this;
     }
 
+    /**
+     * Set a predicate that decides whether to retry after a failure.
+     *
+     * @param  callable(mixed, int): bool  $predicate
+     */
     public function when(callable $predicate): self
     {
         $this->predicate = $predicate;
@@ -72,6 +97,11 @@ final class ResultRetry
         return $this;
     }
 
+    /**
+     * Register a callback invoked before each retry.
+     *
+     * @param  callable(int, mixed, int): void  $callback
+     */
     public function onRetry(callable $callback): self
     {
         $this->onRetry = $callback;
@@ -79,6 +109,12 @@ final class ResultRetry
         return $this;
     }
 
+    /**
+     * Execute the operation with retry behavior.
+     *
+     * @param  callable(): (Result<mixed, mixed>|mixed)  $fn
+     * @return Result<mixed, mixed>
+     */
     public function attempt(callable $fn): Result
     {
         $attempts = 0;

@@ -7,6 +7,8 @@ namespace Maxiviper117\ResultFlow\Support;
 use Maxiviper117\ResultFlow\Result;
 
 /**
+ * Helpers for serializing Results to arrays and text formats.
+ *
  * @internal
  */
 final class ResultSerialization
@@ -24,11 +26,21 @@ final class ResultSerialization
         ];
     }
 
+    /**
+     * Convert the Result to JSON.
+     *
+     * @param  int  $options  JSON encoding options
+     *
+     * @throws \JsonException
+     */
     public static function toJson(Result $result, int $options = 0): string
     {
         return json_encode(self::toArray($result), $options | JSON_THROW_ON_ERROR);
     }
 
+    /**
+     * Convert the Result to XML.
+     */
     public static function toXml(Result $result, string $rootElement = 'result'): string
     {
         $xml = new \SimpleXMLElement("<$rootElement/>");
@@ -37,6 +49,11 @@ final class ResultSerialization
         return (string) $xml->asXML();
     }
 
+    /**
+     * Recursively write array data to an XML element.
+     *
+     * @param  array<string, mixed>  $data
+     */
     private static function arrayToXml(array $data, \SimpleXMLElement $xml): void
     {
         foreach ($data as $key => $value) {

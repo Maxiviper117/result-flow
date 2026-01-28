@@ -9,6 +9,8 @@ use RuntimeException;
 use Throwable;
 
 /**
+ * Unwrapping helpers for Result values and errors.
+ *
  * @internal
  */
 final class ResultUnwrap
@@ -104,6 +106,9 @@ final class ResultUnwrap
         throw new RuntimeException(self::stringifyError($err));
     }
 
+    /**
+     * Best-effort conversion of an error value to a string.
+     */
     private static function stringifyError(mixed $error): string
     {
         if (is_string($error)) {

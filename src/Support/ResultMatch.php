@@ -8,6 +8,8 @@ use Maxiviper117\ResultFlow\Result;
 use Throwable;
 
 /**
+ * Pattern-matching helpers for Result values and exceptions.
+ *
  * @internal
  */
 final class ResultMatch
