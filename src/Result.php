@@ -108,6 +108,12 @@ final class Result
     /**
      * Simple retry with optional delay and exponential backoff.
      * For advanced config (jitter, callbacks), use Result::retrier().
+     *
+     * @param  int  $times  Maximum attempts (min 1)
+     * @param  callable(): (Result<mixed, mixed>|mixed)  $fn  Operation to attempt
+     * @param  int  $delay  Base delay in milliseconds between attempts
+     * @param  bool  $exponential  Use exponential backoff for delays
+     * @return Result<mixed, mixed>
      */
     public static function retry(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result
     {
@@ -120,6 +126,8 @@ final class Result
 
     /**
      * Access the fluent Retry builder for advanced configuration.
+        *
+        * @return ResultRetry
      *
      * Usage:
      * Result::retrier()
@@ -212,11 +220,17 @@ final class Result
     // State Checking
     // =========================================================================
 
+    /**
+     * Check whether the result represents success.
+     */
     public function isOk(): bool
     {
         return $this->ok;
     }
 
+    /**
+     * Check whether the result represents failure.
+     */
     public function isFail(): bool
     {
         return ! $this->ok;
@@ -718,6 +732,9 @@ final class Result
      * Convert the result to JSON.
      *
      * @param  int  $options  JSON encoding options
+     * @return string
+     *
+     * @throws \JsonException
      */
     public function toJson(int $options = 0): string
     {
@@ -726,6 +743,9 @@ final class Result
 
     /**
      * Convert the result to XML.
+     *
+     * @param  string  $rootElement
+     * @return string
      */
     public function toXml(string $rootElement = 'result'): string
     {
@@ -734,6 +754,8 @@ final class Result
 
     /**
      * Convert the result to an HTTP response (Laravel-compatible if available).
+     *
+     * @return mixed
      */
     public function toResponse(): mixed
     {
