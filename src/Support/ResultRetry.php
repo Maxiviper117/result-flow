@@ -178,6 +178,13 @@ final class ResultRetry
         }
     }
 
+    /**
+     * @template TSuccess
+     * @template TFailure
+     *
+     * @param  Result<TSuccess, TFailure>  $result
+     * @return Result<TSuccess, TFailure>
+     */
     private function attachMetaIfNeeded(Result $result, int $attempts): Result
     {
         if (! $this->attachAttemptMeta) {

@@ -29,7 +29,10 @@ final class ResultTransform
             return $result;
         }
 
-        return Result::ok($map($result->value(), $result->meta()), $result->meta());
+        /** @var TSuccess $value */
+        $value = $result->value();
+
+        return Result::ok($map($value, $result->meta()), $result->meta());
     }
 
     /**
@@ -48,7 +51,10 @@ final class ResultTransform
             return $result;
         }
 
-        return Result::fail($map($result->error(), $result->meta()), $result->meta());
+        /** @var TFailure $error */
+        $error = $result->error();
+
+        return Result::fail($map($error, $result->meta()), $result->meta());
     }
 
     /**
@@ -66,15 +72,21 @@ final class ResultTransform
             return $result;
         }
 
-        if ($predicate($result->value(), $result->meta())) {
+        /** @var TSuccess $value */
+        $value = $result->value();
+
+        if ($predicate($value, $result->meta())) {
             return $result;
         }
 
         $err = (is_callable($error) && ! is_string($error))
-            ? $error($result->value(), $result->meta())
+            ? $error($value, $result->meta())
             : $error;
 
-        return Result::fail($err, $result->meta());
+        $failed = Result::fail($err, $result->meta());
+
+        /** @var Result<TSuccess, TFailure> $failed */
+        return $failed;
     }
 
     /**
@@ -89,13 +101,19 @@ final class ResultTransform
     public static function recover(Result $result, callable $fn): Result
     {
         if ($result->isOk()) {
-            $ok = Result::ok($result->value(), $result->meta());
+            /** @var TSuccess $value */
+            $value = $result->value();
+
+            $ok = Result::ok($value, $result->meta());
 
             /** @var Result<TSuccess|U, never> $ok */
             return $ok;
         }
 
-        $ok = Result::ok($fn($result->error(), $result->meta()), $result->meta());
+        /** @var TFailure $error */
+        $error = $result->error();
+
+        $ok = Result::ok($fn($error, $result->meta()), $result->meta());
 
         /** @var Result<TSuccess|U, never> $ok */
         return $ok;

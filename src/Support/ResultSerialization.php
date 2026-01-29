@@ -14,6 +14,10 @@ use Maxiviper117\ResultFlow\Result;
 final class ResultSerialization
 {
     /**
+     * @template TSuccess
+     * @template TFailure
+     *
+     * @param  Result<TSuccess, TFailure>  $result
      * @return array{ok: bool, value: mixed, error: mixed, meta: array<string,mixed>}
      */
     public static function toArray(Result $result): array
@@ -29,6 +33,10 @@ final class ResultSerialization
     /**
      * Convert the Result to JSON.
      *
+     * @template TSuccess
+     * @template TFailure
+     *
+     * @param  Result<TSuccess, TFailure>  $result
      * @param  int  $options  JSON encoding options
      *
      * @throws \JsonException
@@ -40,6 +48,11 @@ final class ResultSerialization
 
     /**
      * Convert the Result to XML.
+     *
+     * @template TSuccess
+     * @template TFailure
+     *
+     * @param  Result<TSuccess, TFailure>  $result
      */
     public static function toXml(Result $result, string $rootElement = 'result'): string
     {
@@ -52,7 +65,7 @@ final class ResultSerialization
     /**
      * Recursively write array data to an XML element.
      *
-     * @param  array<string, mixed>  $data
+     * @param  array<mixed, mixed>  $data
      */
     private static function arrayToXml(array $data, \SimpleXMLElement $xml): void
     {
@@ -62,8 +75,26 @@ final class ResultSerialization
                 $subnode = $xml->addChild($key);
                 self::arrayToXml($value, $subnode);
             } else {
-                $xml->addChild($key, htmlspecialchars((string) $value));
+                $xml->addChild($key, htmlspecialchars(self::stringifyValue($value)));
             }
         }
+    }
+
+    /**
+     * Convert arbitrary values to a safe string representation.
+     */
+    private static function stringifyValue(mixed $value): string
+    {
+        if (is_scalar($value) || $value === null) {
+            return (string) $value;
+        }
+
+        if ($value instanceof \Stringable) {
+            return (string) $value;
+        }
+
+        $json = json_encode($value);
+
+        return is_string($json) ? $json : var_export($value, true);
     }
 }

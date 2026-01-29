@@ -443,7 +443,10 @@ final class Result
             return $this;
         }
 
-        return ResultPipeline::run($this, $next, $this->value, $this->meta);
+        /** @var TSuccess $value */
+        $value = $this->value;
+
+        return ResultPipeline::run($this, $next, $value, $this->meta);
     }
 
     /**
@@ -491,13 +494,19 @@ final class Result
             return $this;
         }
 
-        $out = ResultPipeline::invokeStep($next, $this->value, $this->meta);
+        /** @var TSuccess $value */
+        $value = $this->value;
+
+        $out = ResultPipeline::invokeStep($next, $value, $this->meta);
 
         if ($out instanceof self) {
             return $out;
         }
 
-        return self::ok($out, $this->meta);
+        /** @var Result<U, TFailure> $wrapped */
+        $wrapped = self::ok($out, $this->meta);
+
+        return $wrapped;
     }
 
     /**
@@ -566,7 +575,10 @@ final class Result
             return $this;
         }
 
-        return ResultPipeline::run($this, $next, $this->error, $this->meta);
+        /** @var TFailure $error */
+        $error = $this->error;
+
+        return ResultPipeline::run($this, $next, $error, $this->meta);
     }
 
     /**

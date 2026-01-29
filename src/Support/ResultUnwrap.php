@@ -28,7 +28,10 @@ final class ResultUnwrap
     public static function unwrap(Result $result): mixed
     {
         if ($result->isOk()) {
-            return $result->value();
+            /** @var TSuccess $value */
+            $value = $result->value();
+
+            return $value;
         }
         $err = $result->error();
         if ($err instanceof Throwable) {
@@ -47,7 +50,14 @@ final class ResultUnwrap
      */
     public static function unwrapOr(Result $result, mixed $default): mixed
     {
-        return $result->isOk() ? $result->value() : $default;
+        if ($result->isOk()) {
+            /** @var TSuccess $value */
+            $value = $result->value();
+
+            return $value;
+        }
+
+        return $default;
     }
 
     /**
@@ -60,7 +70,17 @@ final class ResultUnwrap
      */
     public static function unwrapOrElse(Result $result, callable $fn): mixed
     {
-        return $result->isOk() ? $result->value() : $fn($result->error(), $result->meta());
+        if ($result->isOk()) {
+            /** @var TSuccess $value */
+            $value = $result->value();
+
+            return $value;
+        }
+
+        /** @var TFailure $error */
+        $error = $result->error();
+
+        return $fn($error, $result->meta());
     }
 
     /**
@@ -76,10 +96,16 @@ final class ResultUnwrap
     public static function getOrThrow(Result $result, callable $exceptionFactory): mixed
     {
         if ($result->isOk()) {
-            return $result->value();
+            /** @var TSuccess $value */
+            $value = $result->value();
+
+            return $value;
         }
 
-        throw $exceptionFactory($result->error(), $result->meta());
+        /** @var TFailure $error */
+        $error = $result->error();
+
+        throw $exceptionFactory($error, $result->meta());
     }
 
     /**
