@@ -53,6 +53,21 @@ What each hook does:
 - `onRetry($attempt, $error, $wait)`: runs before waiting/sleeping.
 - `jitter($ms)`: adds a random 0..$ms delay to avoid thundering herds.
 
+## Attempt metadata (opt-in)
+
+If you want observability into how many attempts were made, enable metadata with `->attachAttemptMeta()` before calling `->attempt()`. The retrier merges the same metadata into every returned `Result`, so you can still add your own meta inside the callable.
+
+```php
+$result = Result::retrier()
+    ->maxAttempts(5)
+    ->attachAttemptMeta()
+    ->attempt(fn () => $service->call());
+
+// $result->meta()['retry']['attempts'] === number of attempts executed
+```
+
+The metadata key is always `retry` with a nested `attempts` counter and is only present when the option is enabled.
+
 ## Works with Results or exceptions
 
 `attempt()` handles both of these cases:

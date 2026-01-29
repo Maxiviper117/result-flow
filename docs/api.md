@@ -105,6 +105,20 @@ $result = Result::retrier()
     ->when(fn ($error, $attempt) => $error instanceof TimeoutException)
     ->onRetry(fn ($attempt, $error, $wait) => Log::warning("retry $attempt"))
     ->attempt(fn () => $service->call());
+
+```
+
+Additional builder helpers:
+
+- `attachAttemptMeta(bool $enable = true)` — when enabled, the retrier adds `['retry' => ['attempts' => <int>]]` to every returned `Result` meta entry (successful or failed). Example:
+
+```php
+$result = Result::retrier()
+    ->attachAttemptMeta()
+    ->attempt(fn () => $service->call());
+
+// $result->meta()['retry']['attempts'] === number of attempts performed
+```
 ```
 
 ### `Result::combine()`

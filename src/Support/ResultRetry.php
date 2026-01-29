@@ -22,6 +22,8 @@ final class ResultRetry
 
     private int $jitterMs = 0;
 
+    private bool $attachAttemptMeta = false;
+
     /** @var callable(mixed, int): bool */
     private $predicate;
 
@@ -86,6 +88,16 @@ final class ResultRetry
     }
 
     /**
+     * Enable or disable attaching retry metadata to the Result meta.
+     */
+    public function attachAttemptMeta(bool $enable = true): self
+    {
+        $this->attachAttemptMeta = $enable;
+
+        return $this;
+    }
+
+    /**
      * Set a predicate that decides whether to retry after a failure.
      *
      * @param  callable(mixed, int): bool  $predicate
@@ -129,12 +141,12 @@ final class ResultRetry
 
                 if ($value instanceof Result) {
                     if ($value->isOk()) {
-                        return $value;
+                        return $this->attachMetaIfNeeded($value, $attempts);
                     }
                     $lastError = $value->error();
                     $lastResult = $value;
                 } else {
-                    return Result::ok($value);
+                    return $this->attachMetaIfNeeded(Result::ok($value), $attempts);
                 }
             } catch (Throwable $e) {
                 $lastError = $e;
@@ -142,11 +154,11 @@ final class ResultRetry
             }
 
             if ($attempts >= $this->maxAttempts) {
-                return $lastResult;
+                return $this->attachMetaIfNeeded($lastResult, $attempts);
             }
 
             if (! ($this->predicate)($lastError, $attempts)) {
-                return $lastResult;
+                return $this->attachMetaIfNeeded($lastResult, $attempts);
             }
 
             $wait = $this->delayMs;
@@ -164,5 +176,17 @@ final class ResultRetry
                 usleep($wait * 1000);
             }
         }
+    }
+
+    private function attachMetaIfNeeded(Result $result, int $attempts): Result
+    {
+        if (! $this->attachAttemptMeta) {
+            return $result;
+        }
+
+        return ResultMetaOps::mergeMeta(
+            $result,
+            ['retry' => ['attempts' => $attempts]],
+        );
     }
 }
