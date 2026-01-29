@@ -6,7 +6,7 @@ export default defineConfig({
   base: "/result-flow/",
 
   title: "Result Flow",
-  description: "A lightweight, type-safe Result monad for PHP",
+  description: "A lightweight, type-safe Result type for PHP",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [

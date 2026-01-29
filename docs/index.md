@@ -4,7 +4,7 @@ title: Result Flow
 
 # Result Flow
 
-> A lightweight, type-safe Result monad for explicit success/failure handling in PHP.
+> A lightweight, type-safe Result type for explicit success/failure handling in PHP.
 
 Result Flow lets you model success and failure explicitly without scattering exceptions. Wrap values, errors, and metadata in a fluent pipeline that short-circuits correctly, preserves context, and keeps type information intact.
 

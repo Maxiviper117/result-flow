@@ -4,63 +4,81 @@
 [![PHPStan](https://github.com/Maxiviper117/result-flow/actions/workflows/phpstan.yml/badge.svg)](https://github.com/Maxiviper117/result-flow/actions/workflows/phpstan.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Minimal, type-safe Result monad for explicit success/failure handling in PHP.
+Minimal, type-safe Result type for explicit success/failure handling in PHP (PHP 8.2+).
 
-> **Primary class:** `Maxiviper117\ResultFlow\Result` (see `src/Result.php`)
-
-## Why
-
-- Keep success and failure paths explicit
-- Chain actions fluently with metadata propagation
-- Convert exceptions to failures automatically
-- Small surface area with PHPStan-friendly templates
-
-## Installation
+Composer:
 
 ```bash
 composer require maxiviper117/result-flow
 ```
 
-Import and use:
+Why Result Flow?
+
+- Explicit branches: handle success with `then()` and failures with `otherwise()` (or both with `match()`).
+- Metadata travels with the pipeline (correlation IDs, audit context, failed input).
+- Exceptions are captured by default but you can opt into `thenUnsafe()` for transactional behavior.
+- Built-in helpers: retries, JSON/XML transformers, and Laravel boundary helpers.
+
+Quick links: [Getting Started](https://maxiviper117.github.io/result-flow/getting-started.html) • [API reference](https://maxiviper117.github.io/result-flow/api.html)
+
+## Quick copy-paste examples
+
+Quick pipeline + match:
 
 ```php
-use Maxiviper117\ResultFlow\Result;
-```
+use Maxiviper117\\ResultFlow\\Result;
 
-### Laravel config publish (optional)
+$result = Result::ok(['order_id' => 123, 'total' => 42])
+    ->then(fn($o) => $o['total'] > 0 ? Result::ok($o) : Result::fail('empty'))
+    ->then(fn($o) => Result::ok(['saved' => true, 'id' => $o['order_id']]));
 
-The package is framework-agnostic, but if you're using Laravel the service provider is auto-discovered. Publish the config to override debug sanitization settings (redaction token, sensitive keys, max string length):
-
-```bash
-php artisan vendor:publish --tag=result-flow-config
-```
-
-Edit `config/result-flow.php` to match your policies. The `sensitive_keys` option supports glob-style patterns (e.g., `*token`, `api_*`, `?id`) and is case-insensitive. `Result::toDebugArray()` will pick up these values via the `config()` helper when present.
-
-## Quick Start
-
-```php
-$result = Result::ok($payload)
-    ->then(new ValidateOrder)              // runs on success
-    ->then(fn($data, $meta) => save($data))
-    ->otherwise(fn($error, $meta) => cacheFallback($error, $meta));
-
-// Handle both branches
-return $result->match(
-    onSuccess: fn($value) => response()->json($value),
-    onFailure: fn($error) => response()->json(['error' => $error], 400),
+echo $result->match(
+    onSuccess: fn($v) => json_encode($v),
+    onFailure: fn($e) => json_encode(['error' => (string) $e]),
 );
 ```
 
-## Documentation
+Metadata chaining (attach/propagate context):
 
-The full guide, API reference, patterns, FAQ, and testing notes are available at [https://maxiviper117.github.io/result-flow/result/](https://maxiviper117.github.io/result-flow/result/).
+```php
+Result::ok(['id' => 1], ['request_id' => 'r-1'])
+    ->mergeMeta(['started_at' => microtime(true)])
+    ->then(fn($v, $meta) => Result::ok($v, [...$meta, 'validated' => true]));
+```
 
-## Contributing
+Exception → Result (wrap a throwing call):
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, and PR expectations.
+```php
+$res = Result::of(fn() => mayThrow())
+    ->otherwise(fn($e) => Result::fail('downstream error'));
+```
 
-## Testing
+Laravel boundary (`toResponse()` returns a Laravel response when available):
+
+```php
+$result = Result::ok(['message' => 'ok']);
+$response = $result->toResponse(); // Response instance in Laravel, array fallback otherwise
+```
+
+## When to use Result Flow
+
+- Use in controllers, background jobs, HTTP client adapters, or transactional flows where you want explicit success/failure handling and metadata propagation.
+
+## Debugging & observability
+
+- Use `toDebugArray()` to produce a sanitized, debug-friendly shape. Configure sanitization via `config/result-flow.php` in Laravel projects. See the hosted docs for [debugging](https://maxiviper117.github.io/result-flow/debugging.html) and [sanitization](https://maxiviper117.github.io/result-flow/sanitization.html).
+
+## Retries & resiliency
+
+- Use `Result::retry()` for simple retry needs or `Result::retrier()` for advanced configurations (jitter, max attempts, etc.). Read more in the hosted [Retrying Operations](https://maxiviper117.github.io/result-flow/result/retrying.html) guide.
+
+## Interop & migration
+
+- Convert exceptions to `Result` with `Result::of()`. Prefer `then()` for safe chaining and `thenUnsafe()` when you need exceptions to bubble (e.g., DB transactions).
+
+## Contributing & tests
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Run the test suite with:
 
 ```bash
 composer test
@@ -68,5 +86,5 @@ composer test
 
 ## License
 
-The MIT License (MIT). Please see [LICENSE.md](LICENSE.md) for more information.
+MIT — see `LICENSE.md`.
 

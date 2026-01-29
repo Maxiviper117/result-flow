@@ -4,7 +4,7 @@ title: Getting Started
 
 # Getting Started
 
-Result Flow is a lightweight Result/Either monad for PHP. It models a value that is either **ok** (success) with a payload or **fail** (failure) with an error, plus metadata that travels with every step.
+Result Flow is a lightweight Result/Either type for PHP. It models a value that is either **ok** (success) with a payload or **fail** (failure) with an error, plus metadata that travels with every step.
 
 ## Requirements
 
