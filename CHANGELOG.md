@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/Maxiviper117/result-flow/compare/v1.7.0...v1.7.1) (2026-01-29)
+
+
+### Bug Fixes
+
+* enhance typing with generics for Result handling across multiple classes ([#49](https://github.com/Maxiviper117/result-flow/issues/49)) ([4d7a3a0](https://github.com/Maxiviper117/result-flow/commit/4d7a3a08b41e1f80d6619ff0366a8f90476a959e))
+
 ## [1.7.0](https://github.com/Maxiviper117/result-flow/compare/v1.6.1...v1.7.0) (2026-01-29)
 
 
