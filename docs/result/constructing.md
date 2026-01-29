@@ -4,7 +4,20 @@ title: Constructing results
 
 # Constructing results
 
-This page shows how to create `Result` instances and combine them. Each example highlights how metadata is preserved and how exceptions are captured.
+This page explains how to create `Result` instances and combine them. It also covers how values, errors, and metadata are stored so you can reason about pipelines with confidence.
+
+## The Result shape
+
+A `Result` is always in exactly one of two states:
+
+```
+Ok(value, meta) | Fail(error, meta)
+```
+
+Key points:
+- `value()` is only meaningful on success; on failure it returns `null`.
+- `error()` is only meaningful on failure; on success it returns `null`.
+- `meta()` is always available and travels through the pipeline.
 
 ## Static constructors
 
@@ -20,6 +33,11 @@ $loaded = Result::ok($payload, ['request_id' => $rid]);
 $failed = Result::fail(new DomainError('Payment declined'), ['attempt' => 2]);
 ```
 
+Notes:
+- `ok()` stores the value in the success channel and leaves the error channel empty.
+- `fail()` stores the error in the failure channel and leaves the value empty.
+- Both accept metadata, which is carried forward through the chain.
+
 ### `Result::failWithValue()` keeps the triggering value
 
 Useful for validation failures where you want to keep the rejected input close to the error.
@@ -27,25 +45,31 @@ Useful for validation failures where you want to keep the rejected input close t
 ```php
 $payload = ['email' => 'not-an-email'];
 
-$invalid = Result::failWithValue('Invalid email', $payload);
+$invalid = Result::failWithValue('Invalid email', $payload, ['source' => 'signup']);
 
 $invalid->meta();
-// ['failed_value' => ['email' => 'not-an-email']]
+// ['failed_value' => ['email' => 'not-an-email'], 'source' => 'signup']
 ```
+
+Notes:
+- `failed_value` is added into metadata automatically.
+- If you pass `failed_value` in the meta array, your value will override the default.
 
 ### `Result::of()` wraps exceptions automatically
 
-Any exception is converted into a failure so you can keep chaining without `try/catch` noise.
+Any exception is converted into a failure so you can keep chaining without try/catch noise.
 
 ```php
-$userResult = Result::of(fn() => $userRepo->findOrFail($id))
-    ->map(fn($user) => $user->profile());
+$userResult = Result::of(fn () => $userRepo->findOrFail($id))
+    ->map(fn ($user) => $user->profile());
 
 if ($userResult->isFail()) {
     // error() returns the original Throwable for logging or matching
     logger()->warning('Profile lookup failed', ['error' => $userResult->error()]);
 }
 ```
+
+`of()` only captures exceptions. If the callable returns normally, the value becomes `Result::ok($value)`.
 
 ## Combining many results
 
@@ -59,14 +83,19 @@ $combined = Result::combine([
 ]);
 
 return $combined->match(
-    onSuccess: fn([$user, $account, $prefs]) => hydrateDashboard($user, $account, $prefs),
-    onFailure: fn($error) => response()->json(['error' => $error], 400),
+    onSuccess: fn (array $values) => hydrateDashboard(...$values),
+    onFailure: fn ($error) => response()->json(['error' => $error], 400),
 );
 ```
 
-### `Result::combineAll()` collects *all* errors
+Behavior details:
+- Stops at the first failure and returns that error.
+- Metadata from all processed results is merged (later keys win).
+- If all are ok, the value is an array of the success values in input order.
 
-Use this when you want full visibility into multiple failures (e.g., batch validation) instead of failing fast.
+### `Result::combineAll()` collects all errors
+
+Use this when you want full visibility into multiple failures instead of failing fast.
 
 ```php
 $checks = Result::combineAll([
@@ -76,14 +105,19 @@ $checks = Result::combineAll([
 ]);
 
 $checks->match(
-    onSuccess: fn($values) => persistAll($values),
-    onFailure: fn(array $errors) => report_all($errors),
+    onSuccess: fn ($values) => persistAll($values),
+    onFailure: fn (array $errors) => report_all($errors),
 );
 ```
 
+Behavior details:
+- Collects all errors into an array (order matches the input list).
+- If there are any errors, the result is `fail(array<E>)`.
+- Metadata from all results is merged (later keys win).
+
 ### Merging metadata from combined results
 
-Both `combine()` and `combineAll()` merge metadata from each input in order. You can store helpful context (like step names) on each partial result and retrieve it later.
+Both `combine()` and `combineAll()` merge metadata from each input in order. On key conflicts, the later value wins.
 
 ```php
 $steps = Result::combine([
@@ -92,5 +126,5 @@ $steps = Result::combine([
 ]);
 
 $meta = $steps->meta();
-// ['step' => 'enriched'] — last write wins on conflicting keys
+// ['step' => 'enriched']
 ```

@@ -4,7 +4,9 @@ title: Matching and unwrapping
 
 # Matching and unwrapping
 
-Pattern matching APIs force you to handle both branches explicitly. Unwrapping helpers provide controlled escape hatches when you need the raw value.
+Pattern matching forces you to handle both branches explicitly. Unwrapping helpers are the escape hatch when you need a raw value or an exception.
+
+Use this page when you want to consume results (convert them into values, responses, or exceptions). If you are still in a pipeline, prefer chaining methods (`then`, `otherwise`, `recover`) and unwrap at the boundary.
 
 ## Pattern matching
 
@@ -12,62 +14,79 @@ Pattern matching APIs force you to handle both branches explicitly. Unwrapping h
 
 ```php
 $out = Result::ok($user)->match(
-    onSuccess: fn(User $u, array $meta) => view('profile', ['user' => $u]),
-    onFailure: fn($error, array $meta) => view('error', ['message' => $error]),
+    onSuccess: fn (User $u, array $meta) => view('profile', ['user' => $u]),
+    onFailure: fn ($error, array $meta) => view('error', ['message' => $error]),
 );
 ```
+
+`match()` returns whatever your callbacks return. This makes it ideal for building HTTP responses, view models, or CLI output in a single expression.
 
 ### Exception-aware branching with `matchException()`
 
 ```php
-$response = Result::of(fn() => $client->call())
+$response = Result::of(fn () => $client->call())
     ->matchException(
         exceptionHandlers: [
-            ClientException::class => fn($e, $meta) => Result::fail('4xx from upstream'),
-            ServerException::class => fn($e, $meta) => Result::fail('5xx from upstream'),
+            ClientException::class => fn ($e, $meta) => Result::fail('4xx from upstream'),
+            ServerException::class => fn ($e, $meta) => Result::fail('5xx from upstream'),
         ],
-        onSuccess: fn($payload, $meta) => Result::ok($payload, $meta),
-        onUnhandled: fn($error, $meta) => Result::fail($error, $meta),
+        onSuccess: fn ($payload, $meta) => Result::ok($payload, $meta),
+        onUnhandled: fn ($error, $meta) => Result::fail($error, $meta),
     );
 ```
 
-The first matching class handler runs. Non-Throwables and unmatched exceptions fall back to `onUnhandled`.
+Behavior summary:
+- If ok: calls `onSuccess(value, meta)`.
+- If failed with a Throwable and a matching class exists: calls the matching handler.
+- Otherwise: calls `onUnhandled(error, meta)`.
 
-## Unwrapping helpers
+## Unwrapping (escape hatch)
 
-### `unwrap()` throws on failure
+Use unwrapping when you explicitly want a value or an exception (tests, CLI commands, boundaries). If you need to handle both branches, prefer `match()`. Unwrapping throws by design so failures cannot be silently ignored.
 
-```php
-try {
-    $payload = Result::ok(['id' => 1])->unwrap();
-} catch (Throwable $e) {
-    // Never reached for ok values
-}
-```
-
-If the failure contains a `Throwable`, that exception is rethrown; otherwise a `RuntimeException` is thrown with the string error message.
-
-### Provide defaults with `unwrapOr()` and `unwrapOrElse()`
+### `unwrap()` returns the value or throws
 
 ```php
-$user = loadUser($id)
-    ->unwrapOr(new GuestUser());
+// Success => returns the value
+$id = Result::ok(42)->unwrap();
 
-$withDynamicDefault = loadUser($id)
-    ->unwrapOrElse(fn($error) => fetchFromCache($error));
+// Failure with Throwable => rethrows the original exception
+Result::fail(new RuntimeException('boom'))->unwrap();
+
+// Failure with string => RuntimeException('missing')
+Result::fail('missing')->unwrap();
 ```
 
-### Throw custom exceptions with `getOrThrow()`
+If the failure is not a Throwable or string, `unwrap()` throws `RuntimeException('Result failed')`.
+
+### `unwrapOr()` provides a default
 
 ```php
-$dto = Result::fail('invalid-state')
-    ->getOrThrow(fn($error) => new DomainException($error));
+$user = Result::fail('not-found')->unwrapOr(new GuestUser());
 ```
 
-### Re-throw failures after unsafe steps with `throwIfFail()`
+### `unwrapOrElse()` computes a default from error and meta
 
 ```php
-$result = Result::ok($input)
-    ->thenUnsafe(fn($data) => writeToDisk($data))
-    ->throwIfFail(); // throws the Throwable stored in the failure, otherwise returns $this
+$user = Result::fail('not-found', ['source' => 'cache'])
+    ->unwrapOrElse(fn ($error, $meta) => new GuestUser($meta['source']));
 ```
+
+`unwrapOrElse()` is lazy: the callback only runs on failure, so you can put expensive logic there safely.
+
+### `getOrThrow()` throws a custom exception
+
+```php
+$result = Result::fail('invalid', ['code' => 422])
+    ->getOrThrow(fn ($error, $meta) => new DomainException("{$error}-{$meta['code']}") );
+```
+
+### `throwIfFail()` escalates failures in a chain
+
+```php
+$final = Result::ok($input)
+    ->thenUnsafe(fn ($v) => riskyWrite($v))
+    ->throwIfFail(); // throws on failure, returns $this on success
+```
+
+`throwIfFail()` uses a best-effort stringification for non-Throwable errors (JSON when possible, otherwise `var_export`). This can produce more detail than `unwrap()` for array errors.

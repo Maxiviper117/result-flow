@@ -8,46 +8,79 @@ Metadata is a first-class citizen in Result Flow. It rides along every chain, ca
 
 ## Working with metadata
 
+Metadata is a simple associative array carried on every `Result`. It is useful for correlation IDs, step names, audit context, or failed input.
+
 ### Inspect without mutating using `tapMeta()`
 
 ```php
 Result::ok($payload, ['request_id' => $rid])
-    ->tapMeta(fn(array $meta) => logger()->debug('request', $meta));
+    ->tapMeta(fn (array $meta) => logger()->debug('request', $meta));
 ```
 
-### Replace or merge metadata
+`tapMeta()` does not change the stored metadata. It receives a copy of the array.
+
+### Replace metadata with `mapMeta()`
 
 ```php
-// Replace the metadata entirely
-$replaced = Result::ok($user)
-    ->mapMeta(fn(array $meta) => ['source' => 'import']);
-
-// Merge without losing existing keys
-$merged = $replaced->mergeMeta(['trace' => $traceId]);
+$replaced = Result::ok($user, ['source' => 'import'])
+    ->mapMeta(fn (array $meta) => ['source' => 'override', 'step' => 'mapped']);
 ```
+
+`mapMeta()` returns a new `Result` with the replaced metadata (the value or error is preserved).
+
+### Merge metadata with `mergeMeta()`
+
+```php
+$merged = Result::ok($user, ['trace' => $traceId])
+    ->mergeMeta(['step' => 'validated']);
+```
+
+`mergeMeta()` is a shallow merge. Later keys overwrite earlier keys.
 
 ### Keep metadata in chained steps
 
-When a chained step returns a `Result`, any metadata on the returned object becomes the source of truth for subsequent steps.
+When a chained step returns a `Result`, its metadata becomes the source of truth for subsequent steps.
 
 ```php
 $withSteps = Result::ok($payload, ['step' => 'received'])
-    ->then(fn($value, $meta) => Result::ok($value, [...$meta, 'validated' => true]))
-    ->then(fn($value, $meta) => Result::ok($value, [...$meta, 'persisted' => true]));
+    ->then(fn ($value, $meta) => Result::ok($value, [...$meta, 'validated' => true]))
+    ->then(fn ($value, $meta) => Result::ok($value, [...$meta, 'persisted' => true]));
 
 $withSteps->meta();
 // ['step' => 'received', 'validated' => true, 'persisted' => true]
 ```
 
+If a step returns a raw value (not a Result), the current metadata is preserved unchanged.
+
 ## Observing values without changing state
 
 Use taps to emit logs or metrics while keeping the current `Result` untouched.
 
+### `tap()` observes both branches
+
 ```php
-$result = Result::ok($payload)
-    ->tap(fn($value, $error, $meta) => metrics()->increment('pipeline.start'))
-    ->onSuccess(fn($value, $meta) => audit('ok', $meta))
-    ->onFailure(fn($error, $meta) => audit('failed', ['error' => $error] + $meta));
+Result::ok($payload)
+    ->tap(fn ($value, $error, $meta) => metrics()->increment('pipeline.start'));
+```
+
+### `onSuccess()` and `inspect()`
+
+`inspect()` is an alias for `onSuccess()`.
+
+```php
+Result::ok($payload)
+    ->onSuccess(fn ($value, $meta) => audit('ok', $meta))
+    ->inspect(fn ($value, $meta) => logger()->info('ok', $meta));
+```
+
+### `onFailure()` and `inspectError()`
+
+`inspectError()` is an alias for `onFailure()`.
+
+```php
+Result::fail('bad')
+    ->onFailure(fn ($error, $meta) => logger()->warning('fail', ['error' => $error] + $meta))
+    ->inspectError(fn ($error, $meta) => report($error));
 ```
 
 ## Debug output and sanitization
@@ -58,37 +91,16 @@ $result = Result::ok($payload)
 
 ### `toDebugArray()` for safe logging
 
-`toDebugArray()` hides sensitive data using a sanitizer. By default, it redacts common keys (`password`, `token`, `authorization`, etc.) and truncates long strings. 
-
-For full details on configuring redaction, wildcards, and string truncation, see the dedicated [Sanitization & Safety](/sanitization) guide.
-
-You can override the sanitizer or configure defaults via Laravel's `config('result-flow.debug')` if available.
+`toDebugArray()` hides sensitive data using a sanitizer. By default, it redacts common keys (password, token, authorization, etc.) and truncates long strings.
 
 ```php
-$config = [
-    'enabled' => true,
-    'redaction' => '***',
-    'sensitive_keys' => ['token', 'secret'],
-    'max_string_length' => 64,
-    'truncate_strings' => true,
-];
-
-$debug = Result::ok(['token' => 'super-long-secret'], ['request_id' => $rid])
+$debug = Result::fail(new DomainException('Order 42 is invalid'), ['token' => 'secret'])
     ->toDebugArray();
-
-// Produces something like:
-// [
-//   'ok' => true,
-//   'value_type' => 'array',
-//   'error_type' => null,
-//   'error_message' => null,
-//   'meta' => ['request_id' => $rid],
-// ]
 ```
 
-If you want to show parts of the error message but still sanitize it, pass your own sanitizer function:
+Behavior:
+- `value_type` and `error_type` are derived from `get_debug_type()`.
+- `error_message` is populated only for string errors and Throwables.
+- Metadata is sanitized recursively.
 
-```php
-$debuggable = Result::fail(new DomainException('Order 42 is invalid'))
-    ->toDebugArray(fn($value) => is_string($value) ? substr($value, 0, 10) : $value);
-```
+For full details on configuring redaction, wildcards, and string truncation, see the dedicated Sanitization and Safety guide.
