@@ -6,7 +6,11 @@
         ".": {
             "release-type": "php",
             "package-name": "result-flow",
-            "changelog-path": "CHANGELOG.md"
+            "changelog-path": "CHANGELOG.md",
+            "extra-files": [
+                "composer.json",
+                "composer.lock"
+            ]
         }
     }
 }
