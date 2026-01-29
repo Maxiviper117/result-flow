@@ -71,6 +71,7 @@ $response = $result->toResponse(); // Response instance in Laravel, array fallba
 ## Retries & resiliency
 
 - Use `Result::retry()` for simple retry needs or `Result::retrier()` for advanced configurations (jitter, max attempts, etc.). Read more in the hosted [Retrying Operations](https://maxiviper117.github.io/result-flow/result/retrying.html) guide.
+- When you need to know how many attempts ran, call `->attachAttemptMeta()` before `->attempt()` to merge `['retry' => ['attempts' => ...]]` into the returned metadata.
 
 ## Interop & migration
 
