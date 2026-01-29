@@ -27,7 +27,17 @@ class ResultFlowServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if ($this->app->runningInConsole()) {
+        /** @var object|null $app */
+        $app = $this->app;
+
+        if (! is_object($app) || ! method_exists($app, 'runningInConsole')) {
+            return;
+        }
+
+        /** @var callable(): bool $runningInConsole */
+        $runningInConsole = [$app, 'runningInConsole'];
+
+        if ($runningInConsole()) {
             $target = function_exists('config_path')
                 ? config_path('result-flow.php')
                 : (__DIR__.'/../../config/result-flow.php'); // fallback for non-Laravel contexts / static analysis

@@ -16,6 +16,11 @@ final class ResultResponse
 {
     /**
      * Convert a Result to a JSON HTTP response or fallback array shape.
+     *
+     * @template TSuccess
+     * @template TFailure
+     *
+     * @param  Result<TSuccess, TFailure>  $result
      */
     public static function toResponse(Result $result): mixed
     {
@@ -23,7 +28,13 @@ final class ResultResponse
         $status = $result->isOk() ? 200 : 400;
 
         if (function_exists('response')) {
-            return response()->json($payload, $status);
+            $factory = response();
+            if (is_object($factory) && method_exists($factory, 'json')) {
+                /** @var callable(mixed, int, array<string, string>, int): mixed $json */
+                $json = [$factory, 'json'];
+
+                return $json($payload, $status, [], 0);
+            }
         }
 
         return [

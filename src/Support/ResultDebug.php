@@ -15,6 +15,10 @@ use Throwable;
 final class ResultDebug
 {
     /**
+     * @template TSuccess
+     * @template TFailure
+     *
+     * @param  Result<TSuccess, TFailure>  $result
      * @param  callable(mixed): mixed|null  $sanitizer
      * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: mixed, meta: mixed}
      */
@@ -41,6 +45,7 @@ final class ResultDebug
     private static function defaultSanitizer(mixed $value): mixed
     {
         // Pull overrides from Laravel config if available; fall back to hardcoded defaults.
+        /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool} $debugConfig */
         $debugConfig = self::debugConfig();
         $enabled = ($debugConfig['enabled'] ?? true) === true;
         $redaction = $debugConfig['redaction'] ?? '***REDACTED***';
@@ -106,10 +111,11 @@ final class ResultDebug
     private static function debugConfig(): array
     {
         if (function_exists('config')) {
-            /** @var array{redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int}|null $config */
+            /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool}|null $config */
             $config = config('result-flow.debug');
 
             if (is_array($config)) {
+                /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool} $config */
                 return $config;
             }
         }
@@ -125,6 +131,7 @@ final class ResultDebug
     private static function matchesSensitiveKey(string $key, array $patterns): bool
     {
         // Cache compiled regexes per pattern list to avoid repeated compilation.
+        /** @var array<string, array<int, string>> $cache */
         static $cache = [];
 
         if ($key === '') {
@@ -134,6 +141,7 @@ final class ResultDebug
         $cacheKey = sha1(serialize($patterns));
 
         if (! isset($cache[$cacheKey])) {
+            /** @var array<int, string> $regexes */
             $regexes = [];
             foreach ($patterns as $p) {
                 if ($p === '') {

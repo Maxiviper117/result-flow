@@ -39,7 +39,10 @@ final class ResultTaps
     public static function onSuccess(Result $result, callable $tap): Result
     {
         if ($result->isOk()) {
-            $tap($result->value(), $result->meta());
+            /** @var TSuccess $value */
+            $value = $result->value();
+
+            $tap($value, $result->meta());
         }
 
         return $result;
@@ -56,7 +59,10 @@ final class ResultTaps
     public static function onFailure(Result $result, callable $tap): Result
     {
         if ($result->isFail()) {
-            $tap($result->error(), $result->meta());
+            /** @var TFailure $error */
+            $error = $result->error();
+
+            $tap($error, $result->meta());
         }
 
         return $result;

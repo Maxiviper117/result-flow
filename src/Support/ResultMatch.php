@@ -26,9 +26,17 @@ final class ResultMatch
      */
     public static function match(Result $result, callable $onSuccess, callable $onFailure): mixed
     {
-        return $result->isOk()
-            ? $onSuccess($result->value(), $result->meta())
-            : $onFailure($result->error(), $result->meta());
+        if ($result->isOk()) {
+            /** @var TSuccess $value */
+            $value = $result->value();
+
+            return $onSuccess($value, $result->meta());
+        }
+
+        /** @var TFailure $error */
+        $error = $result->error();
+
+        return $onFailure($error, $result->meta());
     }
 
     /**
@@ -49,9 +57,13 @@ final class ResultMatch
         callable $onUnhandled,
     ): mixed {
         if ($result->isOk()) {
-            return $onSuccess($result->value(), $result->meta());
+            /** @var TSuccess $value */
+            $value = $result->value();
+
+            return $onSuccess($value, $result->meta());
         }
 
+        /** @var TFailure $error */
         $error = $result->error();
 
         if ($error instanceof Throwable) {
@@ -82,6 +94,7 @@ final class ResultMatch
             return $result;
         }
 
+        /** @var TFailure $error */
         $error = $result->error();
 
         if ($error instanceof Throwable) {

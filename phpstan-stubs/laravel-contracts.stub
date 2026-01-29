@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Illuminate\Contracts\Foundation;
+
+interface Application
+{
+    public function runningInConsole(): bool;
+
+    public function configurationIsCached(): bool;
+
+    public function make(string $abstract): mixed;
+}
+
+namespace Illuminate\Contracts\Routing;
+
+interface ResponseFactory
+{
+    /**
+     * @param  array<string, string>  $headers
+     */
+    public function json(mixed $data, int $status = 200, array $headers = [], int $options = 0): mixed;
+}

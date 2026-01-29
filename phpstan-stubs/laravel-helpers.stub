@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+if (! function_exists('config')) {
+    /**
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    function config(?string $key = null, mixed $default = null): mixed {}
+}
+
+if (! function_exists('config_path')) {
+    /**
+     * @param  string  $path
+     */
+    function config_path(string $path = ''): string {}
+}
+
+if (! function_exists('response')) {
+    /**
+     * @return object
+     */
+    function response(): object {}
+}
