@@ -84,6 +84,7 @@ final class ResultTransform
             : $error;
 
         $failed = Result::fail($err, $result->meta());
+
         /** @var Result<TSuccess, TFailure> $failed */
         return $failed;
     }
