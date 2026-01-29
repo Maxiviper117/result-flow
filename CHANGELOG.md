@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.2](https://github.com/Maxiviper117/result-flow/compare/v1.6.1...v1.6.2) (2026-01-29)
+
+
+### Miscellaneous Chores
+
+* retry helpers plan ([f82bb9f](https://github.com/Maxiviper117/result-flow/commit/f82bb9f4441aea0814c8461159108fc464efa380))
+* update release-please config to include extra files ([514251a](https://github.com/Maxiviper117/result-flow/commit/514251ab8e4131af597bb2a265314a242a767526))
+
 ## [1.6.1](https://github.com/Maxiviper117/result-flow/compare/v1.6.0...v1.6.1) (2026-01-26)
 
 
