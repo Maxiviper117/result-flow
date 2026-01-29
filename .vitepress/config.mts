@@ -13,6 +13,7 @@ export default defineConfig({
       { text: 'Home', link: '/' },
       { text: 'Getting Started', link: '/getting-started' },
       { text: 'Result Deep Dive', link: '/result/' },
+      { text: 'Examples', link: '/examples/' },
       { text: 'API', link: '/api' },
       { text: 'FAQ', link: '/faq' },
       {
@@ -45,6 +46,39 @@ export default defineConfig({
           { text: 'Transformers (JSON/XML)', link: '/result/transformers' },
           { text: 'Metadata & Debugging', link: '/result/metadata-debugging' },
           { text: 'Sanitization & Safety', link: '/sanitization' },
+        ],
+      },
+      {
+        text: 'Examples',
+        collapsed: true,
+        items: [
+          { text: 'Overview', link: '/examples/' },
+          {
+            text: 'Default patterns',
+            collapsed: true,
+            items: [
+              { text: 'Laravel workflow', link: '/examples/laravel' },
+              { text: 'Laravel controller-only', link: '/examples/laravel-controller-only' },
+              { text: 'Laravel validation', link: '/examples/laravel-validation' },
+              { text: 'Laravel transactions', link: '/examples/laravel-transactions' },
+              { text: 'Laravel retries', link: '/examples/laravel-retries' },
+              { text: 'Laravel debugging', link: '/examples/laravel-debugging' },
+              { text: 'Laravel combine', link: '/examples/laravel-combine' },
+              { text: 'Laravel match + unwrap', link: '/examples/laravel-match-unwrap' },
+              { text: 'Laravel metadata + taps', link: '/examples/laravel-meta-taps' },
+              { text: 'Laravel jobs + queues', link: '/examples/laravel-jobs' },
+            ],
+          },
+          {
+            text: 'Action pattern',
+            collapsed: true,
+            items: [
+              { text: 'Laravel actions (optional)', link: '/examples/laravel-actions' },
+              { text: 'Laravel actions pipeline', link: '/examples/laravel-actions-pipeline' },
+              { text: 'Laravel actions retries', link: '/examples/laravel-actions-retries' },
+              { text: 'Laravel actions exceptions', link: '/examples/laravel-actions-exceptions' },
+            ],
+          },
         ],
       },
       {
