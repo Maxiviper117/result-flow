@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/Maxiviper117/result-flow/compare/v1.7.1...v1.8.0) (2026-02-07)
+
+
+### Features
+
+* add collection mapping helpers for Result processing ([#51](https://github.com/Maxiviper117/result-flow/issues/51)) ([16e6aeb](https://github.com/Maxiviper117/result-flow/commit/16e6aebc4c801becc3882b3ce8dfccf0d0b96903))
+
 ## [1.7.1](https://github.com/Maxiviper117/result-flow/compare/v1.7.0...v1.7.1) (2026-01-29)
 
 
