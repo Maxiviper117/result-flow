@@ -34,7 +34,7 @@ $items = [
 
 $mapped = Result::mapItems($items, function (array $row, string $key): Result {
     // Each callback invocation can independently succeed or fail.
-    if (!str_contains($row['email'], '@')) {
+    if (! str_contains($row['email'], '@')) {
         return Result::fail("Invalid email at {$key}", ['row' => $key]);
     }
 
