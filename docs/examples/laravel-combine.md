@@ -1,69 +1,35 @@
 ---
-title: Laravel combine + combineAll example
+title: Laravel Combine
 ---
 
-# Laravel combine + combineAll example
+# Laravel Combine
 
-This example shows how to combine multiple Results when you need to load several resources or run multiple validations.
+## Scenario
 
-## Service
+Combine independent Result-returning lookups for one response payload.
+
+## Example
 
 ```php
-namespace App\Services;
+$result = Result::combine([
+    $userService->find($id),
+    $accountService->forUser($id),
+    $prefsService->forUser($id),
+])->map(fn (array $values) => [
+    'user' => $values[0],
+    'account' => $values[1],
+    'preferences' => $values[2],
+]);
 
-use Maxiviper117\ResultFlow\Result;
-
-final class ProfileService
-{
-    public function loadProfile(int $userId): Result
-    {
-        $user = $this->loadUser($userId);
-        $account = $this->loadAccount($userId);
-        $prefs = $this->loadPreferences($userId);
-
-        return Result::combine([$user, $account, $prefs])
-            ->map(fn (array $values) => [
-                'user' => $values[0],
-                'account' => $values[1],
-                'prefs' => $values[2],
-            ]);
-    }
-
-    public function validateProfile(array $data): Result
-    {
-        return Result::combineAll([
-            $this->validateEmail($data['email'] ?? null),
-            $this->validateName($data['name'] ?? null),
-            $this->validateTimezone($data['timezone'] ?? null),
-        ]);
-    }
-
-    private function loadUser(int $id): Result { return Result::ok(['id' => $id]); }
-    private function loadAccount(int $id): Result { return Result::ok(['id' => $id]); }
-    private function loadPreferences(int $id): Result { return Result::ok(['tz' => 'UTC']); }
-
-    private function validateEmail(?string $email): Result
-    {
-        return $email ? Result::ok($email) : Result::fail('email required');
-    }
-
-    private function validateName(?string $name): Result
-    {
-        return $name ? Result::ok($name) : Result::fail('name required');
-    }
-
-    private function validateTimezone(?string $tz): Result
-    {
-        return $tz ? Result::ok($tz) : Result::fail('timezone required');
-    }
-}
+return $result->toResponse();
 ```
 
-Notes:
-- `combine()` fails fast and returns the first error.
-- `combineAll()` returns an array of all errors for full validation reporting.
-- Metadata from each result is merged in order.
+## Expected behavior
 
-## Result functions used
+- First failing dependency ends the combine flow.
+- Successful branches aggregate in value order.
 
-- `combine()`, `combineAll()`, `ok()`, `fail()`, `map()`
+## Related pages
+
+- [Constructing Results](/result/constructing)
+- [Batch Processing](/result/batch-processing)

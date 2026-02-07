@@ -1,42 +1,28 @@
 ---
-title: Laravel metadata + taps example
+title: Laravel Metadata and Taps
 ---
 
-# Laravel metadata + taps example
+# Laravel Metadata and Taps
 
-This example shows how to enrich metadata and emit logs/metrics without changing the pipeline.
+## Scenario
+
+Attach request context and emit branch-specific telemetry.
+
+## Example
 
 ```php
-namespace App\Services;
-
-use Illuminate\Support\Facades\Log;
-use Maxiviper117\ResultFlow\Result;
-
-final class BillingService
-{
-    public function charge(array $payload): Result
-    {
-        return Result::ok($payload, ['request_id' => $payload['request_id'] ?? null])
-            ->mergeMeta(['started_at' => microtime(true)])
-            ->tapMeta(fn ($meta) => Log::debug('billing.meta', $meta))
-            ->then(fn ($data, $meta) => $this->callGateway($data, $meta))
-            ->onSuccess(fn ($value, $meta) => Log::info('billing.ok', $meta))
-            ->onFailure(fn ($error, $meta) => Log::warning('billing.fail', ['error' => $error] + $meta));
-    }
-
-    private function callGateway(array $data, array $meta): Result
-    {
-        // ... call provider
-        return Result::ok(['charged' => true], $meta);
-    }
-}
+$result = Result::ok($payload, ['request_id' => (string) Str::uuid()])
+    ->onSuccess(fn ($value, array $meta) => logger()->info('pipeline-ok', $meta))
+    ->onFailure(fn ($error, array $meta) => logger()->warning('pipeline-fail', ['error' => $error, 'meta' => $meta]))
+    ->mergeMeta(['controller' => 'CheckoutController@store']);
 ```
 
-Notes:
-- `mergeMeta()` adds context without losing existing metadata.
-- `tapMeta()` observes metadata without mutation.
-- `onSuccess()` / `onFailure()` are ideal for metrics and logging.
+## Expected behavior
 
-## Result functions used
+- Tap callbacks do not mutate payload.
+- Metadata stays available at every stage.
 
-- `ok()`, `mergeMeta()`, `tapMeta()`, `then()`, `onSuccess()`, `onFailure()`
+## Related pages
+
+- [Metadata and Debugging](/result/metadata-debugging)
+- [Debugging and Meta](/debugging)

@@ -1,61 +1,30 @@
 ---
-title: Laravel match + unwrap example
+title: Laravel Match and Unwrap
 ---
 
-# Laravel match + unwrap example
+# Laravel Match and Unwrap
 
-This example shows two common ways to consume Results at the boundary: `match()` for explicit branching and `unwrap*()` for fast access.
+## Scenario
 
-## Controller (match)
+Finish Result pipelines for HTTP responses or domain values.
 
-```php
-namespace App\Http\Controllers;
-
-use App\Services\ReportService;
-use Illuminate\Http\Request;
-
-final class ReportController
-{
-    public function show(Request $request, ReportService $reports)
-    {
-        $result = $reports->generate($request->all());
-
-        return $result->match(
-            onSuccess: fn ($payload, $meta) => response()->json($payload, 200),
-            onFailure: fn ($error, $meta) => response()->json(['error' => (string) $error], 400),
-        );
-    }
-}
-```
-
-## CLI command (unwrap)
+## Example
 
 ```php
-namespace App\Console\Commands;
+$result = $service->execute($dto);
 
-use App\Services\ReportService;
-use Illuminate\Console\Command;
-
-final class GenerateReport extends Command
-{
-    protected $signature = 'report:generate';
-
-    public function handle(ReportService $reports): int
-    {
-        $result = $reports->generate([]);
-
-        $path = $result->unwrapOrElse(fn ($error) => storage_path('reports/fallback.json'));
-        $this->info("Report written to {$path}");
-
-        return self::SUCCESS;
-    }
-}
+return $result->match(
+    onSuccess: fn ($value) => response()->json(['ok' => true, 'data' => $value]),
+    onFailure: fn ($error) => response()->json(['ok' => false, 'error' => (string) $error], 400),
+);
 ```
 
-Notes:
-- `match()` forces both branches to be handled explicitly.
-- `unwrapOrElse()` computes a fallback lazily when failures occur.
+## Expected behavior
 
-## Result functions used
+- Both branches are handled explicitly.
+- No hidden implicit fallback logic.
 
-- `match()`, `unwrapOrElse()`
+## Related pages
+
+- [Matching and Unwrapping](/result/matching-unwrapping)
+- [API Reference](/api)

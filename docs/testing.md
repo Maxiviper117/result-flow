@@ -1,111 +1,61 @@
 ---
-title: Test Recipes
+title: Testing Recipes
 ---
 
-# Test Recipes
+# Testing Recipes
 
-## State Assertions
+## What this page is for
+
+Use these checks to test branch behavior, metadata propagation, and batch semantics.
+
+## Assert success/failure branch
 
 ```php
-$result = Result::ok('value');
 expect($result->isOk())->toBeTrue();
-expect($result->isFail())->toBeFalse();
-expect($result->value())->toBe('value');
-expect($result->error())->toBeNull();
-```
+expect($result->value())->toBe($expected);
 
-```php
-$result = Result::fail('error');
 expect($result->isFail())->toBeTrue();
-expect($result->value())->toBeNull();
-expect($result->error())->toBe('error');
+expect($result->error())->toBe('expected-error');
 ```
 
-## Chaining
+## Assert metadata propagation
 
 ```php
-it('short-circuits on failure', function () {
-    $executed = false;
+$result = Result::ok($dto, ['request_id' => 'r-1'])
+    ->mergeMeta(['step' => 'validated']);
 
-    $result = Result::fail('error')
-        ->then(function () use (&$executed) {
-            $executed = true;
-            return Result::ok('value');
-        });
+expect($result->meta())->toMatchArray([
+    'request_id' => 'r-1',
+    'step' => 'validated',
+]);
+```
 
-    expect($executed)->toBeFalse();
-    expect($result->isFail())->toBeTrue();
+## Assert fail-fast behavior
+
+```php
+$visited = [];
+
+Result::mapAll(['a' => 1, 'b' => 2], function ($item, $key) use (&$visited) {
+    $visited[] = $key;
+
+    return $item === 2 ? Result::fail('bad') : Result::ok($item);
 });
+
+expect($visited)->toBe(['a', 'b']);
 ```
 
-## ensure()
+## Assert collect-all behavior
 
 ```php
-$result = Result::ok(10)
-    ->ensure(fn($v) => $v > 5, 'Too small');
-expect($result->isOk())->toBeTrue();
-```
-
-```php
-$result = Result::ok(3)
-    ->ensure(fn($v) => $v > 5, 'Too small');
-expect($result->isFail())->toBeTrue();
-expect($result->error())->toBe('Too small');
-```
-
-## combine() vs combineAll()
-
-```php
-$combined = Result::combine([
-    Result::ok('a'),
-    Result::ok('b'),
-    Result::ok('c'),
-]);
-expect($combined->isOk())->toBeTrue();
-expect($combined->value())->toBe(['a', 'b', 'c']);
-```
-
-```php
-$combined = Result::combineAll([
-    Result::fail('error1'),
-    Result::ok('value'),
-    Result::fail('error2'),
-]);
-expect($combined->isFail())->toBeTrue();
-expect($combined->error())->toBe(['error1', 'error2']);
-```
-
-## Matching
-
-```php
-$out = Result::ok('hello')->match(
-    onSuccess: fn($v) => strtoupper($v),
-    onFailure: fn($e) => 'ERROR',
-);
-expect($out)->toBe('HELLO');
-```
-
-```php
-$out = Result::fail('oops')->match(
-    onSuccess: fn($v) => 'SUCCESS',
-    onFailure: fn($e) => "Error: {$e}",
-);
-expect($out)->toBe('Error: oops');
-```
-
-## Exception Safety
-
-```php
-$result = Result::ok('x')
-    ->then(fn() => throw new RuntimeException('boom'));
+$result = Result::mapCollectErrors(['a' => 1, 'b' => 2, 'c' => 3], function ($item, $key) {
+    return $item % 2 === 0 ? Result::ok($item) : Result::fail("bad-{$key}");
+});
 
 expect($result->isFail())->toBeTrue();
-expect($result->error())->toBeInstanceOf(RuntimeException::class);
-expect($result->meta()['failed_step'])->toBe('Closure');
+expect($result->error())->toBe(['a' => 'bad-a', 'c' => 'bad-c']);
 ```
 
-## Running the Suite
+## Related pages
 
-```bash
-composer test
-```
+- [Batch Processing](/result/batch-processing)
+- [Metadata and Debugging](/result/metadata-debugging)

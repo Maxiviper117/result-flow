@@ -4,54 +4,39 @@ title: FAQ
 
 # FAQ
 
-## What PHP versions are supported?
+## Why not just throw exceptions everywhere?
 
-Result Flow targets PHP 8.2+. If you need older PHP support, you’ll need to pin a compatible release.
+Exceptions are still valid. Result Flow helps when you want explicit, branch-aware outcomes that are easier to test and chain.
 
-## When should I use Result instead of exceptions?
+## When should I use `thenUnsafe()`?
 
-Use `Result` when you want explicit, typed success/failure handling in normal control flow (validation, fallbacks, recoverable errors). Use exceptions when a failure is truly exceptional or you need stack unwinding. You can also combine both: use `Result::of()` or `then()` to convert exceptions into `Result::fail()`.
+Use it when exceptions must bubble (for example, transaction rollback boundaries).
 
-## How does retry/backoff work?
+## How do I choose between `map`, `then`, and `flatMap`?
 
-- `Result::retry()` provides a simple loop with optional delay and exponential backoff.
-- `Result::retrier()` lets you add jitter, conditional retry predicates, and `onRetry()` hooks.
+- `map`: success value -> plain value
+- `then`: success value -> `Result` or plain value
+- `flatMap`: alias of `then`
 
-See [Retrying Operations](/result/retrying) for examples and detailed behavior.
+## How do I process arrays of items?
 
-## Does `toJson()` throw exceptions?
+- Per-item status: `mapItems`
+- Fail-fast aggregate: `mapAll`
+- Collect all errors: `mapCollectErrors`
 
-Yes. Internally it uses `json_encode(..., JSON_THROW_ON_ERROR)`, so it can throw `JsonException` if encoding fails. Wrap it if needed:
+## How do I convert failures into success defaults?
 
-```php
-try {
-    echo $result->toJson(JSON_PRETTY_PRINT);
-} catch (JsonException $e) {
-    // handle encoding issues
-}
-```
+Use `recover`, or use `unwrapOr`/`unwrapOrElse` at boundary points.
 
-## What does `toDebugArray()` include for errors?
+## Does metadata survive chaining?
 
-`toDebugArray()` always includes the error type, but the `error_message` field is only set for:
+Yes. Metadata propagates through chain methods unless explicitly replaced/overwritten.
 
-- `Throwable` errors (uses the exception message)
-- string errors
+## How do I output HTTP responses?
 
-Non-string error payloads will produce a `null` `error_message`. Use `error_type` and `meta` for context.
+Use `toResponse()`. In Laravel it returns framework response objects. Outside Laravel it returns a normalized array response shape.
 
-## How do I customize sanitization?
+## Related pages
 
-Pass a sanitizer function to `toDebugArray()` or configure Laravel’s `config('result-flow.debug')` values. Sensitive keys are redacted (supports `*` and `?` globs), and long strings are truncated by default.
-
-See [Sanitization & Safety](/sanitization) for details.
-
-## Does Laravel integration require any setup?
-
-The service provider is auto-discovered. If you want to publish config for sanitization settings, run:
-
-```bash
-php artisan vendor:publish --tag=result-flow-config
-```
-
-The `toResponse()` helper will return a `JsonResponse` when Laravel’s `response()` helper is available.
+- [Getting Started](/getting-started)
+- [API Reference](/api)

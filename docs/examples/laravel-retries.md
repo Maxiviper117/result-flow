@@ -1,56 +1,32 @@
 ---
-title: Laravel retries around external calls
+title: Laravel Retries
 ---
 
-# Laravel retries around external calls
+# Laravel Retries
 
-This example shows how to use the retrier to wrap flaky external calls (HTTP, queues, third-party APIs).
+## Scenario
 
-## Service
+Retry a transient HTTP/API call with metadata for attempts.
+
+## Example
 
 ```php
-namespace App\Services;
+$result = Result::retrier()
+    ->maxAttempts(4)
+    ->delay(200)
+    ->exponential()
+    ->attachAttemptMeta()
+    ->attempt(fn () => Http::post($endpoint, $payload)->throw()->json());
 
-use Illuminate\Support\Facades\Log;
-use Maxiviper117\ResultFlow\Result;
-
-final class ShippingService
-{
-    public function createLabel(array $payload): Result
-    {
-        return Result::retrier()
-            ->maxAttempts(3)
-            ->delay(200)
-            ->exponential()
-            ->when(fn ($error, $attempt) => $this->shouldRetry($error))
-            ->onRetry(function ($attempt, $error, $wait) {
-                Log::warning('shipping.retry', [
-                    'attempt' => $attempt,
-                    'error' => (string) $error,
-                    'wait_ms' => $wait,
-                ]);
-            })
-            ->attempt(fn () => $this->callCarrier($payload));
-    }
-
-    private function shouldRetry(mixed $error): bool
-    {
-        return $error instanceof \RuntimeException;
-    }
-
-    private function callCarrier(array $payload): array
-    {
-        // throw on transport error or return array payload
-        return ['label_id' => 'abc123'];
-    }
-}
+return $result->toResponse();
 ```
 
-Notes:
-- `attempt()` accepts raw values or Results. Raw values are wrapped as `Result::ok`.
-- Exceptions thrown by `callCarrier()` become failures and are eligible for retries.
-- Keep the retry predicate narrow to avoid retrying validation errors.
+## Expected behavior
 
-## Result functions used
+- Transient failures can recover within configured attempts.
+- Attempt count is available under `meta()['retry']['attempts']`.
 
-- `retrier()`, `maxAttempts()`, `delay()`, `exponential()`, `when()`, `onRetry()`, `attempt()`
+## Related pages
+
+- [Retrying](/result/retrying)
+- [Metadata and Debugging](/result/metadata-debugging)

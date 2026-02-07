@@ -4,110 +4,77 @@ title: Anti-Patterns
 
 # Anti-Patterns
 
-Avoid these pitfalls to keep pipelines predictable.
+## What this page is for
 
-## Ignoring Failure
+Use this page to avoid common mistakes that make `Result` pipelines confusing or brittle.
 
-**Wrong**
+## Anti-pattern: Using `map` for Result-returning callbacks
 
+Bad:
 ```php
-$value = $result->value(); // might be null
-doSomething($value);
+Result::ok($data)->map(fn ($v) => Result::ok(transform($v)));
 ```
 
-**Prefer**
+Why it is bad:
+- Creates nested `Result` values.
 
+Use instead:
 ```php
-$result->match(
-    onSuccess: fn($v) => doSomething($v),
-    onFailure: fn($e) => handleError($e),
-);
+Result::ok($data)->then(fn ($v) => Result::ok(transform($v)));
 ```
 
-## Over-Broad Recovery
+## Anti-pattern: Mixing throw and fail strategy in one layer
 
-**Wrong**
+Bad:
+- Some steps return `Result::fail`
+- Other steps throw for domain failures
 
+Why it is bad:
+- Failure handling becomes unpredictable.
+
+Use instead:
+- Choose explicit `Result` failures in domain/services.
+- Reserve throws for truly exceptional or boundary-level conditions.
+
+## Anti-pattern: Ignoring metadata
+
+Bad:
 ```php
-->otherwise(fn() => Result::ok($default)) // hides all errors
+Result::ok($payload)->then(fn ($v) => process($v));
 ```
 
-**Prefer**
+Why it is bad:
+- You lose context opportunities (trace IDs, item keys).
 
+Use instead:
 ```php
-->otherwise(function ($error) use ($default) {
-    if ($error instanceof NotFoundError) {
-        return Result::ok($default);
-    }
-    return Result::fail($error); // propagate others
-})
+Result::ok($payload, ['request_id' => $rid])
+    ->then(fn ($v, array $meta) => process($v, $meta));
 ```
 
-## Returning Ambiguous Nulls
+## Anti-pattern: Wrong batch primitive
 
-**Wrong**
+- Need per-item status but using `mapAll`.
+- Need fail-fast but using `mapCollectErrors`.
 
+Use the decision table in [Batch Processing](/result/batch-processing).
+
+## Anti-pattern: Unwrapping too early
+
+Bad:
 ```php
-->then(fn($data) => invalid($data) ? null : process($data));
+$value = doWork()->unwrap();
+// more processing here
 ```
 
-**Prefer**
+Why it is bad:
+- You lose branch control and metadata too early.
 
-```php
-->then(function ($data) {
-    if (invalid($data)) {
-        return Result::fail('Invalid data');
-    }
-    return Result::ok(process($data));
-});
-```
+Use instead:
+- Keep chaining until boundary and then `match`, `toResponse`, or `unwrap*`.
 
-## Losing Metadata
+## Related pages
 
-**Wrong**
-
-```php
-->then(fn($value, $meta) => Result::ok(transform($value))); // meta dropped
-```
-
-**Prefer**
-
-```php
-->then(fn($value, $meta) => Result::ok(transform($value), $meta));
-```
-
-## Mutating Meta In-Place
-
-**Wrong**
-
-```php
-->then(function ($value, $meta) {
-    $meta['events'][] = 'processed'; // local only, not persisted
-    return $value;
-});
-```
-
-**Prefer**
-
-```php
-->then(function ($value, $meta) {
-    $meta['events'][] = 'processed';
-    return Result::ok($value, $meta);
-});
-```
-
-## Wrong Handler Order
-
-When using `catchException()` or `matchException()`, order handlers from most specific to least specific so the parent class does not shadow children.
-
-```php
-->catchException([
-    \InvalidArgumentException::class => fn($e) => Result::fail('validation'),
-    \RuntimeException::class => fn($e) => Result::fail('runtime'),
-    \Exception::class => fn($e) => Result::fail('generic'),
-]);
-```
-
-## Using `combine()` When You Need All Errors
-
-`combine()` stops at the first failure. For validations where you want the full list, use `combineAll()` instead.
+- [Usage Patterns](/guides/patterns)
+- [Matching and Unwrapping](/result/matching-unwrapping)
+- [API Reference](/api)

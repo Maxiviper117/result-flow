@@ -1,47 +1,28 @@
 ---
-title: Laravel action exception handling example
+title: Laravel Actions Exceptions
 ---
 
-# Laravel action exception handling example
+# Laravel Actions Exceptions
 
-This example uses an action class with `catchException()` and `matchException()` for error classification.
+## Scenario
 
-```php
-namespace App\Actions;
+Normalize thrown exceptions from action classes.
 
-use Maxiviper117\ResultFlow\Result;
-use RuntimeException;
-use InvalidArgumentException;
-
-final class ImportCatalog
-{
-    public function __invoke(string $path): Result
-    {
-        return Result::of(fn () => $this->load($path))
-            ->catchException([
-                InvalidArgumentException::class => fn ($e, $meta) => Result::fail('invalid-input', $meta),
-                RuntimeException::class => fn ($e, $meta) => Result::fail('system-failure', $meta),
-            ]);
-    }
-
-    private function load(string $path): array
-    {
-        // may throw
-        return ['items' => 10];
-    }
-}
-```
+## Example
 
 ```php
-$result = (new ImportCatalog())('catalog.csv')->matchException(
-    [
-        RuntimeException::class => fn ($e, $meta) => 'retry later',
-    ],
-    onSuccess: fn ($payload, $meta) => 'ok',
-    onUnhandled: fn ($error, $meta) => 'failed',
-);
+$result = Result::of(fn () => (new RiskyAction)->execute($dto))
+    ->catchException([
+        RuntimeException::class => fn (RuntimeException $e) => Result::fail("runtime: {$e->getMessage()}"),
+    ], fallback: fn ($error) => Result::fail("unhandled: {$error}"));
 ```
 
-## Result functions used
+## Expected behavior
 
-- `of()`, `catchException()`, `fail()`, `matchException()`
+- Exception classes can be handled selectively.
+- Unmatched failures can still be routed through fallback.
+
+## Related pages
+
+- [Error Handling](/result/error-handling)
+- [API Reference](/api)

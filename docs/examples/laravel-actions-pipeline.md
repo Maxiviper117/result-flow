@@ -1,39 +1,30 @@
 ---
-title: Laravel action pipeline example
+title: Laravel Actions Pipeline
 ---
 
-# Laravel action pipeline example
+# Laravel Actions Pipeline
 
-This example shows an action class that composes multiple steps using `then()` and handles failures in one place.
+## Scenario
+
+Run an ordered action pipeline with metadata propagation.
+
+## Example
 
 ```php
-namespace App\Actions;
-
-use Maxiviper117\ResultFlow\Result;
-
-final class CreateInvoice
-{
-    public function __invoke(array $data): Result
-    {
-        return Result::ok($data)
-            ->then(fn ($payload, $meta) => $this->validate($payload, $meta))
-            ->then(fn ($payload, $meta) => $this->persist($payload, $meta))
-            ->otherwise(fn ($error, $meta) => Result::fail(['message' => (string) $error], $meta));
-    }
-
-    private function validate(array $data, array $meta): Result
-    {
-        return empty($data['amount']) ? Result::fail('Missing amount', $meta) : Result::ok($data, $meta);
-    }
-
-    private function persist(array $data, array $meta): Result
-    {
-        // ... store invoice
-        return Result::ok(['id' => 10], $meta);
-    }
-}
+$result = Result::ok($dto, ['request_id' => $rid])
+    ->then([
+        new ValidateAction,
+        new AuthorizeAction,
+        new PersistAction,
+    ]);
 ```
 
-## Result functions used
+## Expected behavior
 
-- `ok()`, `then()`, `otherwise()`, `fail()`
+- Step array is executed in order.
+- First failure aborts remaining steps.
+
+## Related pages
+
+- [Chaining and Transforming](/result/chaining)
+- [Internals](/guides/internals)

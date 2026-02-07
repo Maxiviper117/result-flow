@@ -4,73 +4,45 @@ title: Internals
 
 # Internals
 
-## Chain Execution
+## What this page is for
 
-`then()` and `otherwise()` both delegate to `Support/ResultPipeline::run()`:
+Use this page when contributing to Result Flow or reasoning about implementation-level behavior.
 
-1. Normalize the next step(s) into an array (single callable/object stays as one step).
-2. Invoke each step with `(currentValue, meta)`.
-3. If the step throws, return `Result::fail($exception, array_merge($meta, ['failed_step' => stepName]))`.
-4. If the step returns a `Result`, propagate its metadata to subsequent steps. Short-circuit on failure.
-5. If the step returns a raw value, wrap it as `Result::ok($value, $meta)`.
+## Core invariants
 
-## Step Resolution Priority
+- `Result` is immutable after creation.
+- Exactly one branch is active at any time (`ok` xor `fail`).
+- Metadata is always an array and always present.
 
-`Support/ResultPipeline::invokeStep()` chooses how to call the step:
+## Internal support components
 
-1. `is_callable($step)` → `$step($arg, $meta)` (includes closures and `__invoke`).
-2. `handle($arg, $meta)` if it exists.
-3. `execute($arg, $meta)` if it exists.
-4. Otherwise an `InvalidArgumentException` is thrown.
+- `ResultPipeline`: handles callable/object/step-array invocation.
+- `ResultTransform`: `map`, `mapError`, `ensure`, `recover` behavior.
+- `ResultMatch`: `match`, `matchException`, `catchException`.
+- `ResultUnwrap`: unwrap/throw family.
+- `ResultBatch`: `mapItems`, `mapAll`, `mapCollectErrors`.
+- `ResultSerialization`: array/json/xml conversions.
+- `ResultMetaOps`: metadata mapping/merge/tap.
 
-If an object implements both `__invoke()` and `handle()`, the `__invoke()` path wins because it is callable.
+## Metadata merge rule
 
-## Exception Strategy
+Where methods aggregate multiple results, metadata is merged in processing order.
+Later keys overwrite earlier keys.
 
-- `then()` wraps steps in try/catch; exceptions become failures with `failed_step` recorded.
-- `thenUnsafe()` skips the try/catch and lets exceptions bubble. Combine with `throwIfFail()` when you want `Result::fail()` to escalate to an exception (e.g., for transaction rollbacks).
+## Exception normalization boundaries
 
-## Metadata Propagation
+- `of()` captures throw -> fail.
+- `then()` captures throw -> fail.
+- `thenUnsafe()` does not capture.
+- Batch methods capture callback exceptions per item as `fail(Throwable)`.
 
-When a step returns a `Result` with updated metadata, the updated meta is passed into the next step. This enables pipelines that accumulate context:
+## Type-safety goals
 
-```php
-Result::ok($payload, ['id' => $id])
-    ->then(fn($v, $m) => Result::ok($v, [...$m, 'validated' => true]))
-    ->then(fn($v, $m) => Result::ok($v, [...$m, 'saved' => true]));
-// final meta contains both validated and saved flags
-```
+Public PHPDoc templates are designed for PHPStan/Psalm awareness.
+When changing method signatures, preserve generic intent and branch typing.
 
-## Type Safety
+## Related pages
 
-The class is annotated with PHPStan/Psalm templates:
-
-```php
-/**
- * @template TSuccess
- * @template TFailure
- */
-final class Result { ... }
-```
-
-Common transformations:
-
-| Method | Input | Output |
-| --- | --- | --- |
-| `map(fn($v) => U)` | `Result<T, E>` | `Result<U, E>` |
-| `mapError(fn($e) => F)` | `Result<T, E>` | `Result<T, F>` |
-| `ensure(pred, err)` | `Result<T, E>` | `Result<T, E>` |
-| `then(fn)` / `flatMap(fn)` | `Result<T, E>` | `Result<U, E>` |
-| `otherwise(fn)` | `Result<T, E>` | `Result<T, F>` |
-| `recover(fn)` | `Result<T, E>` | `Result<T|U, never>` |
-| `combine([...])` | `array<Result<T, E>>` | `Result<array<T>, E>` |
-| `combineAll([...])` | `array<Result<T, E>>` | `Result<array<T>, array<E>>` |
-
-## Debugging Defaults
-
-`toDebugArray()` uses a built-in sanitizer that:
-
-- Redacts values whose keys match configured sensitive patterns (supports glob patterns `*` and `?`; plain words remain substring matches) such as `password`, `token`, `api_key`, `ssn`, `card`, etc.
-- Optionally truncates long strings (`max_string_length`, default 200).
-- Accepts a custom sanitizer callable to override the defaults.
-- Reads overrides from Laravel's `config('result-flow.debug')` when available.
+- [API Reference](/api)
+- [Testing Recipes](/testing)
+- [Contributing](https://github.com/Maxiviper117/result-flow/blob/main/CONTRIBUTING.md)

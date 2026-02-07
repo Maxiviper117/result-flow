@@ -1,37 +1,28 @@
 ---
-title: Laravel action retries example
+title: Laravel Actions Retries
 ---
 
-# Laravel action retries example
+# Laravel Actions Retries
 
-This example uses an action class and the retry builder to call a flaky dependency.
+## Scenario
+
+Retry an action that can transiently fail.
+
+## Example
 
 ```php
-namespace App\Actions;
-
-use Illuminate\Support\Facades\Log;
-use Maxiviper117\ResultFlow\Result;
-
-final class FetchExchangeRate
-{
-    public function __invoke(string $currency): Result
-    {
-        return Result::retrier()
-            ->maxAttempts(3)
-            ->delay(100)
-            ->exponential()
-            ->onRetry(fn ($attempt, $error, $wait) => Log::warning('rate.retry', compact('attempt', 'wait')))
-            ->attempt(fn () => $this->callApi($currency));
-    }
-
-    private function callApi(string $currency): array
-    {
-        // may throw
-        return ['currency' => $currency, 'rate' => 1.1];
-    }
-}
+$result = Result::retrier()
+    ->maxAttempts(3)
+    ->delay(100)
+    ->attempt(fn () => (new SyncExternalAction)->execute($dto));
 ```
 
-## Result functions used
+## Expected behavior
 
-- `retrier()`, `maxAttempts()`, `delay()`, `exponential()`, `onRetry()`, `attempt()`
+- Retries are centralized in retrier config.
+- Action remains focused on business logic.
+
+## Related pages
+
+- [Retrying](/result/retrying)
+- [Laravel Actions](/examples/laravel-actions)

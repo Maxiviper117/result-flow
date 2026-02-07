@@ -4,106 +4,64 @@ title: Usage Patterns
 
 # Usage Patterns
 
-## Compose Pipelines
+## What this page is for
 
-Chain success-only steps with `then()` and short-circuit on failure:
+Use these patterns when designing pipelines that stay readable under growth.
 
-```php
-Result::ok($data, ['request_id' => $rid])
-    ->then(new ValidateCommand)
-    ->ensure(fn($cmd) => $cmd->isAuthorized(), 'Unauthorized')
-    ->then(new PersistCommand)
-    ->then(fn($aggregate, $meta) => Result::ok($aggregate, [...$meta, 'stored' => true]));
-```
-
-## Validate Inline
-
-Use `ensure()` for guard clauses instead of ad-hoc `if` checks:
+## Pattern: Validate then persist
 
 ```php
-Result::ok($user)
-    ->ensure(fn($u) => $u->isActive(), 'Inactive user')
-    ->ensure(fn($u) => $u->hasRole('admin'), fn($u) => "User {$u->id} lacks admin role");
+$result = Result::ok($input, ['request_id' => $requestId])
+    ->ensure(fn (array $data) => isset($data['email']), 'Missing email')
+    ->then(fn (array $data) => validateUserData($data))
+    ->then(fn (array $valid) => saveUser($valid));
 ```
 
-## Recovery Paths
+Why this works:
+- Validation remains in success branch.
+- Failure short-circuit is automatic.
+- Metadata remains attached for logging.
 
-`otherwise()` runs only on failure and can either recover or keep failing:
+## Pattern: Fail-fast batch write
 
 ```php
-Result::fail('Primary failed')
-    ->otherwise(fn($e) => Result::ok($cache->get('fallback'))) // recovery
-    ->otherwise(fn($e) => Result::fail($e));                    // continued failure
+$writeResult = Result::mapAll($rows, fn (array $row) => writeRow($row));
 ```
 
-Recover with a plain value:
+Use when first failure should stop further processing.
+
+## Pattern: Full error reporting
 
 ```php
-->otherwise(fn($e) => $defaultValue); // wrapped as Result::ok($defaultValue)
+$validation = Result::mapCollectErrors($rows, fn (array $row, string $key) => validateRow($row, $key));
 ```
 
-## Exception Handling
+Use when you need all failures to return to caller.
 
-Convert thrown exceptions to failures with `of()` or rely on `then()`'s try/catch:
+## Pattern: Exception boundary at adapter edge
 
 ```php
-Result::ok($payload)
-    ->then(fn($p) => risky($p)) // exceptions become fail(Throwable)
-    ->catchException([
-        \InvalidArgumentException::class => fn($e) => Result::fail('Bad input'),
-        \RuntimeException::class => fn($e) => Result::fail('Service unavailable'),
-    ], fallback: fn($error) => Result::fail($error));
+$serviceResult = Result::of(fn () => $sdk->execute($payload))
+    ->mapError(fn (Throwable $e) => new DomainError($e->getMessage()));
 ```
 
-Need bubbling for DB transactions? Use `thenUnsafe()` and `throwIfFail()`:
+Use to normalize third-party exception behavior into domain failure values.
+
+## Pattern: Transaction rollback semantics
 
 ```php
-DB::transaction(fn() => Result::ok($dto)
-    ->thenUnsafe(new ValidateOrderAction)->throwIfFail()
-    ->thenUnsafe(new ChargePaymentAction)->throwIfFail());
+DB::transaction(function () use ($dto) {
+    return Result::ok($dto)
+        ->thenUnsafe(new ValidateOrder)
+        ->thenUnsafe(new SaveOrder)
+        ->throwIfFail();
+});
 ```
 
-## Combine Multiple Results
+Use `thenUnsafe` when exceptions must bubble for rollback semantics.
 
-- Use `combine()` when the first failure should stop processing (fail-fast).
-- Use `combineAll()` when you want all errors collected (validation).
+## Related pages
 
-```php
-$validation = Result::combineAll([
-    $this->validateEmail($input),
-    $this->validatePassword($input),
-]);
-```
-
-## Pattern Matching at Boundaries
-
-Force both branches to be handled with `match()`:
-
-```php
-return $result->match(
-    onSuccess: fn($data, $meta) => response()->json($data),
-    onFailure: fn($error, $meta) => response()->json(['error' => $error], 400),
-);
-```
-
-When the error is a Throwable, use `matchException()` to branch by class:
-
-```php
-$result->matchException(
-    [
-        HttpException::class => fn($e) => retryLater(),
-        ValidationException::class => fn($e) => showErrors($e->errors()),
-    ],
-    onSuccess: fn($v) => show($v),
-    onUnhandled: fn($e) => fail($e),
-);
-```
-
-## Metadata for Audit and Telemetry
-
-```php
-Result::ok($payload, ['correlation_id' => $cid])
-    ->mergeMeta(['started_at' => microtime(true)])
-    ->then(fn($value, $meta) => Result::ok(transform($value), [...$meta, 'transformed' => true]))
-    ->tapMeta(fn($meta) => Metrics::timing('pipeline', $meta['started_at'] ?? null));
-```
+- [Anti-Patterns](/guides/anti-patterns)
+- [Batch Processing](/result/batch-processing)
+- [Error Handling](/result/error-handling)
