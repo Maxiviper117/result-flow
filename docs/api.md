@@ -158,6 +158,80 @@ $combined->isFail(); // true
 $combined->error(); // ['bad-1', 'bad-2']
 ```
 
+### `Result::mapItems()`
+
+**What it does:** Maps each input item to a `Result`, preserving input keys.
+
+**Why it exists:** Removes manual item loops when each step naturally returns a `Result`.
+
+**When to use:** When you want per-item outcomes (success/failure) without collapsing into one aggregate result.
+
+```php
+$mapped = Result::mapItems(
+    ['a' => 1, 'b' => 2],
+    fn (int $item, string $key) => $item > 1 ? Result::ok($item * 10) : Result::fail("bad-{$key}"),
+);
+
+$mapped['a']->isFail(); // true
+$mapped['b']->value();  // 20
+```
+
+Behavior details:
+- Callback signature: `fn ($item, $key) => Result|value`.
+- If callback returns a plain value, it is wrapped as `Result::ok($value)`.
+- If callback throws, that item becomes `Result::fail(Throwable)`.
+- Always returns `array<key, Result<...>>` with original keys unchanged.
+
+### `Result::mapAll()`
+
+**What it does:** Maps items and short-circuits on the first failure.
+
+**Why it exists:** Provides fail-fast batch processing for imports, writes, and multi-step domain actions.
+
+**When to use:** When any single item failure should stop the batch immediately.
+
+```php
+$result = Result::mapAll(
+    ['x' => 3, 'y' => 4],
+    fn (int $item) => Result::ok($item + 1),
+);
+
+$result->value(); // ['x' => 4, 'y' => 5]
+```
+
+Behavior details:
+- Processes items in input order and stops at the first failure.
+- Returns `Result::ok(array<key, mappedValue>)` when all succeed.
+- Returns `Result::fail(firstError)` on first failure.
+- Merges metadata from processed item results in order (later keys overwrite earlier keys).
+- On failure, `value()` is `null` and partial successes are not returned in `value()`.
+
+### `Result::mapCollectErrors()`
+
+**What it does:** Maps all items and collects every failure by item key.
+
+**Why it exists:** Makes full batch validation/reporting easy without writing custom loops.
+
+**When to use:** When you need to finish processing all items and return all errors together.
+
+```php
+$result = Result::mapCollectErrors(
+    ['a' => 1, 'b' => 2, 'c' => 3],
+    fn (int $item, string $key) => $item % 2 === 0 ? Result::ok($item) : Result::fail("bad-{$key}"),
+);
+
+$result->isFail();  // true
+$result->error();   // ['a' => 'bad-a', 'c' => 'bad-c']
+```
+
+Behavior details:
+- Processes all items (no short-circuiting).
+- Returns `Result::ok(array<key, mappedValue>)` when no failures exist.
+- Returns `Result::fail(array<key, error>)` when one or more items fail.
+- Error keys match the original failing item keys.
+- Merges metadata from all mapped item results in order (later keys overwrite earlier keys).
+- On failure, `value()` is `null` and successful item values are not exposed in `value()`.
+
 ## State and access
 
 ### `isOk()` / `isFail()`
@@ -638,5 +712,3 @@ $response = Result::fail('bad')->toResponse();
 // Laravel: JsonResponse (status 400)
 // No framework: ['status' => 400, 'headers' => [...], 'body' => '{...}']
 ```
-
-
