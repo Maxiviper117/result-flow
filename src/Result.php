@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow;
 
 use Maxiviper117\ResultFlow\Laravel\ResultResponse;
+use Maxiviper117\ResultFlow\Support\ResultBatch;
 use Maxiviper117\ResultFlow\Support\ResultDebug;
 use Maxiviper117\ResultFlow\Support\ResultMatch;
 use Maxiviper117\ResultFlow\Support\ResultMetaOps;
@@ -214,6 +215,57 @@ final class Result
 
         /** @var Result<array<T>, array<E>> */
         return self::ok($values, $mergedMeta);
+    }
+
+    /**
+     * Map each item to its own Result, preserving input keys.
+     *
+     * @template TKey of array-key
+     * @template TItem
+     * @template TMappedSuccess
+     * @template TMappedFailure
+     *
+     * @param  array<TKey, TItem>  $items
+     * @param  callable(TItem, TKey): (Result<TMappedSuccess, TMappedFailure>|TMappedSuccess)  $fn
+     * @return array<TKey, Result<TMappedSuccess, TMappedFailure|Throwable>>
+     */
+    public static function mapItems(array $items, callable $fn): array
+    {
+        return ResultBatch::mapItems($items, $fn);
+    }
+
+    /**
+     * Map all items and fail on first failure (short-circuit).
+     *
+     * @template TKey of array-key
+     * @template TItem
+     * @template TMappedSuccess
+     * @template TMappedFailure
+     *
+     * @param  array<TKey, TItem>  $items
+     * @param  callable(TItem, TKey): (Result<TMappedSuccess, TMappedFailure>|TMappedSuccess)  $fn
+     * @return Result<array<TKey, TMappedSuccess>, TMappedFailure|Throwable>
+     */
+    public static function mapAll(array $items, callable $fn): self
+    {
+        return ResultBatch::mapAll($items, $fn);
+    }
+
+    /**
+     * Map all items and collect every failure without short-circuiting.
+     *
+     * @template TKey of array-key
+     * @template TItem
+     * @template TMappedSuccess
+     * @template TMappedFailure
+     *
+     * @param  array<TKey, TItem>  $items
+     * @param  callable(TItem, TKey): (Result<TMappedSuccess, TMappedFailure>|TMappedSuccess)  $fn
+     * @return Result<array<TKey, TMappedSuccess>, array<TKey, TMappedFailure|Throwable>>
+     */
+    public static function mapCollectErrors(array $items, callable $fn): self
+    {
+        return ResultBatch::mapCollectErrors($items, $fn);
     }
 
     // =========================================================================

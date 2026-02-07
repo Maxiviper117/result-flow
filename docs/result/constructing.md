@@ -128,3 +128,75 @@ $steps = Result::combine([
 $meta = $steps->meta();
 // ['step' => 'enriched']
 ```
+
+## Mapping item collections
+
+### `Result::mapItems()` for per-item outcomes
+
+When each item in a collection has its own `Result` flow, `mapItems()` removes manual loops and preserves keys.
+
+```php
+$rows = ['row-1' => $payload1, 'row-2' => $payload2];
+
+$mapped = Result::mapItems(
+    $rows,
+    fn (array $row, string $key) => importRow($row, ['row_key' => $key]),
+);
+
+$mapped['row-1']->isOk();
+$mapped['row-2']->isFail();
+```
+
+Key points:
+- Callback signature: `fn ($item, $key) => Result|value`.
+- Plain callback values are wrapped as `Result::ok(...)`.
+- Thrown exceptions are captured as `Result::fail(Throwable)` for that item.
+- Return type is `array<key, Result<...>>`, so you can inspect each item independently.
+
+### `Result::mapAll()` for fail-fast batch processing
+
+`mapAll()` short-circuits on the first mapped failure and returns that error.
+
+```php
+$result = Result::mapAll(
+    ['a' => 1, 'b' => 2, 'c' => 3],
+    fn (int $value) => $value > 1 ? Result::ok($value * 10) : Result::fail('too-small'),
+);
+```
+
+Key points:
+- Stops processing immediately when the first item fails.
+- Success shape: `Result::ok(array<key, mappedValue>)`.
+- Failure shape: `Result::fail(firstError)`.
+- Metadata merges from processed results only, in order (later keys overwrite earlier keys).
+- On failure, `value()` is `null` (partial successes are not returned in the value channel).
+
+### `Result::mapCollectErrors()` for full error reporting
+
+`mapCollectErrors()` keeps processing every item and returns all failures keyed by their original input keys.
+
+```php
+$result = Result::mapCollectErrors(
+    ['email' => $email, 'password' => $password],
+    fn (mixed $value, string $field) => validateField($field, $value),
+);
+
+$result->match(
+    onSuccess: fn (array $values) => persistValidated($values),
+    onFailure: fn (array $errors) => report_all($errors),
+);
+```
+
+Key points:
+- Never short-circuits; every item is evaluated.
+- Success shape: `Result::ok(array<key, mappedValue>)`.
+- Failure shape: `Result::fail(array<key, error>)`.
+- Error keys map directly to the input keys that failed.
+- Metadata merges from all mapped results, in order (later keys overwrite earlier keys).
+- On failure, `value()` is `null`.
+
+### Choosing between the three
+
+- Choose `mapItems()` when downstream logic needs item-by-item `Result` inspection.
+- Choose `mapAll()` when the first failure should stop work immediately.
+- Choose `mapCollectErrors()` for validations/imports where complete error reporting matters more than fail-fast execution.

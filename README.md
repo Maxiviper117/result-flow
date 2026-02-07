@@ -74,6 +74,41 @@ $response = $result->toResponse(); // Response instance in Laravel, array fallba
 - Use `Result::retry()` for simple retry needs or `Result::retrier()` for advanced configurations (jitter, max attempts, etc.). Read more in the hosted [Retrying Operations](https://maxiviper117.github.io/result-flow/result/retrying.html) guide.
 - When you need to know how many attempts ran, call `->attachAttemptMeta()` before `->attempt()` to merge `['retry' => ['attempts' => ...]]` into the returned metadata.
 
+## Batch workflows
+
+- Use `Result::mapItems($items, $fn)` to transform each item into its own `Result` while preserving keys.
+- Use `Result::mapAll($items, $fn)` when you want fail-fast semantics over mapped items.
+- Use `Result::mapCollectErrors($items, $fn)` when you need to collect all item failures.
+- Callback contract for all three methods: `fn ($item, $key) => Result|value`.
+- Plain callback return values are automatically wrapped with `Result::ok(...)`.
+- Thrown exceptions inside callbacks are converted to `Result::fail(Throwable)`.
+- For aggregate methods (`mapAll`, `mapCollectErrors`), `meta()` merges in processing order (later keys overwrite earlier keys).
+- On failures, aggregate methods keep success values out of `value()` (it remains `null`) and surface failures through `error()`.
+
+```php
+$users = Result::mapAll(
+    ['u1' => $payload1, 'u2' => $payload2],
+    fn (array $row, string $key) => importUser($row, ['row_key' => $key]),
+);
+
+$validation = Result::mapCollectErrors(
+    ['email' => $email, 'password' => $password],
+    fn (mixed $value, string $field) => validateField($field, $value),
+);
+```
+
+Typical outputs:
+
+```php
+Result::mapAll($items, $fn)->toArray();
+// success: ['ok' => true,  'value' => ['k1' => ..., 'k2' => ...], 'error' => null, ...]
+// failure: ['ok' => false, 'value' => null, 'error' => <first error>, ...]
+
+Result::mapCollectErrors($items, $fn)->toArray();
+// success: ['ok' => true,  'value' => ['k1' => ..., 'k2' => ...], 'error' => null, ...]
+// failure: ['ok' => false, 'value' => null, 'error' => ['k1' => <error>, ...], ...]
+```
+
 ## Interop & migration
 
 - Convert exceptions to `Result` with `Result::of()`. Prefer `then()` for safe chaining and `thenUnsafe()` when you need exceptions to bubble (e.g., DB transactions).
