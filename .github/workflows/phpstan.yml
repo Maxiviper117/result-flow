@@ -1,7 +1,13 @@
 name: PHPStan
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches-ignore:
+      - '**/graphite-base/**'
   push:
+    branches:
+      - main
     paths:
       - '**.php'
       - 'phpstan.neon.dist'
