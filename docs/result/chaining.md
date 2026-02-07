@@ -1,136 +1,89 @@
 ---
-title: Transforming and chaining
+title: Chaining and Transforming
 ---
 
-# Transforming and chaining
+# Chaining and Transforming
 
-`Result` supports fluent chains that stay on the success path or branch to the failure path. This page focuses on how data and metadata move through chains and how short-circuiting works.
+## What this page is for
 
-## How chaining works
+Use this page for success-path flow: transform values, validate inline, and chain follow-up steps.
 
-- Success steps (`then`, `map`, `ensure`) only run when the result is ok.
-- Failure steps (`otherwise`, `catchException`) only run when the result is failed.
-- Returning a `Result` from a step replaces the current result and propagates its metadata.
-- Returning a raw value wraps it as `Result::ok($value, $meta)`.
+## `map()` vs `then()`
 
-## Mapping and validation
-
-### Transform a success value with `map()`
+- `map(fn)` transforms a success value into another plain value.
+- `then(fn)` runs a step that can return either plain value or another `Result`.
 
 ```php
-$user = Result::ok($payload)
-    ->map(fn ($data, $meta) => hydrateUser($data))
-    ->map(fn (User $user) => $user->withLocale('en'));
+$result = Result::ok(2)
+    ->map(fn (int $v) => $v * 10)
+    ->then(fn (int $v) => Result::ok("value={$v}"));
 ```
 
-`map()` is for value transformation only. If you need to return a `Result`, use `then()` instead.
+## `mapError()`
 
-### Transform the error with `mapError()`
+Use when failure value exists but you want to normalize shape.
 
 ```php
-$normalized = Result::fail(new ValidationException('Bad email'))
-    ->mapError(fn (Throwable $e, $meta) => $e->getMessage());
-
-$normalized->error(); // 'Bad email'
+$normalized = Result::fail(['code' => 500])
+    ->mapError(fn (array $e) => "code={$e['code']}");
 ```
 
-`mapError()` is useful for normalizing error types or turning Throwables into user-facing messages.
+## `ensure()`
 
-### Validate inline with `ensure()`
+Inline validation for successful values.
 
 ```php
-$ready = Result::ok($order)
-    ->ensure(fn (Order $o, $meta) => $o->isPaid(), 'Unpaid order')
-    ->ensure(fn ($o) => $o->items()->count() > 0, 'No line items');
+$validated = Result::ok(['total' => 99])
+    ->ensure(
+        fn (array $order) => $order['total'] > 0,
+        fn (array $order) => "Invalid total: {$order['total']}"
+    );
 ```
 
-`ensure()` behavior:
-- If the current result is a failure, it short-circuits and the predicate is not called.
-- If the predicate returns false, it becomes a failure with the provided error.
-- If the error argument is a callable (and not a string), it is called with `(value, meta)`.
+Behavior:
+- Runs only on success branch.
+- If predicate returns false, converts to failure using error value/factory.
 
-## Success-path chaining
+## `then()` and `flatMap()`
 
-### `then()` sequences steps safely
-
-`then()` wraps each step in try/catch. Returning a `Result` propagates its state; returning a raw value is wrapped as success.
+`flatMap()` is an alias for `then()`.
 
 ```php
-$pipeline = Result::ok($payload, ['request_id' => $rid])
-    ->then(fn ($data, $meta) => validate($data, $meta))
-    ->then(fn ($validated, $meta) => transform($validated, ['step' => 'transformed'] + $meta))
-    ->then(fn ($dto, $meta) => persist($dto, $meta));
+$next = Result::ok($dto)
+    ->then(new ValidateAction)
+    ->flatMap(fn ($validated, array $meta) => persist($validated, $meta));
 ```
 
-When a step throws, `then()` returns a failure and adds `meta['failed_step']` with the step name (class or `Class::method`).
+Behavior:
+- On success, invokes step with `(value, meta)`.
+- If step returns plain value, it is wrapped as `ok(value, meta)`.
+- Exceptions are caught and converted to failure.
 
-If a step returns a raw value (not a Result), it is wrapped as `Result::ok($value, $meta)`.
+## `thenUnsafe()`
 
-### Run multiple steps with arrays or invokable objects
-
-`then()` accepts arrays of steps and invokable objects. Each step receives `(value, meta)`.
-
-```php
-$result = Result::ok($payload)
-    ->then([
-        new SanitizeInput(),
-        fn ($clean) => Result::ok($clean, ['step' => 'sanitized']),
-        new PersistUser(), // has __invoke(User $user, array $meta)
-    ]);
-```
-
-Callable arrays like `[$service, 'handle']` are treated as a single step (not split into two).
-
-### `flatMap()` is an alias for `then()`
+Use when exceptions must bubble (for transaction rollback behavior).
 
 ```php
-$result = Result::ok(3)
-    ->flatMap(fn ($v) => Result::ok($v + 1));
-```
-
-### `thenUnsafe()` lets exceptions bubble
-
-Use it when you want exceptions to escape (for example, DB transactions). It still short-circuits on failures.
-
-```php
-$result = Result::ok($payload)
-    ->thenUnsafe(fn ($data) => riskyWrite($data))
+$dbResult = Result::ok($dto)
+    ->thenUnsafe(new ValidateAction)
+    ->thenUnsafe(new PersistAction)
     ->throwIfFail();
 ```
 
-If a step returns a non-Result value, it is wrapped as `Result::ok($value, $meta)`.
+Behavior:
+- Does not catch exceptions.
+- Accepts callable/object step and supports `Result` or plain value returns.
 
-## Failure-path chaining
+## Tap methods on success/failure paths
 
-### `otherwise()` for recovery or continued failure
+- `tap()` runs on both branches.
+- `onSuccess()`/`inspect()` run only on success.
+- `onFailure()`/`inspectError()` run only on failure.
 
-Return a success to recover, or another `Result::fail()` to keep the failure state.
+These methods never change branch or payload; they are for side effects.
 
-```php
-$user = Result::fail('Unavailable')
-    ->otherwise(fn ($error, $meta) => cache()->get('user_backup') ?? Result::fail($error));
-```
+## Related pages
 
-`otherwise()` accepts the same step shapes as `then()` (callables, objects, arrays). If you return a raw value, it becomes a success.
-
-### `catchException()` targets specific Throwable types
-
-```php
-$safe = Result::of(fn () => $service->call())
-    ->catchException([
-        InvalidArgumentException::class => fn ($e, $meta) => Result::fail('Bad input'),
-        RuntimeException::class => fn ($e, $meta) => Result::fail('Service down'),
-    ], fallback: fn ($error, $meta) => Result::fail($error));
-```
-
-Handlers may return a `Result` or a raw value (raw values are wrapped as `Result::ok`).
-If the error is not a Throwable (or no handler matches), the fallback runs when provided.
-
-### `recover()` always produces success
-
-```php
-$settings = Result::fail('missing-config')
-    ->recover(fn ($error, $meta) => loadDefaults());
-```
-
-`recover()` is useful when a downstream consumer cannot handle failures and you have a safe fallback value.
+- [Error Handling](/result/error-handling)
+- [Matching and Unwrapping](/result/matching-unwrapping)
+- [API Reference](/api)

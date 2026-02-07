@@ -2,86 +2,56 @@
 title: Transformers
 ---
 
-# Result Transformers
+# Transformers
 
-Result Flow provides methods to transform `Result` objects into JSON, XML, or HTTP responses. These are meant for application boundaries (controllers, CLI output, API adapters) where you need a concrete output format.
+## What this page is for
 
-## JSON (`toJson()`)
+Use transformers at application boundaries where you need JSON, XML, or HTTP response output.
 
-Convert a result directly to a JSON string.
+## `toArray()`
 
-```php
-use Maxiviper117\ResultFlow\Result;
-
-$result = Result::ok(['user_id' => 123], ['timestamp' => time()]);
-
-echo $result->toJson();
-// {"ok":true,"value":{"user_id":123},"error":null,"meta":{"timestamp":...}}
-```
-
-You can pass standard `json_encode` options as the first argument:
+Returns raw shape:
 
 ```php
-$result->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+[
+  'ok' => bool,
+  'value' => mixed,
+  'error' => mixed,
+  'meta' => array,
+]
 ```
 
-Details:
-- The JSON payload shape matches `toArray()`.
-- `toJson()` uses `JSON_THROW_ON_ERROR`, so it can throw `JsonException` if encoding fails.
-- Use `toDebugArray()` instead of `toJson()` when you need sanitization.
-
-## XML (`toXml()`)
-
-Convert a result to XML.
+## `toJson(int $options = 0)`
 
 ```php
-$result = Result::ok(['user_id' => 123]);
-
-echo $result->toXml();
+$json = $result->toJson(JSON_PRETTY_PRINT);
 ```
 
-You can specify a custom root element name:
+Behavior:
+- Uses `JSON_THROW_ON_ERROR`.
+- Throws `JsonException` on encoding failure.
+
+## `toXml(string $rootElement = 'result')`
 
 ```php
-echo $result->toXml('api_response');
+$xml = $result->toXml('api_response');
 ```
 
-Details:
-- Arrays with numeric keys are prefixed with `item` to ensure valid XML tags (e.g., `<item0>`, `<item1>`).
-- Values are cast to strings, so complex objects should be converted to arrays before calling `toXml()`.
+Behavior:
+- Numeric array keys are converted to valid element names (`item0`, `item1`, ...).
 
-## HTTP responses (`toResponse()`)
-
-Transform a result into a response shape.
-
-### With Laravel
-
-If the Laravel `response()` helper is available, `toResponse()` returns a `JsonResponse`:
-
-- Success -> status 200
-- Failure -> status 400
+## `toResponse()`
 
 ```php
-// In a Laravel Controller
-public function store(Request $request)
-{
-    return CreateUserAction::execute($request->all())
-        ->toResponse();
-}
+$response = $result->toResponse();
 ```
 
-### Without a framework
+Behavior:
+- In Laravel with `response()` helper, returns JSON response object.
+- Outside Laravel, returns normalized array containing status, headers, and body.
 
-If `response()` is not available, it returns a structured array:
+## Related pages
 
-```php
-$response = Result::fail('bad')->toResponse();
-
-// [
-//   'status' => 400,
-//   'headers' => ['Content-Type' => 'application/json'],
-//   'body' => '{"ok":false,"value":null,"error":"bad","meta":[]}'
-// ]
-```
-
-The payload in `body` is the same shape as `toArray()` and `toJson()`.
+- [Matching and Unwrapping](/result/matching-unwrapping)
+- [Sanitization Guide](/sanitization)
+- [API Reference](/api)

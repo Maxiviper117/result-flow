@@ -1,55 +1,30 @@
 ---
-title: Laravel action pattern (optional)
+title: Laravel Actions
 ---
 
-# Laravel action pattern (optional)
+# Laravel Actions
 
-Some teams use an “action class” style where a single class encapsulates a unit of work. This page shows how Result Flow fits that pattern. If you prefer standard controllers + services, use the other examples instead.
+## Scenario
 
-## Invokable action
+Compose small action classes that return `Result`.
 
-```php
-namespace App\Actions;
-
-use Maxiviper117\ResultFlow\Result;
-
-final class SendWelcomeEmail
-{
-    public function __invoke(array $user): Result
-    {
-        return Result::ok($user)
-            ->then(fn ($u) => $this->send($u));
-    }
-
-    private function send(array $user): Result
-    {
-        // ... send email
-        return Result::ok(['sent' => true, 'user_id' => $user['id']]);
-    }
-}
-```
-
-## Controller usage
+## Example
 
 ```php
-namespace App\Http\Controllers;
+$result = Result::ok($dto)
+    ->then(new ValidateUserAction)
+    ->then(new PersistUserAction)
+    ->then(new NotifyUserAction);
 
-use App\Actions\SendWelcomeEmail;
-use Illuminate\Http\Request;
-
-final class WelcomeController
-{
-    public function store(Request $request, SendWelcomeEmail $action)
-    {
-        return $action($request->all())->toResponse();
-    }
-}
+return $result->toResponse();
 ```
 
-Notes:
-- The action can be injected like a service.
-- `Result` keeps the action side-effect safe and composable.
+## Expected behavior
 
-## Result functions used
+- Each action has explicit success/failure output.
+- Pipeline short-circuits automatically on failure.
 
-- `ok()`, `then()`, `toResponse()`
+## Related pages
+
+- [Chaining and Transforming](/result/chaining)
+- [Usage Patterns](/guides/patterns)

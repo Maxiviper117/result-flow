@@ -1,55 +1,130 @@
 ---
 name: vitepress
-description: Inspect and operate the repository's VitePress documentation site review configuration, list pages, verify base/search/CI settings, and (with permission) run dev/build commands.
+description: Hard-policy workflow for rewriting, reviewing, and operating this repository's VitePress documentation with mandatory quality gates.
 ---
 
-# VitePress skill
+# VitePress Documentation Skill (Hard Policy)
 
-Overview
-This skill helps an agent inspect, validate, and operate the VitePress-based documentation site in this repository.
+## Purpose
 
-When to use
+Use this skill when editing VitePress docs in this repository.
 
-- When asked to review docs configuration, verify search/indexing, confirm CI/deploy settings, or build/preview the site (ask permission before running commands).
+This skill is not optional guidance. It defines required workflow, required page templates, and completion gates.
 
-How to operate
+## Trigger conditions
 
-1. Read the following files and directories (relative to repo root): package.json, .vitepress/config.mts, docs/, .github/workflows/deploy-docs.yml, and .gitignore.
-2. Extract and report these values:
-    - package.json: scripts.docs:dev/docs:build/docs:preview, devDependencies.vitepress
-    - .vitepress/config.mts: srcDir, base, title, themeConfig.search.provider, themeConfig.sidebar/nav
-    - docs/: list top-level pages and subfolders count
-    - CI workflow: that build step runs `pnpm run docs:build` and uploads `.vitepress/dist`
-    - .gitignore: presence of `.vitepress/cache/`
-3. Validate common constraints:
-    - base must start and end with `/` for GitHub Pages deployments (e.g., `/owner/repo/`)
-    - srcDir must exist and contain index pages
-    - local search requires no external keys; algolia requires appId/apiKey/indexName
-4. Reporting format:
-    - Return a JSON object with keys: srcDir, base, title, search_provider, docs_count, scripts, vitepress_version, ci_deploy_path, issues (array)
-5. If user permits running commands:
-    - Run `pnpm install --frozen-lockfile` (if needed), then `pnpm run docs:build` and return build status, warnings, and output path `.vitepress/dist`.
-    - Ask before running `pnpm run docs:dev` (dev server).
+Use this skill when the user asks to:
+- rewrite docs
+- add/update API docs
+- improve docs structure or navigation
+- review docs quality/consistency
+- update VitePress config or docs build behavior
 
-Examples
+## Source-of-truth files
 
-- Input: "Review VitePress config and list potential issues"
-  Output: JSON with populated fields and a short human-readable summary.
+Always inspect these first:
+- `.vitepress/config.mts`
+- `docs/`
+- `README.md`
+- `src/Result.php`
+- `src/Support/` (for behavior details not obvious at API surface)
+- `package.json` (docs scripts)
 
-Edge cases
+## Mandatory workflow
 
-- VitePress v2 alpha behavior and plugins may differ from v1; report the installed vitepress version.
-- If docs are generated in a different outDir, report it.
-- If base is `/` but site deployed to GitHub Pages at `owner/repo`, suggest setting base to `/result-flow/`.
+Follow all steps in order.
 
-Files referenced
+1. Discovery pass
+- Inventory all docs pages and current nav/sidebar.
+- Inventory all public API methods from `src/Result.php`.
+- Identify broken/inconsistent naming between docs and API.
 
-- .vitepress/config.mts
-- package.json
-- docs/
-- .github/workflows/deploy-docs.yml
-- .gitignore
+2. IA impact check
+- Determine whether request is content-only, nav-only, or full IA rewrite.
+- If IA changes, produce explicit old->new page mapping in notes.
 
-Security and permissions
+3. Contract extraction
+- For every public method, extract:
+  - callback contract
+  - success behavior
+  - failure behavior
+  - exception behavior
+  - metadata behavior
 
-- Do not run package installs or build commands without explicit user approval. When running commands, avoid exposing secrets and report any prompts or failures.
+4. Draft/rewrite with required templates
+- Use the required templates in this skill (below).
+- Keep examples minimal, executable, and type-safe.
+- Use plain PHP examples first; framework examples second.
+
+5. Cross-linking pass
+- Add related links between guide pages and API sections.
+- Ensure each major guide links to API and at least one example.
+
+6. Consistency pass
+- Normalize method naming, headings, and terminology.
+- Verify decision tables use same method names as API.
+
+7. Validation gates
+- Run docs build.
+- Resolve broken links and missing pages.
+- Verify coverage map for public methods.
+
+## Required templates
+
+### Guide page template
+Each guide page must include:
+1. `What this page is for`
+2. `When to use this`
+3. Core concepts with at least one code example
+4. `Choose X vs Y` table if methods are easily confused
+5. `Related pages`
+
+### API method template
+Each method section must include:
+1. Method name/signature line
+2. Contract
+3. Behavior details (success/failure/exception/metadata as applicable)
+4. At least one concise example
+5. Link to one guide page
+
+### Example page template
+Each example page must include:
+1. Context/problem statement
+2. Complete snippet
+3. Expected result shape or branch outcome
+4. Link to relevant API and guide pages
+
+## Hard completion gates
+
+Do not mark docs work complete unless all are true:
+- No broken local links in VitePress build output.
+- Every public method from `src/Result.php` is documented in API reference.
+- Core guide pages include required decision tables.
+- Plain PHP examples exist for major method groups.
+- `.vitepress/config.mts` nav/sidebar reflects actual page set.
+- `README.md` docs links align with current IA.
+
+## Reporting format
+
+When finished, report:
+1. Changed files list
+2. API coverage map: `method -> doc section`
+3. Validation results (`docs:build`, plus any relevant checks)
+4. Remaining risks or intentional tradeoffs
+
+## Command policy
+
+Allowed without extra approval:
+- file reads/searches
+- `pnpm run docs:build`
+
+Ask before running:
+- `pnpm install`
+- `pnpm run docs:dev`
+
+## Style policy
+
+- Prefer short paragraphs and explicit bullet behavior rules.
+- Avoid ambiguous terms like "handles it" without branch details.
+- Keep examples deterministic and environment-light.
+- Preserve ASCII unless file already requires Unicode.

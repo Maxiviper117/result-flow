@@ -1,93 +1,63 @@
-# Retrying Operations
+---
+title: Retrying
+---
 
-Transient failures like timeouts, database deadlocks, or flaky API calls are common. Result Flow provides a fluent retry mechanism that integrates directly with `Result`.
+# Retrying
 
-Instead of writing manual loops with try/catch, wrap the operation in a retrier that captures exceptions as `Result::fail` and can retry based on your rules.
+## What this page is for
 
-## Basic retry
+Use this page when operations can fail transiently and you want controlled retries.
 
-For simple cases, use the static `Result::retry` helper.
+## `Result::retry()`
 
-```php
-use Maxiviper117\ResultFlow\Result;
-
-// Try 3 times, with no delay between attempts
-$result = Result::retry(3, fn () => $client->call());
-```
-
-You can also specify a fixed delay (in milliseconds) and exponential backoff:
+Simple entry point for retrying an operation.
 
 ```php
-// Try 3 times, starting with 100ms delay, doubling each time
-$result = Result::retry(3, fn () => $api->call(), delay: 100, exponential: true);
+$result = Result::retry(
+    times: 3,
+    fn: fn () => callExternalApi(),
+    delay: 100,
+    exponential: true,
+);
 ```
 
-Notes:
-- `times` is the maximum number of attempts (minimum 1).
-- The first failure is attempt 1; retries happen after that failure.
-- `retry()` is built on top of `Result::retrier()` and uses the same semantics.
+Behavior:
+- Attempts up to `times`.
+- Accepts callback returning plain value or `Result`.
+- Returns final `Result` success/failure after retry policy completes.
 
-## Advanced configuration
+## `Result::retrier()`
 
-Use `Result::retrier()` for full control, including jitter, predicates, and callbacks.
-
-```php
-$result = Result::retrier()
-    ->maxAttempts(5)        // Default: 1
-    ->delay(200)            // Base delay in ms. Default: 0
-    ->exponential()         // Delay = base * 2^(attempt-1)
-    ->jitter(50)            // Add random jitter (0-50ms)
-    ->onRetry(function (int $attempt, $error, int $wait) {
-        // Called before each retry
-        Log::warning("Attempt $attempt failed; waiting {$wait}ms");
-    })
-    ->when(function ($error, int $attempt) {
-        // Only retry timeouts
-        return $error instanceof TimeoutException;
-    })
-    ->attempt(fn () => $service->performAction());
-```
-
-What each hook does:
-- `when($error, $attempt)`: decides whether to retry after a failure.
-- `onRetry($attempt, $error, $wait)`: runs before waiting/sleeping.
-- `jitter($ms)`: adds a random 0..$ms delay to avoid thundering herds.
-
-## Attempt metadata (opt-in)
-
-If you want observability into how many attempts were made, enable metadata with `->attachAttemptMeta()` before calling `->attempt()`. The retrier merges the same metadata into every returned `Result`, so you can still add your own meta inside the callable.
+Advanced fluent builder.
 
 ```php
 $result = Result::retrier()
     ->maxAttempts(5)
+    ->delay(150)
+    ->exponential()
+    ->jitter(50)
     ->attachAttemptMeta()
-    ->attempt(fn () => $service->call());
-
-// $result->meta()['retry']['attempts'] === number of attempts executed
+    ->attempt(fn () => callExternalApi());
 ```
 
-The metadata key is always `retry` with a nested `attempts` counter and is only present when the option is enabled.
+Typical options:
+- max attempts
+- base delay
+- exponential backoff
+- jitter
+- retry predicate (`when(...)`)
+- retry hooks (`onRetry(...)`)
 
-## Works with Results or exceptions
+## Retry metadata
 
-`attempt()` handles both of these cases:
+When enabled, retrier can attach attempt count metadata:
 
 ```php
-// Functions returning Result
-Result::retrier()->attempt(fn () => Result::fail('error'));
-
-// Functions throwing exceptions
-Result::retrier()->attempt(function () {
-    throw new Exception('boom');
-});
+$attempts = $result->meta()['retry']['attempts'] ?? null;
 ```
 
-Behavior details:
-- If the callable returns a `Result::ok`, retries stop and that result is returned.
-- If it returns `Result::fail`, the error is used for retry decisions.
-- If it returns a raw value, it is wrapped as `Result::ok($value)`.
-- If it throws, the exception becomes the failure payload.
+## Related pages
 
-## Practical guidance
-
-Retries are best for transient errors. Avoid retrying on validation failures or deterministic errors that will not succeed on another attempt. Use `when()` to make that distinction.
+- [Error Handling](/result/error-handling)
+- [Metadata and Debugging](/result/metadata-debugging)
+- [API Reference](/api)

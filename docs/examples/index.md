@@ -4,24 +4,32 @@ title: Examples
 
 # Examples
 
-This section contains end-to-end examples that show how Result Flow fits into real application code.
+Examples are organized plain-PHP first, then framework-specific integrations.
 
-## Laravel (default patterns)
+## Plain PHP examples
 
-- [Service + controller workflow](/examples/laravel)
-- [Controller-only flow](/examples/laravel-controller-only)
-- [Validation + error shaping](/examples/laravel-validation)
-- [Transactions + rollback](/examples/laravel-transactions)
-- [Retries around external calls](/examples/laravel-retries)
-- [Debug logging + sanitization](/examples/laravel-debugging)
-- [Combine + combineAll](/examples/laravel-combine)
-- [Match + unwrap](/examples/laravel-match-unwrap)
-- [Metadata + taps](/examples/laravel-meta-taps)
-- [Jobs + queues](/examples/laravel-jobs)
+- [Plain PHP Basics](/examples/plain-php-basics)
+- [Plain PHP Batch Processing](/examples/plain-php-batch)
+- [Plain PHP Error Handling](/examples/plain-php-errors)
 
-## Laravel (action pattern)
+## Laravel examples
 
-- [Action classes (optional)](/examples/laravel-actions)
-- [Action pipeline](/examples/laravel-actions-pipeline)
-- [Action retries](/examples/laravel-actions-retries)
-- [Action exception handling](/examples/laravel-actions-exceptions)
+- [Laravel workflow](/examples/laravel)
+- [Laravel controller-only](/examples/laravel-controller-only)
+- [Laravel validation](/examples/laravel-validation)
+- [Laravel transactions](/examples/laravel-transactions)
+- [Laravel retries](/examples/laravel-retries)
+- [Laravel debugging](/examples/laravel-debugging)
+- [Laravel combine](/examples/laravel-combine)
+- [Laravel match + unwrap](/examples/laravel-match-unwrap)
+- [Laravel metadata + taps](/examples/laravel-meta-taps)
+- [Laravel jobs + queues](/examples/laravel-jobs)
+- [Laravel actions](/examples/laravel-actions)
+- [Laravel actions pipeline](/examples/laravel-actions-pipeline)
+- [Laravel actions retries](/examples/laravel-actions-retries)
+- [Laravel actions exceptions](/examples/laravel-actions-exceptions)
+
+## Next steps
+
+- Method contracts: [API Reference](/api)
+- Deep guide: [Result Guide](/result/)

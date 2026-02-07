@@ -1,67 +1,33 @@
 ---
-title: Laravel debugging + sanitization
+title: Laravel Debugging
 ---
 
-# Laravel debugging + sanitization
+# Laravel Debugging
 
-This example shows how to log Result details safely using `toDebugArray()` and how to tune sanitization in Laravel.
+## Scenario
 
-## Logging a Result
+Log failures with sanitized debug payloads.
 
-```php
-use Illuminate\Support\Facades\Log;
-use Maxiviper117\ResultFlow\Result;
-
-$result = Result::fail(new RuntimeException('Payment gateway down'), [
-    'request_id' => 'r-123',
-    'token' => 'secret-token',
-]);
-
-Log::info('payment.result', $result->toDebugArray());
-```
-
-`toDebugArray()` redacts sensitive keys (like `token`) and truncates long strings.
-
-## Custom sanitizer (per call)
+## Example
 
 ```php
-$debug = $result->toDebugArray(function ($value) {
-    if (is_string($value)) {
-        return substr($value, 0, 8).'...';
-    }
+$result = $service->execute($input)
+    ->onFailure(function ($error, array $meta) {
+        logger()->warning('service-failure', [
+            'error' => (string) $error,
+            'meta' => $meta,
+        ]);
+    });
 
-    return $value;
-});
-
-Log::debug('payment.debug', $debug);
+logger()->info('result-debug', $result->toDebugArray());
 ```
 
-## Laravel config override
+## Expected behavior
 
-Publish the config:
+- Sensitive data is redacted when using `toDebugArray()`.
+- Failure context remains traceable via metadata.
 
-```bash
-php artisan vendor:publish --tag=result-flow-config
-```
+## Related pages
 
-Then adjust `config/result-flow.php`:
-
-```php
-return [
-    'debug' => [
-        'enabled' => true,
-        'redaction' => '[redacted]',
-        'sensitive_keys' => ['token', 'secret', 'authorization'],
-        'max_string_length' => 64,
-        'truncate_strings' => true,
-    ],
-];
-```
-
-Notes:
-- Redaction uses glob patterns (`*`, `?`) and case-insensitive matching.
-- If `enabled` is false, no redaction or truncation is performed.
-
-## Result functions used
-
-- `fail()`, `toDebugArray()`
+- [Metadata and Debugging](/result/metadata-debugging)
+- [Sanitization Guide](/sanitization)
