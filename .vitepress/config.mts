@@ -11,6 +11,7 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Quickstart', link: '/getting-started' },
+      { text: 'Laravel Boost', link: '/laravel-boost' },
       { text: 'Result Guide', link: '/result/' },
       { text: 'API', link: '/api' },
       { text: 'Examples', link: '/examples/' },
@@ -23,6 +24,7 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/' },
           { text: 'Getting Started', link: '/getting-started' },
+          { text: 'Laravel Boost', link: '/laravel-boost' },
           { text: 'FAQ', link: '/faq' },
         ],
       },

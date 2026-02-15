@@ -33,5 +33,6 @@ return $result->toResponse();
 ## Related pages
 
 - [Getting Started](/getting-started)
+- [Laravel Boost](/laravel-boost)
 - [Error Handling](/result/error-handling)
 - [API Reference](/api)

@@ -55,6 +55,38 @@ $output = $result->match(
 
 All batch callbacks use: `fn ($item, $key) => Result|value`.
 
+## Laravel Boost
+
+This package ships Laravel Boost assets so app teams get ResultFlow-aware guidance automatically.
+
+### Package-provided guidelines
+
+- File location in this package: `resources/boost/guidelines/core.blade.php`
+- In a Laravel app that uses Boost, run:
+
+```bash
+php artisan boost:install
+```
+
+Boost will include the package guideline in the app AI context.
+
+### Package-provided skills
+
+- Skill locations in this package:
+  - `resources/boost/skills/result-flow-laravel/SKILL.md`
+  - `resources/boost/skills/result-flow-debugging/SKILL.md`
+- Install skills in the app using Boost skill install commands, which materialize files in the app `.ai` directory.
+
+### App-level overrides
+
+App teams can define or override guidelines locally:
+
+- `.ai/guidelines/...`
+
+To override a built-in Boost guideline, use the same relative path in `.ai/guidelines`, for example:
+
+- `.ai/guidelines/inertia-react/2/forms.blade.php`
+
 ## Contributing
 
 - Tests: `composer test`

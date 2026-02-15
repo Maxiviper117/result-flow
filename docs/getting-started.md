@@ -45,6 +45,15 @@ $response = $result->match(
 
 See [Batch Processing](/result/batch-processing) for full behavior and examples.
 
+## Laravel Boost (optional)
+
+- This package ships Laravel Boost assets for AI-assisted ResultFlow usage.
+- Included guideline: `resources/boost/guidelines/core.blade.php`.
+- Included skills:
+  - `resources/boost/skills/result-flow-laravel/SKILL.md`
+  - `resources/boost/skills/result-flow-debugging/SKILL.md`
+- Quick reference and override paths: [Laravel Boost](/laravel-boost).
+
 ## What to read next
 
 - [Result Guide](/result/)

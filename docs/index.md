@@ -38,6 +38,7 @@ Ok(value, meta) | Fail(error, meta)
 
 ## Practical references
 
+- Laravel Boost integration: [Laravel Boost](/laravel-boost)
 - [Usage Patterns](/guides/patterns)
 - [Anti-Patterns](/guides/anti-patterns)
 - [Testing Recipes](/testing)
