@@ -91,6 +91,8 @@ To override a built-in Boost guideline, use the same relative path in `.ai/guide
 
 - Tests: `composer test`
 - Static analysis: `composer analyse`
+- Rector check: `composer rector-dry`
+- Rector apply: `composer rector`
 - Format: `composer format`
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
