@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.9.1](https://github.com/Maxiviper117/result-flow/compare/v1.9.0...v1.9.1) (2026-02-15)
+
+
+### Miscellaneous Chores
+
+* Potential fix for code scanning alert no. 1: Workflow does not contain permissions ([#60](https://github.com/Maxiviper117/result-flow/issues/60)) ([260bff3](https://github.com/Maxiviper117/result-flow/commit/260bff385c7a1bc129d2079381493793d72c3be1))
+* Potential fix for code scanning alert no. 2: Workflow does not contain permissions ([#59](https://github.com/Maxiviper117/result-flow/issues/59)) ([3283e52](https://github.com/Maxiviper117/result-flow/commit/3283e523481c475cabb0630d0b0938facbdd925c))
+* Potential fix for code scanning alert no. 3: Workflow does not contain permissions ([#58](https://github.com/Maxiviper117/result-flow/issues/58)) ([89dd945](https://github.com/Maxiviper117/result-flow/commit/89dd945d7a9ac0b97d713bfb31b500a56679fbf3))
+
 ## [1.9.0](https://github.com/Maxiviper117/result-flow/compare/v1.8.0...v1.9.0) (2026-02-15)
 
 
