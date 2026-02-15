@@ -73,3 +73,8 @@ $result = DB::transaction(function () use ($dto, $meta): Result {
 - Never model expected validation/business failures only with thrown exceptions.
 - Never drop metadata when converting one failure shape to another.
 - Never leave a flow without an explicit branch completion (`match`, `toResponse`, `unwrap*`, etc.) at the boundary.
+
+## Contributor tooling expectations
+
+- Keep generated/updated examples compatible with project Rector rules (`rector.php`) and PHP 8.2+.
+- Before proposing broad refactors, prefer changes that pass `composer rector-dry` without introducing style-only churn.

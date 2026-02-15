@@ -24,6 +24,7 @@
     "require-dev": {
         "laravel/pint": "^1.14",
         "pestphp/pest": "^3.0",
+        "rector/rector": "^2.3",
         "phpstan/phpstan": "^2.0",
         "phpstan/extension-installer": "^1.4"
     },
@@ -51,6 +52,8 @@
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest --parallel",
         "test-coverage": "php scripts/test-coverage.php",
+        "rector": "vendor/bin/rector process",
+        "rector-dry": "vendor/bin/rector process --dry-run",
         "format": "vendor/bin/pint",
         "phpstan": "vendor/bin/phpstan"
     },
