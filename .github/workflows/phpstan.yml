@@ -1,4 +1,7 @@
 name: PHPStan
+permissions:
+  contents: read
+  packages: read
 
 on:
   pull_request:
