@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.9.0](https://github.com/Maxiviper117/result-flow/compare/v1.8.0...v1.9.0) (2026-02-15)
+
+
+### Features
+
+* add Laravel Boost package guidelines and skills for improved AI-assisted development ([cbc0528](https://github.com/Maxiviper117/result-flow/commit/cbc0528c9692df87d056097a146ab9252eff42ec))
+* codex/add-laravel-boost-package-guidelines ([#55](https://github.com/Maxiviper117/result-flow/issues/55)) ([cbc0528](https://github.com/Maxiviper117/result-flow/commit/cbc0528c9692df87d056097a146ab9252eff42ec))
+* integrate Rector for code quality checks and update documentation for usage ([#56](https://github.com/Maxiviper117/result-flow/issues/56)) ([346dd98](https://github.com/Maxiviper117/result-flow/commit/346dd9843c01164d3a6047e919608a665df44024))
+
 ## [1.8.0](https://github.com/Maxiviper117/result-flow/compare/v1.7.1...v1.8.0) (2026-02-07)
 
 
