@@ -29,6 +29,7 @@ Hard constraints:
 - Do not leak secrets in examples or generated debug output.
 - Do not remove existing metadata keys unless explicitly requested.
 - Do not replace expected failures with exception-only handling.
+- Keep generated updates compatible with repository checks (`composer rector-dry`, `composer analyse`, `composer test`).
 
 ## Troubleshooting checklist
 

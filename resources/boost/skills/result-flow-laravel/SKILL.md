@@ -40,6 +40,7 @@ Hard constraints:
 - Preserve metadata (`array<string,mixed>`) across flow boundaries.
 - End each flow with explicit branch completion (`match` or `toResponse`) unless returning `Result` intentionally to caller.
 - Prefer typed callback signatures when concrete types are known.
+- Keep generated code compatible with project automation (`composer rector-dry`, `composer analyse`, `composer test`).
 
 ## Output checklist before returning
 
