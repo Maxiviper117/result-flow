@@ -9,12 +9,14 @@
 
 - When any change affects architecture, behavior, API contracts, dependencies, scripts, setup, or developer workflow, update `AGENTS.md` in the same change set.
 - If a change does not require an `AGENTS.md` update, explicitly verify that this file still matches the current project state before finishing.
+- When any project change is made, always review and update Laravel Boost assets in `resources/boost/guidelines/` and `resources/boost/skills/` in the same change set so AI guidance and skills remain current.
 
 ## Where to change things
 - Core behavior lives in `src/` (primary class: `src/Result.php`).
 - Tests live in `tests/` (Pest). Add/update tests for any behavior change.
 - Docs live in `instructions/result-guide.md`; update `README.md` for user-facing changes or new public APIs.
 - Laravel config integration uses `config/result-flow.php` and `src/Laravel/`.
+- Laravel Boost package assets live in `resources/boost/guidelines/` and `resources/boost/skills/`.
 
 ## Development workflow
 - Use a feature branch off `main`.
@@ -40,6 +42,16 @@
 - Keep examples minimal and type-safe.
 - When adding a new method, include: signature, behavior, and a short example.
 - Ensure the guide and README stay consistent with the public API surface.
+- Keep Boost guidelines and skills (`resources/boost/`) aligned with current project behavior and conventions on every change.
+
+## Laravel Boost AI asset maintenance
+- These files are consumed by Laravel Boost and are part of the package contract for AI-assisted development.
+- Official Boost docs: https://laravel.com/docs/12.x/boost
+- Keep `resources/boost/guidelines/core.blade.php` aligned with current public APIs, preferred patterns, and anti-patterns.
+- Keep each `resources/boost/skills/*/SKILL.md` aligned with current method names and supported workflows from `src/Result.php` and Laravel integration.
+- Any change to APIs, chaining behavior, metadata semantics, error shape conventions, docs examples, or Laravel integration must trigger a Boost asset review and update.
+- Do not leave stale API references in guidelines or skills; remove or replace outdated examples in the same PR.
+- Ensure README Boost instructions stay consistent with shipped Boost asset paths.
 
 ## Release hygiene
 - Releases update `CHANGELOG.md` via GitHub workflows.
