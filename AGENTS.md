@@ -5,6 +5,11 @@
 - Preserve type-safety and PHPStan-friendly templates when changing generics or method signatures.
 - Keep behavior deterministic: no network access, randomness, or IO in core `Result` flows unless explicitly intended.
 
+## Mandatory Maintenance Rule
+
+- When any change affects architecture, behavior, API contracts, dependencies, scripts, setup, or developer workflow, update `AGENTS.md` in the same change set.
+- If a change does not require an `AGENTS.md` update, explicitly verify that this file still matches the current project state before finishing.
+
 ## Where to change things
 - Core behavior lives in `src/` (primary class: `src/Result.php`).
 - Tests live in `tests/` (Pest). Add/update tests for any behavior change.
