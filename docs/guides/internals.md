@@ -16,13 +16,13 @@ Use this page when contributing to Result Flow or reasoning about implementation
 
 ## Internal support components
 
-- `ResultPipeline`: handles callable/object/step-array invocation.
-- `ResultTransform`: `map`, `mapError`, `ensure`, `recover` behavior.
-- `ResultMatch`: `match`, `matchException`, `catchException`.
-- `ResultUnwrap`: unwrap/throw family.
-- `ResultBatch`: `mapItems`, `mapAll`, `mapCollectErrors`.
-- `ResultSerialization`: array/json/xml conversions.
-- `ResultMetaOps`: metadata mapping/merge/tap.
+- `Support\Operations\Pipeline`: handles callable/object/step-array invocation.
+- `Support\Traits\Transform`: `map`, `mapError`, `ensure`, `recover` behavior.
+- `Support\Traits\Matcher`: `match`, `matchException`, `catchException`.
+- `Support\Traits\Unwrap`: unwrap/throw family.
+- `Support\Operations\Batch`: `mapItems`, `mapAll`, `mapCollectErrors`.
+- `Support\Output\Serialization`: array/json/xml conversions.
+- `Support\Traits\MetaOps`: metadata mapping/merge/tap.
 
 ## Metadata merge rule
 

@@ -1,10 +1,10 @@
 <?php
 
 use Maxiviper117\ResultFlow\Result;
-use Maxiviper117\ResultFlow\Support\ResultRetry;
+use Maxiviper117\ResultFlow\Support\Operations\Retry;
 
 it('returns a retrier builder', function () {
-    expect(Result::retrier())->toBeInstanceOf(ResultRetry::class);
+    expect(Result::retrier())->toBeInstanceOf(Retry::class);
 });
 
 it('retries until success', function () {

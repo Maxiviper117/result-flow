@@ -70,10 +70,11 @@ Example:
 $result = Result::retry(3, fn () => callApi(), delay: 100, exponential: true);
 ```
 
-### `Result::retrier(): ResultRetry`
+### `Result::retrier(): Retry`
 
 Contract:
 - Return fluent retrier builder for advanced policies.
+- Returns `Maxiviper117\ResultFlow\Support\Operations\Retry`.
 
 Example:
 ```php

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maxiviper117\ResultFlow\Support;
+namespace Maxiviper117\ResultFlow\Support\Output;
 
 use Maxiviper117\ResultFlow\Result;
 use Throwable;
@@ -12,7 +12,7 @@ use Throwable;
  *
  * @internal
  */
-final class ResultDebug
+final class Debug
 {
     /**
      * @template TSuccess
