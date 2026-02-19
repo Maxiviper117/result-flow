@@ -11,6 +11,10 @@
 - If a change does not require an `AGENTS.md` update, explicitly verify that this file still matches the current project state before finishing.
 - When any project change is made, always review and update Laravel Boost assets in `resources/boost/guidelines/` and `resources/boost/skills/` in the same change set so AI guidance and skills remain current.
 
+## Knowledge freshness
+- Base model knowledge may be out of date. When decisions depend on external facts, tool behavior, or versioned docs that could change, use the web search tool to confirm current information.
+- For programming library/framework usage, use web search when helpful, but prefer Context7 to pull up-to-date primary docs directly from repositories before changing code or docs.
+
 ## Where to change things
 - Core behavior lives in `src/` (primary class: `src/Result.php`).
 - Internal helpers are organized under `src/Support/Traits/`, `src/Support/Operations/`, and `src/Support/Output/`.
