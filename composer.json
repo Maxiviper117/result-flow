@@ -55,6 +55,7 @@
         "rector": "vendor/bin/rector process",
         "rector-dry": "vendor/bin/rector process --dry-run",
         "format": "vendor/bin/pint",
+        "pint-test": "vendor/bin/pint --test",
         "phpstan": "vendor/bin/phpstan"
     },
     "config": {

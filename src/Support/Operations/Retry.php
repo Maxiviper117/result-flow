@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Maxiviper117\ResultFlow\Support;
+namespace Maxiviper117\ResultFlow\Support\Operations;
 
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Support\Traits\MetaOps;
 use Throwable;
 
 /**
@@ -12,7 +13,7 @@ use Throwable;
  *
  * @internal
  */
-final class ResultRetry
+final class Retry
 {
     private int $maxAttempts = 1;
 
@@ -191,7 +192,7 @@ final class ResultRetry
             return $result;
         }
 
-        return ResultMetaOps::mergeMeta(
+        return MetaOps::mergeMeta(
             $result,
             ['retry' => ['attempts' => $attempts]],
         );

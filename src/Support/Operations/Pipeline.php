@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maxiviper117\ResultFlow\Support;
+namespace Maxiviper117\ResultFlow\Support\Operations;
 
 use InvalidArgumentException;
 use Maxiviper117\ResultFlow\Result;
@@ -13,7 +13,7 @@ use Throwable;
  *
  * @internal
  */
-final class ResultPipeline
+final class Pipeline
 {
     /**
      * Execute one or more pipeline steps with exception handling.

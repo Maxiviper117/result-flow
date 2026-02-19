@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow\Laravel;
 
 use Maxiviper117\ResultFlow\Result;
-use Maxiviper117\ResultFlow\Support\ResultSerialization;
+use Maxiviper117\ResultFlow\Support\Output\Serialization;
 
 /**
  * Convert Result instances to HTTP responses when Laravel is available.
@@ -24,7 +24,7 @@ final class ResultResponse
      */
     public static function toResponse(Result $result): mixed
     {
-        $payload = ResultSerialization::toArray($result);
+        $payload = Serialization::toArray($result);
         $status = $result->isOk() ? 200 : 400;
 
         if (function_exists('response')) {

@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow;
 
 use Maxiviper117\ResultFlow\Laravel\ResultResponse;
-use Maxiviper117\ResultFlow\Support\ResultBatch;
-use Maxiviper117\ResultFlow\Support\ResultDebug;
-use Maxiviper117\ResultFlow\Support\ResultMatch;
-use Maxiviper117\ResultFlow\Support\ResultMetaOps;
-use Maxiviper117\ResultFlow\Support\ResultPipeline;
-use Maxiviper117\ResultFlow\Support\ResultRetry;
-use Maxiviper117\ResultFlow\Support\ResultSerialization;
-use Maxiviper117\ResultFlow\Support\ResultTaps;
-use Maxiviper117\ResultFlow\Support\ResultTransform;
-use Maxiviper117\ResultFlow\Support\ResultUnwrap;
+use Maxiviper117\ResultFlow\Support\Operations\Batch;
+use Maxiviper117\ResultFlow\Support\Operations\Pipeline;
+use Maxiviper117\ResultFlow\Support\Operations\Retry;
+use Maxiviper117\ResultFlow\Support\Output\Debug;
+use Maxiviper117\ResultFlow\Support\Output\Serialization;
+use Maxiviper117\ResultFlow\Support\Traits\Matcher;
+use Maxiviper117\ResultFlow\Support\Traits\MetaOps;
+use Maxiviper117\ResultFlow\Support\Traits\Taps;
+use Maxiviper117\ResultFlow\Support\Traits\Transform;
+use Maxiviper117\ResultFlow\Support\Traits\Unwrap;
 use Throwable;
 
 /**
@@ -118,7 +118,7 @@ final class Result
      */
     public static function retry(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result
     {
-        return ResultRetry::config()
+        return Retry::config()
             ->maxAttempts($times)
             ->delay($delay)
             ->exponential($exponential)
@@ -128,7 +128,7 @@ final class Result
     /**
      * Access the fluent Retry builder for advanced configuration.
      *
-     * @return ResultRetry
+     * @return Retry
      *
      * Usage:
      * Result::retrier()
@@ -136,9 +136,9 @@ final class Result
      *     ->jitter(100)
      *     ->attempt(fn() => ...);
      */
-    public static function retrier(): ResultRetry
+    public static function retrier(): Retry
     {
-        return ResultRetry::config();
+        return Retry::config();
     }
 
     /**
@@ -231,7 +231,7 @@ final class Result
      */
     public static function mapItems(array $items, callable $fn): array
     {
-        return ResultBatch::mapItems($items, $fn);
+        return Batch::mapItems($items, $fn);
     }
 
     /**
@@ -248,7 +248,7 @@ final class Result
      */
     public static function mapAll(array $items, callable $fn): self
     {
-        return ResultBatch::mapAll($items, $fn);
+        return Batch::mapAll($items, $fn);
     }
 
     /**
@@ -265,7 +265,7 @@ final class Result
      */
     public static function mapCollectErrors(array $items, callable $fn): self
     {
-        return ResultBatch::mapCollectErrors($items, $fn);
+        return Batch::mapCollectErrors($items, $fn);
     }
 
     // =========================================================================
@@ -323,7 +323,7 @@ final class Result
      */
     public function toArray(): array
     {
-        return ResultSerialization::toArray($this);
+        return Serialization::toArray($this);
     }
 
     /**
@@ -334,7 +334,7 @@ final class Result
      */
     public function toDebugArray(?callable $sanitizer = null): array
     {
-        return ResultDebug::toDebugArray($this, $sanitizer);
+        return Debug::toDebugArray($this, $sanitizer);
     }
 
     // =========================================================================
@@ -349,7 +349,7 @@ final class Result
      */
     public function tapMeta(callable $tap): self
     {
-        return ResultMetaOps::tapMeta($this, $tap);
+        return MetaOps::tapMeta($this, $tap);
     }
 
     /**
@@ -360,7 +360,7 @@ final class Result
      */
     public function mapMeta(callable $map): self
     {
-        return ResultMetaOps::mapMeta($this, $map);
+        return MetaOps::mapMeta($this, $map);
     }
 
     /**
@@ -371,7 +371,7 @@ final class Result
      */
     public function mergeMeta(array $meta): self
     {
-        return ResultMetaOps::mergeMeta($this, $meta);
+        return MetaOps::mergeMeta($this, $meta);
     }
 
     // =========================================================================
@@ -386,7 +386,7 @@ final class Result
      */
     public function tap(callable $tap): self
     {
-        return ResultTaps::tap($this, $tap);
+        return Taps::tap($this, $tap);
     }
 
     /**
@@ -397,7 +397,7 @@ final class Result
      */
     public function onSuccess(callable $tap): self
     {
-        return ResultTaps::onSuccess($this, $tap);
+        return Taps::onSuccess($this, $tap);
     }
 
     /**
@@ -419,7 +419,7 @@ final class Result
      */
     public function onFailure(callable $tap): self
     {
-        return ResultTaps::onFailure($this, $tap);
+        return Taps::onFailure($this, $tap);
     }
 
     /**
@@ -447,7 +447,7 @@ final class Result
      */
     public function map(callable $map): self
     {
-        return ResultTransform::map($this, $map);
+        return Transform::map($this, $map);
     }
 
     /**
@@ -460,7 +460,7 @@ final class Result
      */
     public function mapError(callable $map): self
     {
-        return ResultTransform::mapError($this, $map);
+        return Transform::mapError($this, $map);
     }
 
     /**
@@ -473,7 +473,7 @@ final class Result
      */
     public function ensure(callable $predicate, mixed $error): self
     {
-        return ResultTransform::ensure($this, $predicate, $error);
+        return Transform::ensure($this, $predicate, $error);
     }
 
     // =========================================================================
@@ -498,7 +498,7 @@ final class Result
         /** @var TSuccess $value */
         $value = $this->value;
 
-        return ResultPipeline::run($this, $next, $value, $this->meta);
+        return Pipeline::run($this, $next, $value, $this->meta);
     }
 
     /**
@@ -549,7 +549,7 @@ final class Result
         /** @var TSuccess $value */
         $value = $this->value;
 
-        $out = ResultPipeline::invokeStep($next, $value, $this->meta);
+        $out = Pipeline::invokeStep($next, $value, $this->meta);
 
         if ($out instanceof self) {
             return $out;
@@ -630,7 +630,7 @@ final class Result
         /** @var TFailure $error */
         $error = $this->error;
 
-        return ResultPipeline::run($this, $next, $error, $this->meta);
+        return Pipeline::run($this, $next, $error, $this->meta);
     }
 
     /**
@@ -653,7 +653,7 @@ final class Result
      */
     public function catchException(array $handlers, ?callable $fallback = null): self
     {
-        return ResultMatch::catchException($this, $handlers, $fallback);
+        return Matcher::catchException($this, $handlers, $fallback);
     }
 
     /**
@@ -666,7 +666,7 @@ final class Result
      */
     public function recover(callable $fn): self
     {
-        return ResultTransform::recover($this, $fn);
+        return Transform::recover($this, $fn);
     }
 
     // =========================================================================
@@ -684,7 +684,7 @@ final class Result
      */
     public function match(callable $onSuccess, callable $onFailure): mixed
     {
-        return ResultMatch::match($this, $onSuccess, $onFailure);
+        return Matcher::match($this, $onSuccess, $onFailure);
     }
 
     /**
@@ -709,7 +709,7 @@ final class Result
         callable $onSuccess,
         callable $onUnhandled,
     ): mixed {
-        return ResultMatch::matchException($this, $exceptionHandlers, $onSuccess, $onUnhandled);
+        return Matcher::matchException($this, $exceptionHandlers, $onSuccess, $onUnhandled);
     }
 
     /**
@@ -722,7 +722,7 @@ final class Result
      */
     public function unwrap(): mixed
     {
-        return ResultUnwrap::unwrap($this);
+        return Unwrap::unwrap($this);
     }
 
     /**
@@ -733,7 +733,7 @@ final class Result
      */
     public function unwrapOr(mixed $default): mixed
     {
-        return ResultUnwrap::unwrapOr($this, $default);
+        return Unwrap::unwrapOr($this, $default);
     }
 
     /**
@@ -744,7 +744,7 @@ final class Result
      */
     public function unwrapOrElse(callable $fn): mixed
     {
-        return ResultUnwrap::unwrapOrElse($this, $fn);
+        return Unwrap::unwrapOrElse($this, $fn);
     }
 
     /**
@@ -757,7 +757,7 @@ final class Result
      */
     public function getOrThrow(callable $exceptionFactory): mixed
     {
-        return ResultUnwrap::getOrThrow($this, $exceptionFactory);
+        return Unwrap::getOrThrow($this, $exceptionFactory);
     }
 
     /**
@@ -785,7 +785,7 @@ final class Result
      */
     public function throwIfFail(): self
     {
-        return ResultUnwrap::throwIfFail($this);
+        return Unwrap::throwIfFail($this);
     }
 
     // =========================================================================
@@ -801,7 +801,7 @@ final class Result
      */
     public function toJson(int $options = 0): string
     {
-        return ResultSerialization::toJson($this, $options);
+        return Serialization::toJson($this, $options);
     }
 
     /**
@@ -809,7 +809,7 @@ final class Result
      */
     public function toXml(string $rootElement = 'result'): string
     {
-        return ResultSerialization::toXml($this, $rootElement);
+        return Serialization::toXml($this, $rootElement);
     }
 
     /**

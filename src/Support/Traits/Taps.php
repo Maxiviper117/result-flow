@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Maxiviper117\ResultFlow\Support;
+namespace Maxiviper117\ResultFlow\Support\Traits;
 
 use Maxiviper117\ResultFlow\Result;
 
@@ -11,7 +11,7 @@ use Maxiviper117\ResultFlow\Result;
  *
  * @internal
  */
-final class ResultTaps
+final class Taps
 {
     /**
      * @template TSuccess

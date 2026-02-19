@@ -67,6 +67,7 @@ $result = DB::transaction(function () use ($dto, $meta): Result {
 - Prefer typed callback arguments and returns whenever concrete types are known.
 - Return `Result` from chain handlers when behavior is branch-aware; avoid unnecessary `mixed` widening.
 - Do not invent APIs: only use methods available on `src/Result.php`.
+- Treat `src/Support/*` classes as internal implementation details; code against `Result` public APIs.
 
 ## Anti-patterns to avoid
 
@@ -77,4 +78,5 @@ $result = DB::transaction(function () use ($dto, $meta): Result {
 ## Contributor tooling expectations
 
 - Keep generated/updated examples compatible with project Rector rules (`rector.php`) and PHP 8.2+.
+- Use `composer pint-test` for non-mutating style checks and `composer format` when formatting changes are intended.
 - Before proposing broad refactors, prefer changes that pass `composer rector-dry` without introducing style-only churn.

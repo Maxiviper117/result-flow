@@ -30,6 +30,8 @@ Behavior:
 
 Advanced fluent builder.
 
+Returns `Maxiviper117\ResultFlow\Support\Operations\Retry`.
+
 ```php
 $result = Result::retrier()
     ->maxAttempts(5)

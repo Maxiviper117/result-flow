@@ -13,8 +13,13 @@
 
 ## Where to change things
 - Core behavior lives in `src/` (primary class: `src/Result.php`).
+- Internal helpers are organized under `src/Support/Traits/`, `src/Support/Operations/`, and `src/Support/Output/`.
+- `src/Support/Traits/` contains focused `Result` behavior traits (e.g., transform, unwrap, matching, taps, metadata ops).
+- `src/Support/Operations/` contains operation-style services/builders (e.g., retry, pipeline, batch mapping).
+- `src/Support/Output/` contains debug and serialization output helpers.
+- Keep `src/Support/*` class names concise by capability (`Retry`, `Pipeline`, `Batch`, `Debug`, `Serialization`, etc.); avoid the legacy `Result*` helper naming pattern.
 - Tests live in `tests/` (Pest). Add/update tests for any behavior change.
-- Docs live in `instructions/result-guide.md`; update `README.md` for user-facing changes or new public APIs.
+- Docs live in `docs/`; update `README.md` for user-facing changes or new public APIs.
 - Laravel config integration uses `config/result-flow.php` and `src/Laravel/`.
 - Laravel Boost package assets live in `resources/boost/guidelines/` and `resources/boost/skills/`.
 
@@ -26,6 +31,7 @@
 
 ## Quality checks
 - Format: `composer format`
+- Format check only (dry-run): `composer pint-test`
 - Static analysis: `composer analyse` (or `composer phpstan`)
 - Refactoring check: `composer rector-dry` (apply fixes with `composer rector`)
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
