@@ -47,6 +47,40 @@ $output = $result->match(
 );
 ```
 
+## Deferred operations
+
+```php
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::defer(fn () => loadUserById($id))
+    ->then(fn (array $user) => Result::ok(normalizeUser($user)));
+```
+
+## Retry deferred operations
+
+```php
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::retryDefer(
+    3,
+    fn () => callExternalApi($payload),
+    delay: 100,
+    exponential: true,
+);
+```
+
+## Resource-safe operations
+
+```php
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::bracket(
+    acquire: fn () => fopen($path, 'r'),
+    use: fn ($handle) => fread($handle, 100),
+    release: fn ($handle) => fclose($handle),
+);
+```
+
 ## Batch workflows
 
 - `Result::mapItems($items, $fn)` for per-item `Result` status.

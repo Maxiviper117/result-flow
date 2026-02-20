@@ -57,6 +57,23 @@ Example:
 $user = Result::of(fn () => $repo->findOrFail($id));
 ```
 
+### `Result::defer(callable $fn): Result`
+
+Contract:
+- Run callback and normalize output to `Result`.
+
+Behavior:
+- return plain value => `ok(value)`
+- return `Result` => return as-is
+- throw => `fail(Throwable)`
+
+Examples:
+```php
+$count = Result::defer(fn () => 42);
+
+$user = Result::defer(fn () => findUser($id)); // `findUser` may return value or Result
+```
+
 ### `Result::retry(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result`
 
 Contract:
@@ -70,6 +87,28 @@ Example:
 $result = Result::retry(3, fn () => callApi(), delay: 100, exponential: true);
 ```
 
+### `Result::retryDefer(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result`
+
+Contract:
+- Retry a deferred callback with the same policy as `retry`.
+
+Behavior:
+- On each attempt:
+  - return value => `ok(value)`
+  - return `Result` => return as-is
+  - throw => `fail(Throwable)`
+- Retries while attempts remain and operation result is failure.
+
+Example:
+```php
+$result = Result::retryDefer(
+    3,
+    fn () => fetchUser($id), // may return value, Result, or throw
+    delay: 100,
+    exponential: true,
+);
+```
+
 ### `Result::retrier(): Retry`
 
 Contract:
@@ -79,6 +118,26 @@ Contract:
 Example:
 ```php
 $result = Result::retrier()->maxAttempts(5)->jitter(50)->attempt(fn () => callApi());
+```
+
+### `Result::bracket(callable $acquire, callable $use, callable $release): Result`
+
+Contract:
+- Safely acquire a resource, use it, and release it.
+
+Behavior:
+- If `acquire` fails, return that failure.
+- `release` is always attempted after `use` once acquire succeeds.
+- If `use` fails and `release` throws, original use failure is preserved and release exception is attached to metadata.
+- If `use` succeeds and `release` throws, result is failure with release throwable.
+
+Example:
+```php
+$result = Result::bracket(
+    acquire: fn () => fopen($path, 'r'),
+    use: fn ($handle) => fread($handle, 100),
+    release: fn ($handle) => fclose($handle),
+);
 ```
 
 ### `Result::combine(array $results): Result`

@@ -107,6 +107,39 @@ final class Result
     }
 
     /**
+     * Execute a deferred operation and normalize its output to Result.
+     *
+     * @template T
+     * @template E
+     *
+     * @param  callable(): (Result<T, E>|T)  $fn
+     * @return Result<T, E|Throwable>
+     */
+    public static function defer(callable $fn): self
+    {
+        try {
+            $value = $fn();
+
+            if ($value instanceof self) {
+                /** @var Result<T, E|Throwable> $result */
+                $result = $value;
+
+                return $result;
+            }
+
+            /** @var Result<T, E|Throwable> $ok */
+            $ok = self::ok($value);
+
+            return $ok;
+        } catch (Throwable $e) {
+            /** @var Result<T, E|Throwable> $failed */
+            $failed = self::fail($e);
+
+            return $failed;
+        }
+    }
+
+    /**
      * Simple retry with optional delay and exponential backoff.
      * For advanced config (jitter, callbacks), use Result::retrier().
      *
@@ -126,6 +159,30 @@ final class Result
     }
 
     /**
+     * Retry a deferred operation with retry() semantics.
+     *
+     * @template T
+     * @template E
+     *
+     * @param  int  $times  Maximum attempts (min 1)
+     * @param  callable(): (Result<T, E>|T)  $fn
+     * @param  int  $delay  Base delay in milliseconds between attempts
+     * @param  bool  $exponential  Use exponential backoff for delays
+     * @return Result<T, E|Throwable>
+     */
+    public static function retryDefer(int $times, callable $fn, int $delay = 0, bool $exponential = false): self
+    {
+        /** @var Result<T, E|Throwable> $result */
+        $result = Retry::config()
+            ->maxAttempts($times)
+            ->delay($delay)
+            ->exponential($exponential)
+            ->attempt(fn () => self::defer($fn));
+
+        return $result;
+    }
+
+    /**
      * Access the fluent Retry builder for advanced configuration.
      *
      * @return Retry
@@ -139,6 +196,57 @@ final class Result
     public static function retrier(): Retry
     {
         return Retry::config();
+    }
+
+    /**
+     * Safely acquire, use, and release a resource.
+     *
+     * @template R
+     * @template T
+     * @template E
+     *
+     * @param  callable(): (Result<R, mixed>|R)  $acquire
+     * @param  callable(R): (Result<T, E>|T)  $use
+     * @param  callable(R): void  $release
+     * @return Result<T, E|Throwable>
+     */
+    public static function bracket(callable $acquire, callable $use, callable $release): self
+    {
+        /** @var Result<R, Throwable> $acquired */
+        $acquired = self::defer($acquire);
+
+        if ($acquired->isFail()) {
+            /** @var Result<T, E|Throwable> $failedAcquire */
+            $failedAcquire = self::fail($acquired->error(), $acquired->meta());
+
+            return $failedAcquire;
+        }
+
+        /** @var R $resource */
+        $resource = $acquired->value();
+
+        /** @var Result<T, E|Throwable> $used */
+        $used = self::defer(fn () => $use($resource));
+
+        try {
+            $release($resource);
+        } catch (Throwable $releaseException) {
+            if ($used->isFail()) {
+                /** @var Result<T, E|Throwable> $failedWithReleaseMeta */
+                $failedWithReleaseMeta = $used->mergeMeta([
+                    'bracket.release_exception' => $releaseException,
+                ]);
+
+                return $failedWithReleaseMeta;
+            }
+
+            /** @var Result<T, E|Throwable> $releaseFailed */
+            $releaseFailed = self::fail($releaseException, $used->meta());
+
+            return $releaseFailed;
+        }
+
+        return $used;
     }
 
     /**

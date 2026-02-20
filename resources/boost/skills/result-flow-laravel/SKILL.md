@@ -19,7 +19,7 @@ Use this skill for controllers, actions, services, jobs, and transaction workflo
 Only use public methods present on `src/Result.php`:
 
 - Static constructors/utilities:
-  - `ok`, `fail`, `failWithValue`, `of`, `retry`, `retrier`
+  - `ok`, `fail`, `failWithValue`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`
   - `combine`, `combineAll`
   - `mapItems`, `mapAll`, `mapCollectErrors`
 - Branch and metadata operations:
@@ -80,3 +80,29 @@ Create an order checkout flow in a DB transaction that must rollback on Result f
 - `DB::transaction(fn () => Result::ok(...)->thenUnsafe(...)->throwIfFail()->thenUnsafe(...))`
 - Domain-safe error mapping after transaction
 - Explicit completion in caller (`match` or `toResponse`)
+
+### Prompt
+Start a service workflow from a lazy/computed first step and keep failure explicit.
+
+### Outcome shape
+
+- `Result::defer(fn () => $service->fetch($id))`
+- `then(...)` for dependent steps
+- `otherwise(...)` for error normalization with metadata passthrough
+
+### Prompt
+Retry transient workflow setup that may throw or return `Result`.
+
+### Outcome shape
+
+- `Result::retryDefer(3, fn () => $gateway->send($payload), delay: 100, exponential: true)`
+- `otherwise(...)` to map terminal failure for caller
+
+### Prompt
+Use a temporary resource with guaranteed cleanup.
+
+### Outcome shape
+
+- `Result::bracket(acquire: ..., use: ..., release: ...)`
+- `use` branch returns domain `Result`
+- Cleanup errors handled as explicit Result failure semantics

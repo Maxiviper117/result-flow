@@ -110,6 +110,71 @@ it('handles Result::fail inside callable', function () {
     expect($attempts)->toBe(2);
 });
 
+it('retryDefer retries until plain value success', function () {
+    $attempts = 0;
+
+    $result = Result::retryDefer(3, function () use (&$attempts) {
+        $attempts++;
+        if ($attempts < 3) {
+            throw new Exception('fail');
+        }
+
+        return 'ok';
+    });
+
+    expect($result->isOk())->toBeTrue();
+    expect($result->value())->toBe('ok');
+    expect($attempts)->toBe(3);
+});
+
+it('retryDefer retries when callback returns fail result', function () {
+    $attempts = 0;
+
+    $result = Result::retryDefer(3, function () use (&$attempts) {
+        $attempts++;
+        if ($attempts < 2) {
+            return Result::fail('nope');
+        }
+
+        return Result::ok('done');
+    });
+
+    expect($result->isOk())->toBeTrue();
+    expect($result->value())->toBe('done');
+    expect($attempts)->toBe(2);
+});
+
+it('retryDefer fails after max attempts when callback keeps throwing', function () {
+    $attempts = 0;
+
+    $result = Result::retryDefer(3, function () use (&$attempts) {
+        $attempts++;
+        throw new Exception('still failing');
+    });
+
+    expect($result->isFail())->toBeTrue();
+    expect($result->error())->toBeInstanceOf(Exception::class);
+    expect($attempts)->toBe(3);
+});
+
+it('retryDefer supports delay and exponential options', function () {
+    $attempts = 0;
+
+    $result = Result::retryDefer(
+        2,
+        function () use (&$attempts) {
+            $attempts++;
+
+            return Result::fail('retry');
+        },
+        delay: 10,
+        exponential: true
+    );
+
+    expect($result->isFail())->toBeTrue();
+    expect($attempts)->toBe(2);
+});
+
 it('handles jitter', function () {
     // Just verify it runs without error
     $result = Result::retrier()

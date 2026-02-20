@@ -26,6 +26,26 @@ Behavior:
 - Accepts callback returning plain value or `Result`.
 - Returns final `Result` success/failure after retry policy completes.
 
+## `Result::retryDefer()`
+
+Convenience wrapper for deferred callbacks that may return a value, return a `Result`, or throw.
+
+```php
+$result = Result::retryDefer(
+    times: 3,
+    fn: fn () => fetchUser($id),
+    delay: 100,
+    exponential: true,
+);
+```
+
+Behavior:
+- Uses the same retry policy semantics as `Result::retry()`.
+- Per attempt normalization matches `Result::defer()`:
+  - plain value => `ok`
+  - `Result` => passthrough
+  - throwable => `fail(Throwable)`
+
 ## `Result::retrier()`
 
 Advanced fluent builder.
