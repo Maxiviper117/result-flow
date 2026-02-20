@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.10.0](https://github.com/Maxiviper117/result-flow/compare/v1.9.1...v1.10.0) (2026-02-20)
+
+
+### Features
+
+* **result:** add retryDefer and bracket with docs and examples ([#65](https://github.com/Maxiviper117/result-flow/issues/65)) ([8542a3a](https://github.com/Maxiviper117/result-flow/commit/8542a3a9f6f3b9b23c2add3b1df7f443fbe3b4f1))
+
+
+### Miscellaneous Chores
+
+* add ck-semantic-search skill and .ckignore patterns ([a3f9fb6](https://github.com/Maxiviper117/result-flow/commit/a3f9fb63f0e24667df7b5a950edcae98adb11c72))
+
 ## [1.9.1](https://github.com/Maxiviper117/result-flow/compare/v1.9.0...v1.9.1) (2026-02-15)
 
 
