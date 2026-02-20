@@ -67,9 +67,8 @@ See [Batch Processing](/result/batch-processing) for full behavior and examples.
 
 - This package ships Boost source assets that guide AI behavior in downstream consumer Laravel apps.
 - Package-shipped guideline source: `resources/boost/guidelines/core.blade.php`.
-- Package-shipped skill sources:
-  - `resources/boost/skills/result-flow-laravel/SKILL.md`
-  - `resources/boost/skills/result-flow-debugging/SKILL.md`
+- Package-shipped central skill source: `resources/boost/skills/result-flow/SKILL.md`.
+- Package-shipped concept references: `resources/boost/skills/result-flow/references/*.md`.
 - In your app, install Boost and apply package guidance there. See [Laravel Boost](/laravel-boost).
 
 ## What to read next

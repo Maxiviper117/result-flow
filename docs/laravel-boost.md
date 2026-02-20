@@ -9,9 +9,9 @@ title: Laravel Boost
 Laravel Boost uses two package asset types:
 
 - Guidelines define ResultFlow usage conventions for AI agents writing code in downstream Laravel apps.
-- Skills define task-focused workflows (for example Laravel pipelines or debugging flows) for those downstream apps.
+- Skills define task-focused workflows for those downstream apps.
 
-In short: guidelines shape app-level coding behavior; skills shape app-level task execution.
+In short: guidelines shape app-level coding behavior; the central skill orchestrates concept workflows through local references.
 
 ## What this page is for
 
@@ -28,8 +28,16 @@ Official Boost docs: https://laravel.com/docs/12.x/boost
 This package ships the following source assets:
 
 - Guideline source: `resources/boost/guidelines/core.blade.php`
-- Skill source: `resources/boost/skills/result-flow-laravel/SKILL.md`
-- Skill source: `resources/boost/skills/result-flow-debugging/SKILL.md`
+- Central skill source: `resources/boost/skills/result-flow/SKILL.md`
+- Skill references:
+  - `resources/boost/skills/result-flow/references/constructing.md`
+  - `resources/boost/skills/result-flow/references/chaining.md`
+  - `resources/boost/skills/result-flow/references/failure-handling.md`
+  - `resources/boost/skills/result-flow/references/batch-processing.md`
+  - `resources/boost/skills/result-flow/references/boundaries.md`
+  - `resources/boost/skills/result-flow/references/retries.md`
+  - `resources/boost/skills/result-flow/references/debugging-metadata.md`
+  - `resources/boost/skills/result-flow/references/public-api-whitelist.md`
 
 These files are maintained in this package repository, but their purpose is to guide AI behavior in downstream consumer applications.
 
@@ -41,10 +49,16 @@ These files are maintained in this package repository, but their purpose is to g
   - Laravel boundaries (`toResponse`, transaction rollback with `throwIfFail`)
   - Common anti-patterns to avoid in app code
 
-### Included skills
+### Included central skill + references
 
-- `result-flow-laravel` helps scaffold explicit success/failure Laravel workflows using public `Result` APIs.
-- `result-flow-debugging` helps add safe diagnostics and metadata-aware troubleshooting without changing branch semantics.
+- `result-flow/SKILL.md` provides orchestration rules:
+  - detect user intent
+  - load only needed local reference docs
+  - keep progressive disclosure and avoid unnecessary context loading
+- `result-flow/references/*` contains concept-depth guidance:
+  - constructing, chaining, failure handling, batch processing
+  - boundaries, retries, debugging/metadata
+  - public API whitelist
 
 ## Install and usage flow
 
@@ -54,7 +68,7 @@ In your Laravel app:
 php artisan boost:install
 ```
 
-Boost discovers package-shipped assets and applies them in the app AI context. Skills are installed into the app `.ai` directory using Boost skill install commands.
+Boost discovers package-shipped assets and applies them in the app AI context. Skill assets are installed into the app `.ai` directory using Boost skill install commands.
 
 ## App-level overrides
 
@@ -72,8 +86,8 @@ To override a built-in guideline, match the same relative path in `.ai/guideline
 | --- | --- |
 | Default ResultFlow behavior in app AI guidance | Package-shipped guideline `resources/boost/guidelines/core.blade.php` |
 | Team-specific conventions for one app | App-level `.ai/guidelines/...` |
-| Reusable workflow generation for Laravel Result pipelines | `result-flow-laravel` skill |
-| Failure-path diagnostics and metadata safety workflow | `result-flow-debugging` skill |
+| Central ResultFlow skill orchestration | `resources/boost/skills/result-flow/SKILL.md` |
+| Detailed concept guidance | `resources/boost/skills/result-flow/references/*.md` |
 
 ## Related pages
 

@@ -105,12 +105,12 @@ php artisan boost:install
 
 Boost applies package-shipped guidance within the app AI context.
 
-### Package-shipped skill sources
+### Package-shipped central skill source
 
-- Source files in this package:
-  - `resources/boost/skills/result-flow-laravel/SKILL.md`
-  - `resources/boost/skills/result-flow-debugging/SKILL.md`
-- Install skills in the app using Boost skill install commands; files are materialized in the app `.ai` directory.
+- Source file in this package:
+  - `resources/boost/skills/result-flow/SKILL.md`
+- The central skill loads only needed concept references from:
+  - `resources/boost/skills/result-flow/references/*.md`
 
 ### App-level overrides
 
