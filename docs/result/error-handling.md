@@ -4,86 +4,142 @@ title: Error Handling
 
 # Error Handling
 
-## What this page is for
+_Reading time: ~6 minutes. Prerequisite: [Getting Started](/getting-started)._ 
 
-Use this page to recover, transform, or route failures without breaking pipeline readability.
+## Task summary
 
-## `otherwise()`
+Use failure-path methods to normalize errors, branch by exception type, and recover only when intentional.
 
-`otherwise()` is the failure-branch counterpart to `then()`.
+Deep dives:
+- Failure-path design: [Failure and Recovery](/result/compositions/failure-recovery)
+- End-of-flow choices: [Finalization Boundaries](/result/compositions/finalization-boundaries)
+- Contracts: [API Reference](/api#failure-branch-handlers)
+
+## Quick mental model
+
+- `otherwise` is to failure branch what `then` is to success branch.
+- `catchException` only handles Throwable errors.
+- `recover` always converts failure into success.
+- `throwIfFail` restores exception-style control flow.
+
+## Primary methods
+
+- `otherwise`: failure-branch counterpart to `then`.
+- `catchException`: class-based handling for Throwable failures.
+- `recover`: always convert failure into success.
+- `throwIfFail`: escalate failure channel to exceptions.
+
+## When to use `otherwise` vs `recover` vs `throwIfFail`
+
+| Need | Method |
+|---|---|
+| Map failure and stay failed or recover conditionally | `otherwise` |
+| Always return success fallback | `recover` |
+| Convert failure to thrown exception at boundary | `throwIfFail` |
+
+## Worked flow (end-to-end)
+
+### Input
 
 ```php
-$result = callService()
-    ->otherwise(function ($error, array $meta) {
-        if ($error === 'timeout') {
-            return Result::ok(['source' => 'cache'], [...$meta, 'fallback' => true]);
-        }
-
-        return Result::fail($error, $meta);
-    });
+$gatewayCall = fn (): array => throw new RuntimeException('Timeout');
 ```
 
-Behavior:
-- Runs only when current result is failed.
-- If callback returns `ok`, pipeline recovers.
-- If callback returns plain value, it is wrapped as `ok(value)`.
+### Flow steps
 
-## `catchException()`
+1. Wrap call with `of`.
+2. `catchException` maps runtime exception to stable error shape.
+3. `otherwise` appends operation context.
+4. `recover` returns fallback success for caller.
 
-Handle Throwable failures by class.
+### Output
+
+- Success sample:
 
 ```php
-$result = Result::of(fn () => riskyCall())
+[
+  'ok' => true,
+  'value' => ['fallback' => true, 'reason' => 'UPSTREAM_TIMEOUT', 'request_id' => 'r-200'],
+  'error' => null,
+  'meta' => ['request_id' => 'r-200', 'operation' => 'gateway.send'],
+]
+```
+
+- Failure sample (if you remove `recover`):
+
+```php
+[
+  'ok' => false,
+  'value' => null,
+  'error' => ['code' => 'UPSTREAM_TIMEOUT', 'message' => 'Timeout', 'operation' => 'gateway.send'],
+  'meta' => ['request_id' => 'r-200', 'operation' => 'gateway.send'],
+]
+```
+
+## Copy-paste snippet
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Maxiviper117\ResultFlow\Result;
+use RuntimeException;
+
+$gatewayCall = function (): array {
+    throw new RuntimeException('Timeout');
+};
+
+$result = Result::of($gatewayCall)
+    ->mergeMeta(['request_id' => 'r-200', 'operation' => 'gateway.send'])
     ->catchException([
-        RuntimeException::class => fn (RuntimeException $e) => Result::fail("runtime: {$e->getMessage()}"),
-        InvalidArgumentException::class => fn (InvalidArgumentException $e) => Result::ok(['fallback' => true]),
+        RuntimeException::class => fn (RuntimeException $e, array $meta): Result => Result::fail([
+            'code' => 'UPSTREAM_TIMEOUT',
+            'message' => $e->getMessage(),
+        ], $meta),
+    ])
+    ->otherwise(fn (array $error, array $meta): Result => Result::fail([
+        ...$error,
+        'operation' => $meta['operation'] ?? 'unknown',
+    ], $meta))
+    ->recover(fn (array $error, array $meta): array => [
+        'fallback' => true,
+        'reason' => $error['code'] ?? 'unknown',
+        'request_id' => $meta['request_id'] ?? null,
     ]);
+
+print_r($result->toArray());
 ```
 
-Behavior:
-- Skips on success.
-- Matches first handler whose class `is_a` the Throwable.
-- Optional fallback handles unmatched failures.
-
-## `recover()`
-
-Convert any failure into success value.
+## Failure demo
 
 ```php
-$alwaysOk = maybeFailingOp()
-    ->recover(fn ($error) => ['fallback' => true, 'reason' => (string) $error]);
-```
+<?php
 
-Behavior:
-- If already success, returns original success value.
-- If failure, executes callback and returns `ok(mappedValue)`.
+declare(strict_types=1);
 
-## `throwIfFail()`
+use Maxiviper117\ResultFlow\Result;
 
-Escalate `Result` failure into exceptions.
-
-```php
-Result::ok($dto)
-    ->thenUnsafe(new ValidateAction)
-    ->thenUnsafe(new PersistAction)
+$result = Result::fail('timeout')
     ->throwIfFail();
 ```
 
-Behavior:
-- If error is Throwable, throws it.
-- If error is non-Throwable, throws `RuntimeException`.
+Expected behavior: throws `RuntimeException` (non-Throwable error channel).
 
-## Choose this method when
+## Common beginner mistakes
 
-| Need | Use |
-|---|---|
-| Branch on failure and maybe recover | `otherwise` |
-| Match failure by exception class | `catchException` |
-| Always convert failure to success | `recover` |
-| Force exception semantics on fail | `throwIfFail` |
+- Expecting `catchException` to handle non-Throwable errors.
+- Recovering too early and hiding useful failure context.
+- Returning plain values in `otherwise` accidentally recovering.
+- Calling `throwIfFail` deep inside a flow instead of at boundary.
+
+## Try it
+
+- `php examples\retry\retry-test.php`
+- `php examples\retry\retry-defer-test.php`
 
 ## Related pages
 
-- [Chaining and Transforming](/result/chaining)
+- [Core Pipelines](/result/compositions/core-pipelines)
 - [Matching and Unwrapping](/result/matching-unwrapping)
 - [API Reference](/api)

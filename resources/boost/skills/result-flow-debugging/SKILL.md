@@ -4,7 +4,7 @@
 
 Diagnose and improve `Result` workflows with safe debugging output, metadata hygiene, and clear failure-path troubleshooting steps.
 
-Use this skill when investigating unexpected failures, noisy error payloads, or missing trace context.
+Use this skill in downstream applications when investigating unexpected failures, noisy error payloads, or missing trace context.
 
 ## Inputs expected from user/codebase
 
@@ -19,29 +19,28 @@ Use this skill when investigating unexpected failures, noisy error payloads, or 
   - `inspect`, `inspectError`, `tapMeta`, `toDebugArray`.
 - Keep domain behavior deterministic:
   - Debug instrumentation must not alter success/failure semantics.
-- When a failure only appears after introducing setup side effects, isolate the setup with
-  `Result::defer(fn () => ...)` so failures are captured at the branch boundary.
+- If failures appear after setup side effects, isolate setup with `Result::defer(fn () => ...)`.
 - Preserve metadata contract:
   - Keep `array<string,mixed>` keys stable.
-  - Add diagnostics via `mergeMeta` or `mapMeta`, not ad-hoc globals.
-- Use explicit branch handlers (`match`, `otherwise`) to show where errors are transformed.
+  - Add diagnostics via `mergeMeta` or `mapMeta`, not globals.
+- Use explicit branch handlers (`match`, `otherwise`) to show error transformation points.
 
 Hard constraints:
 
 - Do not leak secrets in examples or generated debug output.
 - Do not remove existing metadata keys unless explicitly requested.
 - Do not replace expected failures with exception-only handling.
-- Do not reference internal `src/Support/*` helpers in app-level usage; keep debugging through `Result` APIs.
-- Keep generated updates compatible with repository checks (`composer pint-test`, `composer rector-dry`, `composer analyse`, `composer test`).
+- Use only documented public `Result` APIs.
+- Follow host-project coding standards and test requirements.
 
 ## Troubleshooting checklist
 
 - Confirm where first failure occurs (which `ensure`/`then` step).
 - Confirm failure payload type consistency through `otherwise`.
 - Confirm metadata is preserved on each transition.
-- When using `bracket(...)`, confirm `bracket.release_exception` metadata appears when release fails after a use failure.
+- For `bracket(...)`, confirm `bracket.release_exception` metadata appears when release fails after a use failure.
 - Confirm debug output redacts sensitive values.
-- Confirm edge boundary completion uses `match`/`toResponse`/`unwrap*` intentionally.
+- Confirm boundary completion uses `match`/`toResponse`/`unwrap*` intentionally.
 
 ## Example prompts and outcomes
 

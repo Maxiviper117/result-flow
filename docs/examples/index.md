@@ -4,32 +4,44 @@ title: Examples
 
 # Examples
 
-Examples are organized plain-PHP first, then framework-specific integrations.
+Examples are grouped by concept lanes so related scenarios stay together.
 
-## Plain PHP examples
+If you are new, start with [Plain PHP Basics](/examples/plain-php-basics). Move to Laravel examples only when your flow ends in framework boundaries.
+
+## Core pipelines
 
 - [Plain PHP Basics](/examples/plain-php-basics)
-- [Plain PHP Batch Processing](/examples/plain-php-batch)
-- [Plain PHP Error Handling](/examples/plain-php-errors)
-
-## Laravel examples
-
 - [Laravel workflow](/examples/laravel)
-- [Laravel controller-only](/examples/laravel-controller-only)
-- [Laravel validation](/examples/laravel-validation)
-- [Laravel transactions](/examples/laravel-transactions)
-- [Laravel retries](/examples/laravel-retries)
-- [Laravel debugging](/examples/laravel-debugging)
-- [Laravel combine](/examples/laravel-combine)
-- [Laravel match + unwrap](/examples/laravel-match-unwrap)
-- [Laravel metadata + taps](/examples/laravel-meta-taps)
-- [Laravel jobs + queues](/examples/laravel-jobs)
 - [Laravel actions](/examples/laravel-actions)
 - [Laravel actions pipeline](/examples/laravel-actions-pipeline)
-- [Laravel actions retries](/examples/laravel-actions-retries)
+
+## Failure and recovery
+
+- [Plain PHP Error Handling](/examples/plain-php-errors)
 - [Laravel actions exceptions](/examples/laravel-actions-exceptions)
+- [Laravel retries](/examples/laravel-retries)
+- [Laravel actions retries](/examples/laravel-actions-retries)
+
+## Collections and combining
+
+- [Plain PHP Batch Processing](/examples/plain-php-batch)
+- [Laravel combine](/examples/laravel-combine)
+- [Laravel validation](/examples/laravel-validation)
+
+## Boundaries
+
+- [Laravel controller-only](/examples/laravel-controller-only)
+- [Laravel match + unwrap](/examples/laravel-match-unwrap)
+- [Laravel transactions](/examples/laravel-transactions)
+- [Laravel jobs + queues](/examples/laravel-jobs)
+
+## Observability
+
+- [Laravel debugging](/examples/laravel-debugging)
+- [Laravel metadata + taps](/examples/laravel-meta-taps)
 
 ## Next steps
 
 - Method contracts: [API Reference](/api)
 - Deep guide: [Result Guide](/result/)
+- Composition patterns: [Composition Patterns](/result/compositions)

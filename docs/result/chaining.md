@@ -4,86 +4,137 @@ title: Chaining and Transforming
 
 # Chaining and Transforming
 
-## What this page is for
+_Reading time: ~6 minutes. Prerequisite: [Getting Started](/getting-started)._ 
 
-Use this page for success-path flow: transform values, validate inline, and chain follow-up steps.
+## Task summary
 
-## `map()` vs `then()`
+Use these methods to transform success values, enforce guards, and chain dependent operations.
 
-- `map(fn)` transforms a success value into another plain value.
-- `then(fn)` runs a step that can return either plain value or another `Result`.
+Deep dives:
+- Pipeline composition: [Core Pipelines](/result/compositions/core-pipelines)
+- Boundary decisions: [Finalization Boundaries](/result/compositions/finalization-boundaries)
+- Contracts: [API Reference](/api#transforming-and-chaining)
 
-```php
-$result = Result::ok(2)
-    ->map(fn (int $v) => $v * 10)
-    ->then(fn (int $v) => Result::ok("value={$v}"));
-```
+## Quick mental model
 
-## `mapError()`
+- `map` changes success values only.
+- `ensure` converts invalid success values into failures.
+- `then`/`flatMap` chain operations that may return value or `Result`.
+- `thenUnsafe` keeps exception semantics (no capture).
 
-Use when failure value exists but you want to normalize shape.
+## Primary methods
 
-```php
-$normalized = Result::fail(['code' => 500])
-    ->mapError(fn (array $e) => "code={$e['code']}");
-```
+- `map`: success value to another success value.
+- `ensure`: guard successful values and convert failed predicates into failure.
+- `then` / `flatMap`: chain steps returning value or `Result` with exception capture.
+- `thenUnsafe`: chain without exception capture.
+- `mapError`: normalize failure shape while staying failed.
 
-## `ensure()`
+## When to use `map` vs `then` vs `thenUnsafe`
 
-Inline validation for successful values.
+| Need | Method |
+|---|---|
+| Pure success-value transform | `map` |
+| Step may return `Result` or throw (captured) | `then` / `flatMap` |
+| Step must throw upward (transaction semantics) | `thenUnsafe` |
 
-```php
-$validated = Result::ok(['total' => 99])
-    ->ensure(
-        fn (array $order) => $order['total'] > 0,
-        fn (array $order) => "Invalid total: {$order['total']}"
-    );
-```
+## Worked flow (end-to-end)
 
-Behavior:
-- Runs only on success branch.
-- If predicate returns false, converts to failure using error value/factory.
-
-## `then()` and `flatMap()`
-
-`flatMap()` is an alias for `then()`.
+### Input
 
 ```php
-$next = Result::ok($dto)
-    ->then(new ValidateAction)
-    ->flatMap(fn ($validated, array $meta) => persist($validated, $meta));
+$order = ['id' => 42, 'total' => 120];
 ```
 
-Behavior:
-- On success, invokes step with `(value, meta)`.
-- If step returns plain value, it is wrapped as `ok(value, meta)`.
-- Exceptions are caught and converted to failure.
+### Flow steps
 
-## `thenUnsafe()`
+1. Start with `ok(order)`.
+2. `ensure` total is positive.
+3. `map` adds derived tax.
+4. `then` calls a persistence step that returns `Result`.
 
-Use when exceptions must bubble (for transaction rollback behavior).
+### Output
+
+- Success sample:
 
 ```php
-$dbResult = Result::ok($dto)
-    ->thenUnsafe(new ValidateAction)
-    ->thenUnsafe(new PersistAction)
-    ->throwIfFail();
+[
+  'ok' => true,
+  'value' => [
+    'saved' => true,
+    'order' => ['id' => 42, 'total' => 120, 'tax' => 12.0],
+  ],
+  'error' => null,
+  'meta' => ['step' => 'persisted'],
+]
 ```
 
-Behavior:
-- Does not catch exceptions.
-- Accepts callable/object step and supports `Result` or plain value returns.
+- Failure sample:
 
-## Tap methods on success/failure paths
+```php
+[
+  'ok' => false,
+  'value' => null,
+  'error' => 'Invalid total',
+  'meta' => ['request_id' => 'r-100'],
+]
+```
 
-- `tap()` runs on both branches.
-- `onSuccess()`/`inspect()` run only on success.
-- `onFailure()`/`inspectError()` run only on failure.
+## Copy-paste snippet
 
-These methods never change branch or payload; they are for side effects.
+```php
+<?php
+
+declare(strict_types=1);
+
+use Maxiviper117\ResultFlow\Result;
+
+$order = ['id' => 42, 'total' => 120];
+
+$persist = fn (array $payload): Result => Result::ok([
+    'saved' => true,
+    'order' => $payload,
+], ['step' => 'persisted']);
+
+$result = Result::ok($order, ['request_id' => 'r-100'])
+    ->ensure(fn (array $o): bool => $o['total'] > 0, 'Invalid total')
+    ->map(fn (array $o): array => [...$o, 'tax' => $o['total'] * 0.1])
+    ->then(fn (array $o): Result => $persist($o));
+
+print_r($result->toArray());
+```
+
+## Failure demo
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::ok(['total' => 0])
+    ->ensure(fn (array $o): bool => $o['total'] > 0, 'Invalid total');
+
+print_r($result->toArray());
+```
+
+Expected shape: `ok=false` with `error='Invalid total'`.
+
+## Common beginner mistakes
+
+- Using `map` when the callback should return a `Result` (use `then`).
+- Placing `ensure` after expensive work instead of early guard checks.
+- Using `thenUnsafe` without an intentional exception boundary.
+- Expecting `mapError` to run on successful results.
+
+## Try it
+
+- `php examples\defer\defer-test.php`
+- `php examples\retry\retry-test.php`
 
 ## Related pages
 
+- [Failure and Recovery](/result/compositions/failure-recovery)
 - [Error Handling](/result/error-handling)
-- [Matching and Unwrapping](/result/matching-unwrapping)
 - [API Reference](/api)

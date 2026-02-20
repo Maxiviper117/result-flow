@@ -4,117 +4,139 @@ title: Constructing Results
 
 # Constructing Results
 
-## What this page is for
+_Reading time: ~5 minutes. Prerequisite: [Getting Started](/getting-started)._ 
 
-Use this page when creating `Result` values, wrapping throwing code, or aggregating multiple `Result` instances.
+## Task summary
 
-## `ok()` and `fail()`
+Use construction methods to start a flow with explicit branch semantics and aggregate pre-built `Result` values.
+
+Deep dives:
+- Core flow composition: [Core Pipelines](/result/compositions/core-pipelines)
+- Failure composition: [Failure and Recovery](/result/compositions/failure-recovery)
+- Method contracts: [API Reference](/api#static-constructors-and-aggregators)
+
+## Quick mental model
+
+- `ok` and `fail` choose your branch explicitly.
+- `of` and `defer` normalize callback outcomes into `Result`.
+- `combine` and `combineAll` aggregate existing `Result[]` with different failure strategies.
+- Metadata stays attached to the branch unless you replace it.
+
+## Primary methods
+
+- `ok`, `fail`, `failWithValue`: explicit branch constructors.
+- `of`, `defer`: wrap thrown exceptions and normalize callback output.
+- `combine`, `combineAll`: aggregate existing `Result[]`.
+- `bracket`: resource-safe acquire/use/release flow.
+
+## When to use `ok` / `defer` / `combine`
+
+| Need | Use |
+|---|---|
+| You already know success/failure branch | `ok` / `fail` |
+| Callback may throw or return `Result` | `defer` |
+| Merge existing `Result[]` and stop on first fail | `combine` |
+| Merge existing `Result[]` and keep all fails | `combineAll` |
+
+## Worked flow (end-to-end)
+
+### Input
 
 ```php
+$input = ['email' => 'dev@example.com', 'password' => 'secret123'];
+```
+
+### Flow steps
+
+1. Start from a plain input with `defer` so throws are captured.
+2. Validate with an explicit `Result` branch.
+3. Build a second `Result` for profile defaults.
+4. Aggregate with `combine` to fail fast if any step failed.
+
+### Output
+
+- Success sample:
+
+```php
+[
+  'ok' => true,
+  'value' => [
+    ['email' => 'dev@example.com', 'password' => 'secret123'],
+    ['role' => 'user'],
+  ],
+  'error' => null,
+  'meta' => ['step' => 'defaults'],
+]
+```
+
+- Failure sample:
+
+```php
+[
+  'ok' => false,
+  'value' => null,
+  'error' => 'Invalid email',
+  'meta' => ['field' => 'email'],
+]
+```
+
+## Copy-paste snippet
+
+```php
+<?php
+
+declare(strict_types=1);
+
 use Maxiviper117\ResultFlow\Result;
 
-$ok = Result::ok(['id' => 1], ['request_id' => 'r-1']);
-$fail = Result::fail('Invalid input', ['field' => 'email']);
+$input = ['email' => 'dev@example.com', 'password' => 'secret123'];
+
+$validated = Result::defer(fn (): array => $input)
+    ->then(function (array $payload): Result {
+        if (! filter_var($payload['email'] ?? null, FILTER_VALIDATE_EMAIL)) {
+            return Result::fail('Invalid email', ['field' => 'email']);
+        }
+
+        return Result::ok($payload, ['step' => 'validated']);
+    });
+
+$defaults = Result::ok(['role' => 'user'], ['step' => 'defaults']);
+
+$result = Result::combine([$validated, $defaults]);
+
+print_r($result->toArray());
 ```
 
-Behavior:
-- `ok(value, meta)` sets success channel and clears error channel.
-- `fail(error, meta)` sets failure channel and clears value channel.
-- Metadata remains available through `meta()` regardless of branch.
-
-## `failWithValue()`
+## Failure demo
 
 ```php
-$invalid = Result::failWithValue('Invalid email', ['email' => 'bad'], ['source' => 'signup']);
+<?php
+
+declare(strict_types=1);
+
+use Maxiviper117\ResultFlow\Result;
+use RuntimeException;
+
+$result = Result::defer(fn () => throw new RuntimeException('Acquire failed'));
+print_r($result->toArray());
 ```
 
-Behavior:
-- Adds `meta['failed_value']` automatically.
-- Useful for validation and import diagnostics.
+Expected shape: `ok=false`, `error` is a `RuntimeException`, `value=null`.
 
-## `of()` for exception wrapping
+## Common beginner mistakes
 
-```php
-$userResult = Result::of(fn () => $repo->findOrFail($id));
-```
+- Using `fail` when you need to preserve failed input (`failWithValue` is better there).
+- Choosing `of` when callback may already return a `Result` (`defer` is the right fit).
+- Using `combine` when you actually need all errors (`combineAll` or `mapCollectErrors`).
+- Forgetting to include metadata at construction time for traceability.
 
-Behavior:
-- If callback returns normally: `Result::ok(returnValue)`.
-- If callback throws: `Result::fail(Throwable)`.
+## Try it
 
-## `defer()` for value-or-Result callbacks
-
-```php
-$result = Result::defer(fn () => fetchUser());
-```
-
-Behavior:
-- If callback returns a plain value: `Result::ok(value)`.
-- If callback returns a `Result`: returned as-is (flattened, not rewrapped).
-- If callback throws: `Result::fail(Throwable)`.
-
-Use `of()` when the callback only returns a plain value and you only need throw-to-fail wrapping.
-Use `defer()` when callbacks may return either a value or a `Result`.
-
-## `bracket()` for resource safety
-
-```php
-$result = Result::bracket(
-    acquire: fn () => fopen($path, 'r'),
-    use: fn ($handle) => fread($handle, 100),
-    release: fn ($handle) => fclose($handle),
-);
-```
-
-Behavior:
-- Runs acquire/use/release in a single Result flow.
-- `release` always runs after a successful acquire.
-- If `use` fails and `release` throws, the original use failure is kept and the release exception is stored in metadata as `bracket.release_exception`.
-- If `use` succeeds and `release` throws, the overall result becomes a failure.
-
-## Aggregating existing `Result` values
-
-### `combine()` (fail-fast)
-
-```php
-$combined = Result::combine([
-    loadUser($id),
-    loadAccount($id),
-    loadPreferences($id),
-]);
-```
-
-Behavior:
-- Stops at first failure and returns that error.
-- Success value is ordered array of success values.
-- Metadata merges in processing order (later keys overwrite earlier keys).
-
-### `combineAll()` (collect all errors)
-
-```php
-$checks = Result::combineAll([
-    validateEmail($email),
-    validatePassword($password),
-    validateProfile($profile),
-]);
-```
-
-Behavior:
-- Evaluates all input results.
-- If any fail: returns `fail(array<error>)`.
-- If all pass: returns `ok(array<value>)`.
-
-## When to use batch mapping instead
-
-If you start from raw items (not prebuilt `Result` objects), use:
-- `mapItems`
-- `mapAll`
-- `mapCollectErrors`
-
-See [Batch Processing](/result/batch-processing).
+- `php examples\defer\defer-test.php`
+- `php examples\defer\bracket-test.php`
 
 ## Related pages
 
+- [Composition Patterns](/result/compositions)
+- [Batch Processing](/result/batch-processing)
 - [Chaining and Transforming](/result/chaining)
-- [Error Handling](/result/error-handling)
-- [API Reference](/api)

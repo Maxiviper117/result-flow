@@ -4,19 +4,19 @@
 
 Generate Laravel-oriented flows using `Maxiviper117\ResultFlow\Result` with explicit success/failure branches, metadata propagation, and predictable HTTP/domain output handling.
 
-Use this skill for controllers, actions, services, jobs, and transaction workflows where failure handling must stay explicit and type-safe.
+Use this skill for controllers, actions, services, jobs, and transaction workflows in downstream Laravel applications that consume this package.
 
 ## Inputs expected from user/codebase
 
 - The workflow entrypoint (controller method, action class, service method, job handle).
 - Input DTO/array/request shape and required validations.
 - Expected success output shape and failure output shape.
-- Any required metadata keys (`request_id`, `trace_id`, `operation`, etc.).
+- Required metadata keys (`request_id`, `trace_id`, `operation`, etc.).
 - Whether flow ends in HTTP response (`toResponse`) or custom branch handling (`match`).
 
-## Generation rules (API whitelist)
+## Generation rules (public API whitelist)
 
-Only use public methods present on `src/Result.php`:
+Only use documented public `Result` methods:
 
 - Static constructors/utilities:
   - `ok`, `fail`, `failWithValue`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`
@@ -36,28 +36,20 @@ Only use public methods present on `src/Result.php`:
 
 Hard constraints:
 
-- Do not invent or reference methods/classes that are not in this package or the host app.
-- Do not depend on internal `src/Support/*` helper classes directly; use `Result` public methods.
+- Do not invent methods/classes not in this package or the host app.
+- Do not depend on internal package helper classes directly.
 - Preserve metadata (`array<string,mixed>`) across flow boundaries.
-- End each flow with explicit branch completion (`match` or `toResponse`) unless returning `Result` intentionally to caller.
+- End each flow with explicit branch completion (`match` or `toResponse`) unless returning `Result` intentionally.
 - Prefer typed callback signatures when concrete types are known.
-- Keep generated code compatible with project automation (`composer pint-test`, `composer rector-dry`, `composer analyse`, `composer test`).
+- Follow the host application's coding standards, tests, and CI requirements.
 
 ## Output checklist before returning
 
-- Branch coverage:
-  - Success path is explicit.
-  - Failure path is explicit.
-- Metadata:
-  - Initial metadata is provided (or intentionally empty).
-  - Metadata survives across `then`/`otherwise` transformations.
-- Types:
-  - Callback parameter and return types are concrete where possible.
-  - No unnecessary widening to `mixed`.
-- Failure mapping:
-  - Errors are normalized to a stable shape for the consumer.
-- Transactions (when relevant):
-  - `throwIfFail()` is used where rollback is required.
+- Success path is explicit.
+- Failure path is explicit.
+- Metadata is initialized (or intentionally empty) and preserved.
+- Errors are normalized to a stable shape for consumer boundaries.
+- Transactions that require rollback use `throwIfFail()` at the right boundary.
 
 ## Example prompts and outcomes
 

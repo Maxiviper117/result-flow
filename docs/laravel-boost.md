@@ -8,14 +8,14 @@ title: Laravel Boost
 
 Laravel Boost uses two package asset types:
 
-- Guidelines define project conventions and preferred patterns so generated code follows consistent ResultFlow usage.
-- Skills define task-focused workflows that help agents produce structured outputs for common jobs (for example Laravel pipelines or debugging flows).
+- Guidelines define ResultFlow usage conventions for AI agents writing code in downstream Laravel apps.
+- Skills define task-focused workflows (for example Laravel pipelines or debugging flows) for those downstream apps.
 
-In short: guidelines shape *how* code should look; skills shape *how* specific tasks should be executed.
+In short: guidelines shape app-level coding behavior; skills shape app-level task execution.
 
 ## What this page is for
 
-This page documents the Laravel Boost assets shipped by `maxiviper117/result-flow` so app teams can quickly see what guidance and skills are included.
+This page documents the Boost assets shipped by `maxiviper117/result-flow` and explains how consumer apps use them.
 
 ## When to use this
 
@@ -23,25 +23,27 @@ Use this page when your Laravel app uses Boost and you want ResultFlow-aware AI 
 
 Official Boost docs: https://laravel.com/docs/12.x/boost
 
-## Package-provided Boost assets
+## Package-shipped Boost assets
 
-This package includes the following Boost files:
+This package ships the following source assets:
 
-- Guideline: `resources/boost/guidelines/core.blade.php`
-- Skill: `resources/boost/skills/result-flow-laravel/SKILL.md`
-- Skill: `resources/boost/skills/result-flow-debugging/SKILL.md`
+- Guideline source: `resources/boost/guidelines/core.blade.php`
+- Skill source: `resources/boost/skills/result-flow-laravel/SKILL.md`
+- Skill source: `resources/boost/skills/result-flow-debugging/SKILL.md`
+
+These files are maintained in this package repository, but their purpose is to guide AI behavior in downstream consumer applications.
 
 ### Included guideline
 
-- `core.blade.php` defines conventions for:
+- `core.blade.php` defines app-usage conventions for:
   - Result pipeline structure (`ok`/`fail`, `then`, `ensure`, `otherwise`, `recover`)
   - Metadata discipline (`array<string,mixed>` propagation)
   - Laravel boundaries (`toResponse`, transaction rollback with `throwIfFail`)
-  - Common anti-patterns to avoid
+  - Common anti-patterns to avoid in app code
 
 ### Included skills
 
-- `result-flow-laravel` helps scaffold explicit success/failure Laravel workflows using current `Result` APIs.
+- `result-flow-laravel` helps scaffold explicit success/failure Laravel workflows using public `Result` APIs.
 - `result-flow-debugging` helps add safe diagnostics and metadata-aware troubleshooting without changing branch semantics.
 
 ## Install and usage flow
@@ -52,23 +54,23 @@ In your Laravel app:
 php artisan boost:install
 ```
 
-Boost will discover package-provided guidelines and make them available in app AI context. Package-provided skills can be installed using Boost skill commands and are written into the app `.ai` directory.
+Boost discovers package-shipped assets and applies them in the app AI context. Skills are installed into the app `.ai` directory using Boost skill install commands.
 
 ## App-level overrides
 
-You can add or override guidelines in your app:
+Consumer apps can add or override guidelines locally:
 
 - `.ai/guidelines/...`
 
-To override a built-in guideline, match the same path pattern, for example:
+To override a built-in guideline, match the same relative path in `.ai/guidelines`, for example:
 
 - `.ai/guidelines/inertia-react/2/forms.blade.php`
 
-## Choose package guideline vs app override
+## Choose package defaults vs app overrides
 
 | Need | Use |
 | --- | --- |
-| Standard ResultFlow defaults from package maintainers | Package guideline in `resources/boost/guidelines/core.blade.php` |
+| Default ResultFlow behavior in app AI guidance | Package-shipped guideline `resources/boost/guidelines/core.blade.php` |
 | Team-specific conventions for one app | App-level `.ai/guidelines/...` |
 | Reusable workflow generation for Laravel Result pipelines | `result-flow-laravel` skill |
 | Failure-path diagnostics and metadata safety workflow | `result-flow-debugging` skill |
@@ -77,5 +79,6 @@ To override a built-in guideline, match the same path pattern, for example:
 
 - [Getting Started](/getting-started)
 - [Laravel Workflow Example](/examples/laravel)
+- [Composition Patterns](/result/compositions)
 - [API Reference](/api)
 - [README (repository)](https://github.com/Maxiviper117/result-flow/blob/main/README.md)

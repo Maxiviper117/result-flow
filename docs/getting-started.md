@@ -37,6 +37,24 @@ $response = $result->match(
 - `then()` catches thrown exceptions and converts them to `Result::fail(Throwable)`.
 - `thenUnsafe()` does not catch; exceptions bubble.
 
+## Read in this order (first-time users)
+
+1. [Result Guide](/result/)
+2. [Constructing Results](/result/constructing)
+3. [Chaining and Transforming](/result/chaining)
+4. [Error Handling](/result/error-handling)
+5. [Matching and Unwrapping](/result/matching-unwrapping)
+6. [Composition Patterns](/result/compositions)
+7. [Examples](/examples/)
+
+## Learn by concept lane
+
+- Foundations: [Result Guide](/result/), [Constructing Results](/result/constructing), [Chaining and Transforming](/result/chaining)
+- Core composition: [Composition Patterns](/result/compositions), [Core Pipelines](/result/compositions/core-pipelines)
+- Failure lane: [Failure and Recovery](/result/compositions/failure-recovery), [Error Handling](/result/error-handling)
+- Boundary lane: [Finalization Boundaries](/result/compositions/finalization-boundaries), [Matching and Unwrapping](/result/matching-unwrapping), [Transformers](/result/transformers)
+- Observability lane: [Metadata and Observability](/result/compositions/metadata-observability), [Metadata and Debugging](/result/metadata-debugging)
+
 ## Batch processing in one glance
 
 - `Result::mapItems($items, $fn)` returns one `Result` per item.
@@ -47,15 +65,16 @@ See [Batch Processing](/result/batch-processing) for full behavior and examples.
 
 ## Laravel Boost (optional)
 
-- This package ships Laravel Boost assets for AI-assisted ResultFlow usage.
-- Included guideline: `resources/boost/guidelines/core.blade.php`.
-- Included skills:
+- This package ships Boost source assets that guide AI behavior in downstream consumer Laravel apps.
+- Package-shipped guideline source: `resources/boost/guidelines/core.blade.php`.
+- Package-shipped skill sources:
   - `resources/boost/skills/result-flow-laravel/SKILL.md`
   - `resources/boost/skills/result-flow-debugging/SKILL.md`
-- Quick reference and override paths: [Laravel Boost](/laravel-boost).
+- In your app, install Boost and apply package guidance there. See [Laravel Boost](/laravel-boost).
 
 ## What to read next
 
 - [Result Guide](/result/)
-- [API Reference](/api)
+- [Composition Patterns](/result/compositions)
 - [Examples](/examples/)
+- [API Reference](/api)

@@ -13,6 +13,10 @@ Conventions used below:
 
 ## Static constructors and aggregators
 
+Deep dive:
+- [Core Pipelines](/result/compositions/core-pipelines)
+- [Failure and Recovery](/result/compositions/failure-recovery)
+
 ### `Result::ok(mixed $value, array $meta = []): Result`
 
 Contract:
@@ -218,6 +222,10 @@ $allErrors = Result::mapCollectErrors($rows, fn (array $row, string $key) => val
 
 ## State and value access
 
+Deep dive:
+- [Finalization Boundaries](/result/compositions/finalization-boundaries)
+- [Metadata and Observability](/result/compositions/metadata-observability)
+
 ### `isOk(): bool`
 
 Contract:
@@ -261,6 +269,9 @@ $debug = $result->toDebugArray();
 
 ## Metadata operations
 
+Deep dive:
+- [Metadata and Observability](/result/compositions/metadata-observability)
+
 ### `tapMeta(callable $tap): Result`
 
 Contract:
@@ -284,6 +295,9 @@ $result = Result::ok($dto, ['request_id' => 'r-1'])->mergeMeta(['step' => 'valid
 ```
 
 ## Tap and inspection methods
+
+Deep dive:
+- [Metadata and Observability](/result/compositions/metadata-observability)
 
 ### `tap(callable $tap): Result`
 
@@ -321,6 +335,10 @@ $result
 ```
 
 ## Transforming and chaining
+
+Deep dive:
+- [Core Pipelines](/result/compositions/core-pipelines)
+- [Finalization Boundaries](/result/compositions/finalization-boundaries)
 
 ### `map(callable $map): Result`
 
@@ -387,6 +405,9 @@ $dbResult = Result::ok($dto)
 
 ## Failure branch handlers
 
+Deep dive:
+- [Failure and Recovery](/result/compositions/failure-recovery)
+
 ### `otherwise(callable|object|array $next): Result`
 
 Contract:
@@ -418,6 +439,10 @@ $ok = maybeFailing()->recover(fn ($error) => ['fallback' => true]);
 ```
 
 ## Matching and unwrapping
+
+Deep dive:
+- [Finalization Boundaries](/result/compositions/finalization-boundaries)
+- [Failure and Recovery](/result/compositions/failure-recovery)
 
 ### `match(callable $onSuccess, callable $onFailure): mixed`
 
@@ -470,6 +495,10 @@ $result->throwIfFail();
 ```
 
 ## Output transformers
+
+Deep dive:
+- [Finalization Boundaries](/result/compositions/finalization-boundaries)
+- [Metadata and Observability](/result/compositions/metadata-observability)
 
 ### `toJson(int $options = 0): string`
 
