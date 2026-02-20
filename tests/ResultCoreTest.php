@@ -69,6 +69,44 @@ it('of() wraps thrown exceptions into failure and returns success otherwise', fu
     expect($fail->isFail())->toBeTrue();
 });
 
+it('defer() returns success for plain values and null', function () {
+    expect(Result::defer(fn () => 5)->unwrap())->toBe(5);
+    expect(Result::defer(fn () => null)->isOk())->toBeTrue();
+    expect(Result::defer(fn () => null)->value())->toBeNull();
+});
+
+it('defer() preserves returned result instances and metadata', function () {
+    $ok = Result::defer(fn () => Result::ok('done', ['source' => 'defer']));
+    $fail = Result::defer(fn () => Result::fail('nope', ['source' => 'defer-fail']));
+
+    expect($ok->isOk())->toBeTrue();
+    expect($ok->value())->toBe('done');
+    expect($ok->meta())->toBe(['source' => 'defer']);
+
+    expect($fail->isFail())->toBeTrue();
+    expect($fail->error())->toBe('nope');
+    expect($fail->meta())->toBe(['source' => 'defer-fail']);
+});
+
+it('defer() converts thrown exceptions into failure with same instance', function () {
+    $exception = new RuntimeException('defer boom');
+
+    $result = Result::defer(function () use ($exception) {
+        throw $exception;
+    });
+
+    expect($result->isFail())->toBeTrue();
+    expect($result->error())->toBe($exception);
+});
+
+it('defer() chains with then() like other constructors', function () {
+    $result = Result::defer(fn () => 5)
+        ->then(fn (int $value, array $meta) => $value * 2);
+
+    expect($result->isOk())->toBeTrue();
+    expect($result->value())->toBe(10);
+});
+
 it('then accepts an array of steps and folds sequentially', function () {
     $r = Result::ok(2)
         ->then([

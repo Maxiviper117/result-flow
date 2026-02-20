@@ -42,6 +42,36 @@ Behavior:
 - If callback returns normally: `Result::ok(returnValue)`.
 - If callback throws: `Result::fail(Throwable)`.
 
+## `defer()` for value-or-Result callbacks
+
+```php
+$result = Result::defer(fn () => fetchUser());
+```
+
+Behavior:
+- If callback returns a plain value: `Result::ok(value)`.
+- If callback returns a `Result`: returned as-is (flattened, not rewrapped).
+- If callback throws: `Result::fail(Throwable)`.
+
+Use `of()` when the callback only returns a plain value and you only need throw-to-fail wrapping.
+Use `defer()` when callbacks may return either a value or a `Result`.
+
+## `bracket()` for resource safety
+
+```php
+$result = Result::bracket(
+    acquire: fn () => fopen($path, 'r'),
+    use: fn ($handle) => fread($handle, 100),
+    release: fn ($handle) => fclose($handle),
+);
+```
+
+Behavior:
+- Runs acquire/use/release in a single Result flow.
+- `release` always runs after a successful acquire.
+- If `use` fails and `release` throws, the original use failure is kept and the release exception is stored in metadata as `bracket.release_exception`.
+- If `use` succeeds and `release` throws, the overall result becomes a failure.
+
 ## Aggregating existing `Result` values
 
 ### `combine()` (fail-fast)

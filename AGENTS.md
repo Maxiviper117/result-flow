@@ -17,6 +17,7 @@
 
 ## Where to change things
 - Core behavior lives in `src/` (primary class: `src/Result.php`).
+- Static constructor APIs (`ok`, `fail`, `failWithValue`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`) must stay documented in `docs/api.md` and reflected in Boost assets.
 - Internal helpers are organized under `src/Support/Traits/`, `src/Support/Operations/`, and `src/Support/Output/`.
 - `src/Support/Traits/` contains focused `Result` behavior traits (e.g., transform, unwrap, matching, taps, metadata ops).
 - `src/Support/Operations/` contains operation-style services/builders (e.g., retry, pipeline, batch mapping).

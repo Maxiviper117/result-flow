@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+require __DIR__.'/../../vendor/autoload.php';
+
+use Maxiviper117\ResultFlow\Result;
+
+if (! function_exists('config')) {
+    function config($key = null, $default = null): mixed
+    {
+        if ($key === 'result-flow.debug') {
+            return [
+                'enabled' => true,
+                'redaction' => '***REDACTED123***',
+                'sensitive_keys' => ['api_*', '*token*', '?id', 'password'],
+                'max_string_length' => 200,
+                'truncate_strings' => true,
+            ];
+        }
+
+        return $default;
+    }
+}
+
+function printHeader(string $title): void
+{
+    echo "\n=== {$title} ===\n";
+}
+
+function printJson(string $label, mixed $value): void
+{
+    echo $label.":\n";
+    echo json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n";
+}
+
+function printResultViews(string $label, Result $result): void
+{
+    printHeader($label);
+    printJson('toArray()', $result->toArray());
+    printJson('toDebugArray()', $result->toDebugArray());
+}
+
+echo "--- Result Debug Example ---\n";
+
+$meta = [
+    'api_user' => 'secret_api_user',
+    'session_token' => 'secret_session_token',
+    'xid' => 'secret_xid',
+    'user_password' => 'supersecret',
+    'normal' => 'value',
+    123 => 'numeric_key_value',
+];
+
+$failure = Result::fail(new RuntimeException('Manual test failure'), $meta);
+$success = Result::ok(
+    [
+        'token' => 'top-secret-token-value',
+        'email' => 'user@example.com',
+    ],
+    $meta
+);
+
+printResultViews('Failure result views', $failure);
+printResultViews('Success result views', $success);

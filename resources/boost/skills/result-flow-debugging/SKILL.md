@@ -19,6 +19,8 @@ Use this skill when investigating unexpected failures, noisy error payloads, or 
   - `inspect`, `inspectError`, `tapMeta`, `toDebugArray`.
 - Keep domain behavior deterministic:
   - Debug instrumentation must not alter success/failure semantics.
+- When a failure only appears after introducing setup side effects, isolate the setup with
+  `Result::defer(fn () => ...)` so failures are captured at the branch boundary.
 - Preserve metadata contract:
   - Keep `array<string,mixed>` keys stable.
   - Add diagnostics via `mergeMeta` or `mapMeta`, not ad-hoc globals.
@@ -37,6 +39,7 @@ Hard constraints:
 - Confirm where first failure occurs (which `ensure`/`then` step).
 - Confirm failure payload type consistency through `otherwise`.
 - Confirm metadata is preserved on each transition.
+- When using `bracket(...)`, confirm `bracket.release_exception` metadata appears when release fails after a use failure.
 - Confirm debug output redacts sensitive values.
 - Confirm edge boundary completion uses `match`/`toResponse`/`unwrap*` intentionally.
 

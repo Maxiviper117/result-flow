@@ -10,7 +10,7 @@
 
 ## Canonical flow shape
 
-- Start with `Result::ok($input, $meta)` or `Result::fail($error, $meta)`.
+- Start with `Result::ok($input, $meta)`, `Result::fail($error, $meta)`, `Result::defer(fn () => ...)`, or `Result::bracket(...)` when resource safety is required.
 - Compose steps with `->ensure(...)`, `->then(...)`, and `->otherwise(...)`.
 - Use `->recover(...)` only when you intentionally convert failure into success.
 - End branches explicitly with either:
@@ -43,6 +43,8 @@ return $result->toResponse();
 - For HTTP endpoints, return `Result` from service/action layers and convert once at the edge with `->toResponse()`.
 - For transactions that must rollback on Result failure, call `->throwIfFail()` inside the transaction closure.
 - Map low-level errors to user-safe structures in `otherwise(...)`, while keeping diagnostic details in metadata.
+- Use `Result::retryDefer(...)` for transient operations that may return value/Result or throw.
+- Use `Result::bracket(...)` for acquire/use/release flows where cleanup must always run.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
