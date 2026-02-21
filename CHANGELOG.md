@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/Maxiviper117/result-flow/compare/v1.10.0...v1.11.0) (2026-02-21)
+
+
+### Features
+
+* **boost:** consolidate skills into central orchestration model ([c87225f](https://github.com/Maxiviper117/result-flow/commit/c87225f9a2b61404013b2f922f0c25523d0d652e))
+
 ## [1.10.0](https://github.com/Maxiviper117/result-flow/compare/v1.9.1...v1.10.0) (2026-02-20)
 
 
