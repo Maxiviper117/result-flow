@@ -59,6 +59,11 @@
 ## Laravel Boost AI asset maintenance
 - These files are consumed by Laravel Boost and are part of the package contract for AI-assisted development.
 - Official Boost docs: https://laravel.com/docs/12.x/boost
+- Boost guideline/skill content must be written for downstream app teams using this package, not for maintainers developing this package.
+- Do not embed package-maintainer tooling/process instructions in shipped Boost assets.
+- Shipped `SKILL.md` files must follow the Agent Skills spec frontmatter contract (required YAML fields such as `name` and `description`).
+- Prefer a central skill with local `references/` docs and progressive disclosure over many duplicated isolated skills.
+- Do not reintroduce fragmented overlapping skills unless there is a clear, documented justification.
 - Keep `resources/boost/guidelines/core.blade.php` aligned with current public APIs, preferred patterns, and anti-patterns.
 - Keep each `resources/boost/skills/*/SKILL.md` aligned with current method names and supported workflows from `src/Result.php` and Laravel integration.
 - Any change to APIs, chaining behavior, metadata semantics, error shape conventions, docs examples, or Laravel integration must trigger a Boost asset review and update.

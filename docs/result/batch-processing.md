@@ -4,78 +4,147 @@ title: Batch Processing
 
 # Batch Processing
 
-## What this page is for
+_Reading time: ~5 minutes. Prerequisite: [Getting Started](/getting-started)._ 
 
-Use batch methods when you are processing collections where each item can independently succeed or fail.
+## Task summary
 
-## Start from raw items: `mapItems`, `mapAll`, `mapCollectErrors`
+Use batch methods when each item can succeed or fail independently and you need explicit aggregation behavior.
 
-All three methods use callback contract:
+Deep dives:
+- Pipeline composition baseline: [Core Pipelines](/result/compositions/core-pipelines)
+- Failure semantics: [Failure and Recovery](/result/compositions/failure-recovery)
+- Contracts: [API Reference](/api#static-constructors-and-aggregators)
 
-```php
-fn ($item, $key) => Result|value
-```
+## Quick mental model
 
-Common behavior:
-- Input keys are preserved.
-- Plain callback values are wrapped as `Result::ok(value)`.
-- Thrown exceptions are converted to `Result::fail(Throwable)`.
+- `mapItems` returns one `Result` per item.
+- `mapAll` stops on first failure.
+- `mapCollectErrors` evaluates all items and returns keyed errors.
+- `combine`/`combineAll` are for aggregating already-built `Result[]`.
 
-### `mapItems()`
+## Primary methods
 
-Returns one `Result` per input key.
+- `mapItems`: per-item results with preserved keys.
+- `mapAll`: fail-fast aggregate from raw items.
+- `mapCollectErrors`: collect-all aggregate from raw items.
+- `combine`: fail-fast aggregate from existing `Result[]`.
+- `combineAll`: collect-all aggregate from existing `Result[]`.
 
-```php
-$perItem = Result::mapItems($rows, fn (array $row, string $key) => validateRow($row, $key));
-```
+## When to use `mapAll` vs `mapCollectErrors`
 
-Use when downstream logic needs item-by-item status inspection.
+| Need | Method |
+|---|---|
+| Stop immediately on first failure | `mapAll` |
+| Return all failures for full reporting | `mapCollectErrors` |
+| Keep per-item `Result` for custom post-processing | `mapItems` |
 
-### `mapAll()`
+## Worked flow (end-to-end)
 
-Fail-fast aggregate over raw items.
-
-```php
-$all = Result::mapAll($rows, fn (array $row) => persistRow($row));
-```
-
-Behavior:
-- Stops at first failure.
-- Success => `ok(array<key, value>)`
-- Failure => `fail(firstError)`
-- On failure, `value()` is `null`.
-
-### `mapCollectErrors()`
-
-Collect-all aggregate over raw items.
+### Input
 
 ```php
-$allErrors = Result::mapCollectErrors(
-    $rows,
-    fn (array $row, string $key) => validateRow($row, $key)
-);
+$rows = [
+    'a' => ['email' => 'a@example.com'],
+    'b' => ['email' => 'bad-email'],
+    'c' => ['email' => 'c@example.com'],
+];
 ```
 
-Behavior:
-- Processes all items.
-- Success => `ok(array<key, value>)`
-- Failure => `fail(array<key, error>)`
-- On failure, `value()` is `null`.
+### Flow steps
 
-## Start from existing results: `combine`, `combineAll`
+1. Validate each row into `Result`.
+2. Run `mapCollectErrors` to process all rows.
+3. Return success map or keyed error map.
 
-- `combine(array<Result>)`: fail-fast on first failing result.
-- `combineAll(array<Result>)`: collect all errors from result list.
+### Output
 
-## Decision table
+- Success sample:
 
-| Input shape | Need | Use |
-|---|---|---|
-| Raw items | Per-item statuses | `mapItems` |
-| Raw items | Fail-fast aggregate | `mapAll` |
-| Raw items | Collect-all aggregate | `mapCollectErrors` |
-| Existing `Result[]` | Fail-fast aggregate | `combine` |
-| Existing `Result[]` | Collect-all aggregate | `combineAll` |
+```php
+[
+  'ok' => true,
+  'value' => [
+    'a' => ['email' => 'a@example.com'],
+    'b' => ['email' => 'b@example.com'],
+  ],
+  'error' => null,
+  'meta' => [],
+]
+```
+
+- Failure sample:
+
+```php
+[
+  'ok' => false,
+  'value' => null,
+  'error' => ['b' => 'Invalid email at b'],
+  'meta' => [],
+]
+```
+
+## Copy-paste snippet
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Maxiviper117\ResultFlow\Result;
+
+$rows = [
+    'a' => ['email' => 'a@example.com'],
+    'b' => ['email' => 'bad-email'],
+    'c' => ['email' => 'c@example.com'],
+];
+
+$validator = function (array $row, string $key): Result {
+    if (! filter_var($row['email'] ?? null, FILTER_VALIDATE_EMAIL)) {
+        return Result::fail("Invalid email at {$key}");
+    }
+
+    return Result::ok(['email' => strtolower($row['email'])]);
+};
+
+$result = Result::mapCollectErrors($rows, $validator);
+
+print_r($result->toArray());
+```
+
+## Failure demo
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Maxiviper117\ResultFlow\Result;
+
+$rows = ['x' => ['email' => 'not-an-email']];
+
+$result = Result::mapAll($rows, function (array $row): Result {
+    if (! filter_var($row['email'] ?? null, FILTER_VALIDATE_EMAIL)) {
+        return Result::fail('Invalid email');
+    }
+
+    return Result::ok($row);
+});
+
+print_r($result->toArray());
+```
+
+Expected behavior: fail-fast on first invalid row.
+
+## Common beginner mistakes
+
+- Choosing `mapAll` when the UI needs all validation errors.
+- Expecting `mapItems` to aggregate automatically.
+- Forgetting keys are preserved (which is useful for form maps).
+- Mixing raw items and `Result[]` instead of using the right method family.
+
+## Try it
+
+- `php examples\batch\batch-map-demo.php`
 
 ## Related pages
 
