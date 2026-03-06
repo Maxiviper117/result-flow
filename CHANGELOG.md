@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.2](https://github.com/Maxiviper117/result-flow/compare/v1.11.1...v1.11.2) (2026-03-06)
+
+
+### Bug Fixes
+
+* normalize xml serializer element names ([#72](https://github.com/Maxiviper117/result-flow/issues/72)) ([c6e4ab9](https://github.com/Maxiviper117/result-flow/commit/c6e4ab9ded36adb433e232e48f1e291261861672)), closes [#69](https://github.com/Maxiviper117/result-flow/issues/69)
+
 ## [1.11.1](https://github.com/Maxiviper117/result-flow/compare/v1.11.0...v1.11.1) (2026-03-06)
 
 
