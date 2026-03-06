@@ -513,6 +513,11 @@ Behavior:
 Contract:
 - Serialize result to XML document string.
 
+Behavior:
+- Normalizes invalid root and child element names.
+- Invalid characters become underscores.
+- Names that cannot start an XML element, or that begin with reserved `xml` prefix, are prefixed with `item_`.
+
 ### `toResponse(): mixed`
 
 Contract:

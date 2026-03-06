@@ -52,6 +52,7 @@ return $result->toResponse();
 - Map low-level errors to user-safe structures in `otherwise(...)`, while keeping diagnostic details in metadata.
 - Use `Result::retryDefer(...)` for transient operations that may return value/Result or throw.
 - Use `Result::bracket(...)` for acquire/use/release flows where cleanup must always run.
+- If you serialize to XML, remember tag names are normalized for XML safety; treat XML output as a transport format, not a lossless mirror of arbitrary array keys.
 
 ## Error payload conventions
 

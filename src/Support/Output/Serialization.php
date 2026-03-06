@@ -56,7 +56,7 @@ final class Serialization
      */
     public static function toXml(Result $result, string $rootElement = 'result'): string
     {
-        $xml = new \SimpleXMLElement("<$rootElement/>");
+        $xml = new \SimpleXMLElement('<'.self::normalizeXmlElementName($rootElement).'/>');
         self::arrayToXml(self::toArray($result), $xml);
 
         return (string) $xml->asXML();
@@ -70,7 +70,7 @@ final class Serialization
     private static function arrayToXml(array $data, \SimpleXMLElement $xml): void
     {
         foreach ($data as $key => $value) {
-            $key = is_numeric($key) ? "item$key" : $key;
+            $key = self::normalizeXmlElementName((string) $key);
             if (is_array($value)) {
                 $subnode = $xml->addChild($key);
                 self::arrayToXml($value, $subnode);
@@ -96,5 +96,28 @@ final class Serialization
         $json = json_encode($value);
 
         return is_string($json) ? $json : var_export($value, true);
+    }
+
+    /**
+     * Normalize arbitrary keys into XML-safe element names.
+     */
+    private static function normalizeXmlElementName(string $name): string
+    {
+        if ($name !== '' && ctype_digit($name)) {
+            return 'item'.$name;
+        }
+
+        $normalized = preg_replace('/[^A-Za-z0-9_-]+/', '_', $name) ?? '';
+        $normalized = trim($normalized, '_');
+
+        if ($normalized === '') {
+            return 'item';
+        }
+
+        if (! preg_match('/^[A-Za-z_]/', $normalized) || str_starts_with(strtolower($normalized), 'xml')) {
+            $normalized = 'item_'.$normalized;
+        }
+
+        return $normalized;
     }
 }

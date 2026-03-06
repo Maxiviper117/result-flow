@@ -27,7 +27,7 @@ Deep dives:
 
 - `toArray`: raw shape for internal serialization.
 - `toJson`: JSON payload with `JSON_THROW_ON_ERROR`.
-- `toXml`: XML serialization with normalized element names.
+- `toXml`: XML serialization with normalized element names. Invalid characters become underscores, names that cannot start an XML tag are prefixed with `item_`, and reserved `xml*` prefixes are avoided.
 - `toResponse`: HTTP boundary conversion; non-Laravel fallback uses a JSON string `body`.
 
 ## When to use `toJson` vs `toXml` vs `toResponse`
