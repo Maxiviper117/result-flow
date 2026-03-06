@@ -17,6 +17,7 @@ Use when diagnosing failures and preserving safe observability.
 - Keep metadata keys stable (`request_id`, `operation`, `trace_id`).
 - Prefer `toDebugArray` in logs/diagnostics.
 - Keep instrumentation side-effect only.
+- When a pipeline step throws, inspect `failed_step` metadata before adding your own step labels.
 
 ## Anti-patterns
 

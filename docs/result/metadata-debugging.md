@@ -28,6 +28,7 @@ Deep dives:
 - `tap`, `inspect`, `inspectError` for side-effect inspection.
 - `toDebugArray` for sanitized debug output.
 - `toArray` for raw shape.
+- Pipeline failures include `failed_step` metadata with the most specific available step identity.
 
 ## When to use `mergeMeta` vs `mapMeta` vs `toDebugArray`
 

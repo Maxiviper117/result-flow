@@ -381,6 +381,7 @@ Contract:
 Behavior:
 - Runs only on success.
 - Catches thrown exceptions and converts to failure.
+- Failure metadata records `failed_step` with the best available step name, including named function callables.
 
 ### `flatMap(callable $fn): Result`
 
