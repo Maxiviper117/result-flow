@@ -34,7 +34,7 @@ Yes. Metadata propagates through chain methods unless explicitly replaced/overwr
 
 ## How do I output HTTP responses?
 
-Use `toResponse()`. In Laravel it returns framework response objects. Outside Laravel it returns a normalized array response shape.
+Use `toResponse()`. In Laravel it returns framework response objects. Outside Laravel it returns a normalized array response shape with a JSON string `body`. Like `toJson()`, it can throw if the payload cannot be JSON encoded.
 
 ## Related pages
 
