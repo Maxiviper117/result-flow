@@ -84,4 +84,16 @@ describe('Result Output', function () {
         expect($body['ok'])->toBeFalse();
     });
 
+    it('toResponse throws when fallback JSON encoding fails', function () {
+        $resource = fopen('php://temp', 'r');
+
+        try {
+            $this->expectException(JsonException::class);
+
+            Result::ok($resource)->toResponse();
+        } finally {
+            fclose($resource);
+        }
+    });
+
 });

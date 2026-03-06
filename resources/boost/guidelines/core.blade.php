@@ -47,6 +47,7 @@ return $result->toResponse();
 ## Laravel response and transaction patterns
 
 - For HTTP endpoints, return `Result` from service/action layers and convert once at the edge with `->toResponse()`.
+- Keep `toResponse()` payloads JSON-encodable; the non-Laravel fallback serializes to a JSON string body and can fail on invalid encoding.
 - For transactions that must rollback on `Result` failure, call `->throwIfFail()` inside the transaction closure.
 - Map low-level errors to user-safe structures in `otherwise(...)`, while keeping diagnostic details in metadata.
 - Use `Result::retryDefer(...)` for transient operations that may return value/Result or throw.

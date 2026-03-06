@@ -21,13 +21,14 @@ Deep dives:
 - `toJson` and `toXml` are serialization boundaries.
 - `toResponse` is framework edge conversion.
 - Normalize failures before boundary conversion.
+- JSON boundaries require JSON-encodable payloads.
 
 ## Primary methods
 
 - `toArray`: raw shape for internal serialization.
 - `toJson`: JSON payload with `JSON_THROW_ON_ERROR`.
 - `toXml`: XML serialization with normalized element names.
-- `toResponse`: HTTP boundary conversion.
+- `toResponse`: HTTP boundary conversion; non-Laravel fallback uses a JSON string `body`.
 
 ## When to use `toJson` vs `toXml` vs `toResponse`
 
@@ -71,9 +72,9 @@ $result = Result::fail(['code' => 'NOT_FOUND', 'message' => 'Order not found']);
 
 ```php
 [
-  'status' => 422,
+  'status' => 400,
   'headers' => ['Content-Type' => 'application/json'],
-  'body' => ['ok' => false, 'error' => ['message' => 'Order not found', 'code' => 'NOT_FOUND']],
+  'body' => '{"ok":false,"value":null,"error":{"code":"NOT_FOUND","message":"Order not found"},"meta":[]}',
 ]
 ```
 
@@ -112,14 +113,14 @@ $result = Result::ok(['resource' => fopen('php://memory', 'r')]);
 $result->toJson();
 ```
 
-Expected behavior: JSON encoding can throw when payload contains non-encodable values.
+Expected behavior: JSON encoding can throw when payload contains non-encodable values, including when `toResponse()` builds its non-Laravel fallback body.
 
 ## Common beginner mistakes
 
 - Using `toResponse` deep inside service/domain logic.
 - Serializing unnormalized error payloads.
 - Expecting `toArray` to redact sensitive data.
-- Forgetting `toJson` can throw on invalid encoding.
+- Forgetting `toJson` and fallback `toResponse` can throw on invalid encoding.
 
 ## Try it
 

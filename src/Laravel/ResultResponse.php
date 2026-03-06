@@ -40,7 +40,7 @@ final class ResultResponse
         return [
             'status' => $status,
             'headers' => ['Content-Type' => 'application/json'],
-            'body' => json_encode($payload),
+            'body' => Serialization::toJson($result),
         ];
     }
 }

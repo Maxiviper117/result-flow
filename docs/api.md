@@ -520,7 +520,8 @@ Contract:
 
 Behavior:
 - Laravel available => framework response object.
-- Non-framework => normalized array with status/headers/body.
+- Non-framework => normalized array with status/headers/body, where `body` is a JSON string.
+- Non-framework JSON encoding uses `JSON_THROW_ON_ERROR`.
 
 ## Method selection quick table
 
