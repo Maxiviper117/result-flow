@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/Maxiviper117/result-flow/compare/v1.11.0...v1.11.1) (2026-03-06)
+
+
+### Bug Fixes
+
+* harden fallback response json encoding ([#71](https://github.com/Maxiviper117/result-flow/issues/71)) ([68fa5b1](https://github.com/Maxiviper117/result-flow/commit/68fa5b133201f8d9a28d3b1c8ca8a9a78632c091)), closes [#68](https://github.com/Maxiviper117/result-flow/issues/68)
+
 ## [1.11.0](https://github.com/Maxiviper117/result-flow/compare/v1.10.0...v1.11.0) (2026-02-21)
 
 
