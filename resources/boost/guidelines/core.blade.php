@@ -42,6 +42,7 @@ return $result->toResponse();
 - Metadata is part of the contract. Treat it as `array<string,mixed>`.
 - Preserve metadata across steps; when transforming failure, forward existing `$meta`.
 - Use stable keys like `request_id`, `trace_id`, `operation`, and `context`.
+- If a pipeline step throws, prefer the built-in `failed_step` metadata over ad-hoc duplicate step labels.
 - Do not silently discard metadata inside `then`, `otherwise`, or `recover` handlers.
 
 ## Laravel response and transaction patterns

@@ -56,6 +56,7 @@
 - Ensure the guide and README stay consistent with the public API surface.
 - Keep boundary serialization docs aligned with implementation details such as fallback response shape and encoding failure behavior.
 - Keep XML boundary docs aligned with the actual element-name normalization rules used by `toXml()`.
+- Keep observability docs aligned with emitted metadata keys such as `failed_step`.
 - Keep Boost guidelines and skills (`resources/boost/`) aligned with current project behavior and conventions on every change.
 
 ## Laravel Boost AI asset maintenance

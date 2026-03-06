@@ -2,6 +2,11 @@
 
 use Maxiviper117\ResultFlow\Result;
 
+function resultFlowThrowingNamedStep(mixed $value, array $meta): mixed
+{
+    throw new RuntimeException('named step boom');
+}
+
 it('propagates types through map/then and unwrap', function () {
     /** @var Result<int, \Exception> $r */
     $r = Result::ok(123);
@@ -238,6 +243,14 @@ it('overwrites failed_step metadata on failure', function () {
 
     expect($result->isFail())->toBeTrue();
     expect($result->meta()['failed_step'])->toBe('Closure');
+});
+
+it('preserves string callable names in failed_step metadata', function () {
+    $result = Result::ok(1)->then('resultFlowThrowingNamedStep');
+
+    expect($result->isFail())->toBeTrue();
+    expect($result->error())->toBeInstanceOf(RuntimeException::class);
+    expect($result->meta()['failed_step'])->toBe('resultFlowThrowingNamedStep');
 });
 
 it('accepts callable array steps without splitting them', function () {

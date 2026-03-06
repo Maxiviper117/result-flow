@@ -111,6 +111,10 @@ final class Pipeline
      */
     private static function stepName(callable|object $step): string
     {
+        if (is_string($step)) {
+            return $step;
+        }
+
         if (is_object($step)) {
             return $step::class;
         }
