@@ -58,6 +58,30 @@ describe('Result Output', function () {
         expect($xmlString)->toContain('<api-response>');
     });
 
+    it('toXml normalizes invalid child element names', function () {
+        $result = Result::ok([
+            'bad key' => 'space',
+            '123name' => 'leading-digit',
+            'xmlroot' => 'reserved',
+            'meta.value' => 'punctuation',
+        ]);
+
+        $xml = new SimpleXMLElement($result->toXml());
+
+        expect((string) $xml->value->bad_key)->toBe('space');
+        expect((string) $xml->value->item_123name)->toBe('leading-digit');
+        expect((string) $xml->value->item_xmlroot)->toBe('reserved');
+        expect((string) $xml->value->meta_value)->toBe('punctuation');
+    });
+
+    it('toXml normalizes invalid custom root element names', function () {
+        $result = Result::ok('val');
+        $xml = new SimpleXMLElement($result->toXml('bad root'));
+
+        expect($xml->getName())->toBe('bad_root');
+        expect((string) $xml->value)->toBe('val');
+    });
+
     it('toResponse returns array structure by default (without Laravel)', function () {
         // We assume 'response' helper does not exist in this test environment context normally,
         // unless defined in Pest.php or similar.

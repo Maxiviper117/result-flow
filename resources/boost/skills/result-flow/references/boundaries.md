@@ -18,6 +18,7 @@ Use when finalizing a `Result` into app-facing output.
 - Use one boundary style per function unless bridging layers.
 - Normalize errors before exposing to transport/UI boundaries.
 - Keep `toJson` and non-Laravel `toResponse` payloads JSON-encodable; invalid encoding should be treated as a boundary error.
+- `toXml()` normalizes invalid element names; do not depend on raw user-provided keys becoming literal XML tag names.
 
 ## Anti-patterns
 
