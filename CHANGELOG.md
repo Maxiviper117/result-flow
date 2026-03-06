@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.3](https://github.com/Maxiviper117/result-flow/compare/v1.11.2...v1.11.3) (2026-03-06)
+
+
+### Bug Fixes
+
+* preserve failed step names for string callables ([#73](https://github.com/Maxiviper117/result-flow/issues/73)) ([6ac747f](https://github.com/Maxiviper117/result-flow/commit/6ac747ff91dc7c261cc4d11b037d38cfd58a17b2)), closes [#70](https://github.com/Maxiviper117/result-flow/issues/70)
+
 ## [1.11.2](https://github.com/Maxiviper117/result-flow/compare/v1.11.1...v1.11.2) (2026-03-06)
 
 
