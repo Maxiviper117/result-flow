@@ -35,7 +35,8 @@ final class Result
         private mixed $value,
         private mixed $error,
         private array $meta = [],
-    ) {}
+    ) {
+    }
 
     // =========================================================================
     // Static Constructors
@@ -177,7 +178,7 @@ final class Result
             ->maxAttempts($times)
             ->delay($delay)
             ->exponential($exponential)
-            ->attempt(fn () => self::defer($fn));
+            ->attempt(fn() => self::defer($fn));
 
         return $result;
     }
@@ -226,7 +227,7 @@ final class Result
         $resource = $acquired->value();
 
         /** @var Result<T, E|Throwable> $used */
-        $used = self::defer(fn () => $use($resource));
+        $used = self::defer(fn() => $use($resource));
 
         try {
             $release($resource);
@@ -316,7 +317,7 @@ final class Result
             }
         }
 
-        if (! empty($errors)) {
+        if (!empty($errors)) {
             /** @var Result<array<T>, array<E>> */
             return self::fail($errors, $mergedMeta);
         }
@@ -393,7 +394,7 @@ final class Result
      */
     public function isFail(): bool
     {
-        return ! $this->ok;
+        return !$this->ok;
     }
 
     // =========================================================================
@@ -608,7 +609,7 @@ final class Result
      */
     public function then(callable|object|array $next): self
     {
-        if (! $this->ok) {
+        if (!$this->ok) {
             /** @var Result<U, TFailure> $this @phpstan-ignore varTag.nativeType */
             return $this;
         }
@@ -659,7 +660,7 @@ final class Result
      */
     public function thenUnsafe(callable|object $next): self
     {
-        if (! $this->ok) {
+        if (!$this->ok) {
             /** @var Result<U, TFailure> $this @phpstan-ignore varTag.nativeType */
             return $this;
         }
