@@ -540,36 +540,28 @@ describe('edge cases: meta operations', function () {
 
     it('mapMeta can access Ok value when the callback accepts it', function () {
         $result = Result::ok('value', ['current' => 'meta'])
-            ->mapMeta(function ($meta, $value) {
-                return [...$meta, 'computed' => strtoupper($value)];
-            });
+            ->mapMeta(fn ($meta, $value) => [...$meta, 'computed' => strtoupper($value)]);
 
         expect($result->meta())->toBe(['current' => 'meta', 'computed' => 'VALUE']);
     });
 
     it('mapMeta still works on Err with a callback that optionally accepts value', function () {
         $result = Result::fail('nope', ['current' => 'meta'])
-            ->mapMeta(function ($meta, $value = null) {
-                return [...$meta, 'value' => $value];
-            });
+            ->mapMeta(fn ($meta, $value = null) => [...$meta, 'value' => $value]);
 
         expect($result->meta())->toBe(['current' => 'meta', 'value' => null]);
     });
 
     it('mergeMeta can use callback value-aware patches', function () {
         $result = Result::ok('value', ['current' => 'meta'])
-            ->mergeMeta(function ($meta, $value) {
-                return ['added' => strlen($value)];
-            });
+            ->mergeMeta(fn ($meta, $value) => ['added' => strlen($value)]);
 
         expect($result->meta())->toBe(['current' => 'meta', 'added' => 5]);
     });
 
     it('mergeMeta with callable on Err only receives meta', function () {
         $result = Result::fail('err', ['current' => 'meta'])
-            ->mergeMeta(function ($meta) {
-                return ['added' => 'no-value'];
-            });
+            ->mergeMeta(fn ($meta) => ['added' => 'no-value']);
 
         expect($result->meta())->toBe(['current' => 'meta', 'added' => 'no-value']);
     });
