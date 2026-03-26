@@ -8,7 +8,7 @@ function resultFlowThrowingNamedStep(mixed $value, array $meta): mixed
 }
 
 it('propagates types through map/then and unwrap', function () {
-    /** @var Result<int, \Exception> $r */
+    /** @var Result<int, Exception> $r */
     $r = Result::ok(123);
 
     $r2 = $r
@@ -22,7 +22,7 @@ it('propagates types through map/then and unwrap', function () {
 });
 
 it('fails unwrap throws throwable', function () {
-    $err = new \RuntimeException('boom');
+    $err = new RuntimeException('boom');
     $r = Result::fail($err);
 
     $this->expectExceptionObject($err);
@@ -52,10 +52,10 @@ it('onSuccess and onFailure taps are called appropriately', function () {
             expect($meta)->toBeArray();
         });
 
-    $fail = Result::fail(new \Exception('x'), ['m' => 1])
+    $fail = Result::fail(new Exception('x'), ['m' => 1])
         ->onFailure(function ($e, $meta) use (&$called) {
             $called['fail'] = true;
-            expect($e)->toBeInstanceOf(\Exception::class);
+            expect($e)->toBeInstanceOf(Exception::class);
             expect($meta)->toBeArray();
         });
 
@@ -68,7 +68,7 @@ it('of() wraps thrown exceptions into failure and returns success otherwise', fu
     expect($ok->unwrap())->toBe(5);
 
     $fail = Result::of(function () {
-        throw new \Exception('boom');
+        throw new Exception('boom');
     });
 
     expect($fail->isFail())->toBeTrue();
@@ -124,9 +124,9 @@ it('then accepts an array of steps and folds sequentially', function () {
 
 it('mapError transforms the error payload', function () {
     $r = Result::fail('err')
-        ->mapError(fn ($e, $m) => new \RuntimeException($e));
+        ->mapError(fn ($e, $m) => new RuntimeException($e));
 
-    expect($r->error())->toBeInstanceOf(\RuntimeException::class);
+    expect($r->error())->toBeInstanceOf(RuntimeException::class);
 });
 
 it('tapMeta observes metadata without changing the payload', function () {
@@ -314,7 +314,7 @@ it('pipeline then() with a local NotifyAction that throws becomes failure and on
     {
         public function __invoke(mixed $payload, array $meta = [])
         {
-            throw new \Exception('Notification failed');
+            throw new Exception('Notification failed');
         }
     };
 

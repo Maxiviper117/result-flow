@@ -28,10 +28,6 @@ final class MetaOps
         return $result;
     }
 
-    /**
-     * @param  callable  $callable
-     * @return int
-     */
     private static function parameterCount(callable $callable): int
     {
         /** @var \Closure $closure */
@@ -47,7 +43,6 @@ final class MetaOps
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
-     * @param  callable  $map
      * @return Result<TSuccess, TFailure>
      */
     public static function mapMeta(Result $result, callable $map): Result
