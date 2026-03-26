@@ -53,7 +53,7 @@ describe('edge cases: null and falsy values', function () {
 
     it('map preserves null value transformation', function () {
         $result = Result::ok('value')
-            ->map(fn($v) => null);
+            ->map(fn ($v) => null);
 
         expect($result->isOk())->toBeTrue();
         expect($result->value())->toBeNull();
@@ -61,7 +61,7 @@ describe('edge cases: null and falsy values', function () {
 
     it('then with step returning null wraps as success', function () {
         $result = Result::ok('value')
-            ->then(fn($v) => null);
+            ->then(fn ($v) => null);
 
         expect($result->isOk())->toBeTrue();
         expect($result->value())->toBeNull();
@@ -142,8 +142,8 @@ describe('edge cases: chaining behavior', function () {
 
     it('otherwise can chain into then after recovery', function () {
         $result = Result::fail('initial error')
-            ->otherwise(fn() => Result::ok('recovered'))
-            ->then(fn($v) => $v.' and processed');
+            ->otherwise(fn () => Result::ok('recovered'))
+            ->then(fn ($v) => $v.' and processed');
 
         expect($result->isOk())->toBeTrue();
         expect($result->value())->toBe('recovered and processed');
@@ -251,7 +251,7 @@ describe('edge cases: combine and combineAll', function () {
 describe('edge cases: ensure method', function () {
     it('ensure with truthy predicate result passes', function () {
         $result = Result::ok('value')
-            ->ensure(fn() => 1, 'error'); // truthy but not true
+            ->ensure(fn () => 1, 'error'); // truthy but not true
 
         // Note: predicate must return exactly true/false
         expect($result->isOk())->toBeTrue();
@@ -262,21 +262,21 @@ describe('edge cases: ensure method', function () {
         $original->id = 123;
 
         $result = Result::ok($original)
-            ->ensure(fn($v) => $v->id === 123, 'Invalid id');
+            ->ensure(fn ($v) => $v->id === 123, 'Invalid id');
 
         expect($result->value())->toBe($original);
     });
 
     it('ensure preserves meta on pass', function () {
         $result = Result::ok('value', ['important' => 'data'])
-            ->ensure(fn() => true, 'error');
+            ->ensure(fn () => true, 'error');
 
         expect($result->meta())->toBe(['important' => 'data']);
     });
 
     it('ensure preserves meta on fail', function () {
         $result = Result::ok('value', ['important' => 'data'])
-            ->ensure(fn() => false, 'validation failed');
+            ->ensure(fn () => false, 'validation failed');
 
         expect($result->meta())->toBe(['important' => 'data']);
     });
@@ -285,8 +285,8 @@ describe('edge cases: ensure method', function () {
 describe('edge cases: match method', function () {
     it('match can return null from success callback', function () {
         $result = Result::ok('value')->match(
-            onSuccess: fn() => null,
-            onFailure: fn() => 'error',
+            onSuccess: fn () => null,
+            onFailure: fn () => 'error',
         );
 
         expect($result)->toBeNull();
@@ -294,8 +294,8 @@ describe('edge cases: match method', function () {
 
     it('match can return null from failure callback', function () {
         $result = Result::fail('error')->match(
-            onSuccess: fn() => 'value',
-            onFailure: fn() => null,
+            onSuccess: fn () => 'value',
+            onFailure: fn () => null,
         );
 
         expect($result)->toBeNull();
@@ -311,7 +311,7 @@ describe('edge cases: match method', function () {
 
                 return null;
             },
-            onFailure: fn() => null,
+            onFailure: fn () => null,
         );
 
         Result::fail(new RuntimeException('error'))->match(
@@ -345,7 +345,7 @@ describe('edge cases: recover method', function () {
 
     it('recover always produces success', function () {
         $result = Result::fail('error')
-            ->recover(fn($e) => "Recovered from: {$e}");
+            ->recover(fn ($e) => "Recovered from: {$e}");
 
         expect($result->isOk())->toBeTrue();
         expect($result->value())->toBe('Recovered from: error');
@@ -366,7 +366,7 @@ describe('edge cases: recover method', function () {
 
     it('recover preserves original meta', function () {
         $result = Result::fail('error', ['original' => 'meta'])
-            ->recover(fn() => 'recovered');
+            ->recover(fn () => 'recovered');
 
         expect($result->meta())->toBe(['original' => 'meta']);
     });
@@ -398,21 +398,21 @@ describe('edge cases: failWithValue', function () {
 
 describe('edge cases: of() static constructor', function () {
     it('of wraps return value as success', function () {
-        $result = Result::of(fn() => 'computed');
+        $result = Result::of(fn () => 'computed');
 
         expect($result->isOk())->toBeTrue();
         expect($result->value())->toBe('computed');
     });
 
     it('of wraps null return as success', function () {
-        $result = Result::of(fn() => null);
+        $result = Result::of(fn () => null);
 
         expect($result->isOk())->toBeTrue();
         expect($result->value())->toBeNull();
     });
 
     it('of wraps false return as success', function () {
-        $result = Result::of(fn() => false);
+        $result = Result::of(fn () => false);
 
         expect($result->isOk())->toBeTrue();
         expect($result->value())->toBeFalse();
@@ -432,10 +432,9 @@ describe('edge cases: of() static constructor', function () {
 
 describe('edge cases: step invocation patterns', function () {
     it('throws InvalidArgumentException for object without callable method', function () {
-        $badStep = new class {
-            public function doSomething()
-            {
-            }
+        $badStep = new class
+        {
+            public function doSomething() {}
         };
 
         $result = Result::ok('value')->then($badStep);
@@ -445,7 +444,8 @@ describe('edge cases: step invocation patterns', function () {
     });
 
     it('prefers __invoke over handle', function () {
-        $step = new class {
+        $step = new class
+        {
             public function __invoke($v, $m)
             {
                 return 'from invoke';
@@ -463,7 +463,8 @@ describe('edge cases: step invocation patterns', function () {
     });
 
     it('uses handle when __invoke not available', function () {
-        $step = new class {
+        $step = new class
+        {
             public function handle($v, $m)
             {
                 return 'from handle';
@@ -481,7 +482,8 @@ describe('edge cases: step invocation patterns', function () {
     });
 
     it('uses execute as last resort', function () {
-        $step = new class {
+        $step = new class
+        {
             public function execute($v, $m)
             {
                 return 'from execute';
@@ -511,7 +513,7 @@ describe('edge cases: meta operations', function () {
 
     it('mapMeta can clear all metadata', function () {
         $result = Result::ok('value', ['has' => 'meta'])
-            ->mapMeta(fn() => []);
+            ->mapMeta(fn () => []);
 
         expect($result->meta())->toBe([]);
     });
