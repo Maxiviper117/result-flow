@@ -15,6 +15,8 @@ Use when operations can fail transiently and need bounded retry policies.
 - Retry only transient failure classes.
 - Keep retry budgets explicit and bounded.
 - After retries complete, map terminal failures intentionally.
+- Use `attachAttemptMeta()` when the caller needs `meta['retry']['attempts']` for logging or diagnostics.
+- Prefer `retryDefer()` when the callback may already return a `Result` or may throw.
 
 ## Anti-patterns
 

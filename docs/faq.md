@@ -4,39 +4,31 @@ title: FAQ
 
 # FAQ
 
-## Why not just throw exceptions everywhere?
+## Why use Result Flow instead of throwing everywhere?
 
-Exceptions are still valid. Result Flow helps when you want explicit, branch-aware outcomes that are easier to test and chain.
+Use exceptions for exceptional conditions. Use Result Flow when failure is expected, part of normal flow, and should stay explicit.
 
 ## When should I use `thenUnsafe()`?
 
-Use it when exceptions must bubble (for example, transaction rollback boundaries).
+Only when exception bubbling is the intended boundary behavior, such as transaction rollback.
 
-## How do I choose between `map`, `then`, and `flatMap`?
+## What is the difference between `map`, `then`, and `flatMap`?
 
-- `map`: success value -> plain value
-- `then`: success value -> `Result` or plain value
-- `flatMap`: alias of `then`
-
-## How do I process arrays of items?
-
-- Per-item status: `mapItems`
-- Fail-fast aggregate: `mapAll`
-- Collect all errors: `mapCollectErrors`
-
-## How do I convert failures into success defaults?
-
-Use `recover`, or use `unwrapOr`/`unwrapOrElse` at boundary points.
+- `map` transforms a success value
+- `then` chains a step that may return a value or a `Result`
+- `flatMap` is an alias of `then`
 
 ## Does metadata survive chaining?
 
-Yes. Metadata propagates through chain methods unless explicitly replaced/overwritten.
+Yes, unless you replace it with `mapMeta(...)` or return a new result with different metadata.
 
-## How do I output HTTP responses?
+## What should I use for logs?
 
-Use `toResponse()`. In Laravel it returns framework response objects. Outside Laravel it returns a normalized array response shape with a JSON string `body`. Like `toJson()`, it can throw if the payload cannot be JSON encoded.
+Use `toDebugArray()`, not `toArray()`, when the output may contain secrets or long values.
 
-## Related pages
+## How do I choose between `mapAll`, `mapCollectErrors`, `combine`, and `combineAll`?
 
-- [Getting Started](/getting-started)
-- [API Reference](/api)
+- raw items and fail fast -> `mapAll`
+- raw items and collect all errors -> `mapCollectErrors`
+- existing `Result[]` and fail fast -> `combine`
+- existing `Result[]` and collect all errors -> `combineAll`

@@ -4,52 +4,50 @@ title: Result Flow
 
 # Result Flow
 
-Result Flow is a type-safe `Result` implementation for PHP 8.2+.
+Result Flow gives PHP 8.2+ a small, explicit `Result` type for success, failure, and metadata.
 
-It gives you one consistent model for success, failure, and metadata:
+The model is simple:
 
 ```text
 Ok(value, meta) | Fail(error, meta)
 ```
 
-## Who this is for
+That simplicity is the point. It keeps ordinary failures in the type system, so you can compose work, preserve context, and finish at a boundary on purpose.
 
-- Application developers who want explicit, testable failure handling.
-- Teams replacing ad-hoc exception chains with predictable control flow.
-- Projects that need metadata propagation (request IDs, failed input, audit context).
+```php
+use Maxiviper117\ResultFlow\Result;
 
-## Start paths
+$result = Result::ok(['email' => 'dev@example.com'], ['request_id' => 'r-1'])
+    ->ensure(fn (array $input) => isset($input['email']), 'Email is required')
+    ->then(fn (array $input) => Result::ok([
+        'email' => strtolower($input['email']),
+    ], ['operation' => 'normalize-email']))
+    ->otherwise(fn ($error, array $meta) => Result::fail([
+        'message' => (string) $error,
+        'request_id' => $meta['request_id'] ?? null,
+    ], $meta));
 
-- New to the library: [Getting Started](/getting-started)
-- Understand foundations and method families: [Result Guide](/result/)
-- Learn composition lanes: [Composition Patterns](/result/compositions)
-- Method signatures and contracts: [API Reference](/api)
-- Real examples: [Examples](/examples/)
+// Finish explicitly at the edge.
+$payload = $result->match(
+    onSuccess: fn (array $value, array $meta) => ['ok' => true, 'data' => $value, 'meta' => $meta],
+    onFailure: fn ($error, array $meta) => ['ok' => false, 'error' => $error, 'meta' => $meta],
+);
+```
 
-If you are new, start with [Getting Started](/getting-started) and then follow the read-order list there.
+## Start here
 
-## Result concept lanes
+1. [Getting started](/getting-started)
+2. [Kitchen sink](/kitchen-sink/)
+3. [Concepts overview](/concepts/)
+4. [Reference overview](/reference/)
 
-- Foundations: [Result Overview](/result/), [Constructing Results](/result/constructing), [Chaining and Transforming](/result/chaining)
-- Compositions: [Core Pipelines](/result/compositions/core-pipelines), [Failure and Recovery](/result/compositions/failure-recovery), [Finalization Boundaries](/result/compositions/finalization-boundaries), [Metadata and Observability](/result/compositions/metadata-observability)
-- Operational flows: [Error Handling](/result/error-handling), [Retrying](/result/retrying), [Batch Processing](/result/batch-processing)
-- Boundaries and output: [Matching and Unwrapping](/result/matching-unwrapping), [Transformers](/result/transformers), [Metadata and Debugging](/result/metadata-debugging)
+## What to read next
 
-## Example concept lanes
-
-Plain PHP first if you are not using Laravel. Choose Laravel examples only when integrating with framework boundaries.
-
-- Core pipelines: [Plain PHP Basics](/examples/plain-php-basics), [Laravel Workflow](/examples/laravel), [Laravel Actions Pipeline](/examples/laravel-actions-pipeline)
-- Failure and recovery: [Plain PHP Error Handling](/examples/plain-php-errors), [Laravel Retries](/examples/laravel-retries), [Laravel Actions Exceptions](/examples/laravel-actions-exceptions)
-- Collections and combining: [Plain PHP Batch Processing](/examples/plain-php-batch), [Laravel Combine](/examples/laravel-combine)
-- Boundaries: [Laravel Controller-only](/examples/laravel-controller-only), [Laravel Match + Unwrap](/examples/laravel-match-unwrap), [Laravel Transactions](/examples/laravel-transactions)
-- Observability: [Laravel Debugging](/examples/laravel-debugging), [Laravel Metadata + Taps](/examples/laravel-meta-taps)
-
-## Practical references
-
-- Laravel Boost integration: [Laravel Boost](/laravel-boost)
-- [Usage Patterns](/guides/patterns)
-- [Anti-Patterns](/guides/anti-patterns)
-- [Testing Recipes](/testing)
-- [Sanitization Guide](/sanitization)
-- [FAQ](/faq)
+- Learn the mental model in [Result model](/concepts/result-model)
+- Get the full method tour in [Kitchen sink](/kitchen-sink/)
+- See the common flow shape in [Chaining](/concepts/chaining)
+- Learn where to stop in [Finalization boundaries](/concepts/finalization-boundaries)
+- Look up exact signatures in [Reference](/reference/)
+- Read practical patterns in [Guides](/guides/)
+- Jump to concrete problems in [Recipes](/recipes/)
+- If you use Boost, read [Laravel Boost](/laravel-boost)

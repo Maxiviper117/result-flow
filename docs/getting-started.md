@@ -4,76 +4,59 @@ title: Getting Started
 
 # Getting Started
 
-## Install
+Install the package:
 
 ```bash
 composer require maxiviper117/result-flow
 ```
 
-## First pipeline
+Then start with the smallest useful flow:
 
 ```php
 use Maxiviper117\ResultFlow\Result;
 
-$result = Result::ok(['order_id' => 123, 'total' => 42], ['request_id' => 'r-1'])
-    ->ensure(fn (array $order) => $order['total'] > 0, 'Order total must be positive')
-    ->then(fn (array $order, array $meta) => Result::ok([
-        'id' => $order['order_id'],
+$result = Result::ok(['total' => 42], ['request_id' => 'r-1'])
+    ->ensure(fn (array $order) => $order['total'] > 0, 'Total must be positive')
+    ->then(fn (array $order) => Result::ok([
         'status' => 'queued',
-    ], [...$meta, 'step' => 'queued']))
-    ->otherwise(fn ($error, array $meta) => Result::fail("Order pipeline failed: {$error}", $meta));
-
-$response = $result->match(
-    onSuccess: fn (array $value) => ['ok' => true, 'data' => $value],
-    onFailure: fn ($error) => ['ok' => false, 'error' => (string) $error],
-);
+        'total' => $order['total'],
+    ], ['operation' => 'queue-order']))
+    ->otherwise(fn ($error, array $meta) => Result::fail([
+        'message' => (string) $error,
+        'request_id' => $meta['request_id'] ?? null,
+    ], $meta));
 ```
+
+## How to read it
+
+- `ok(...)` starts a success branch.
+- `ensure(...)` keeps success only when the predicate passes.
+- `then(...)` runs the next step only on success.
+- `otherwise(...)` runs only on failure.
+- `match(...)` finishes the flow with an explicit output.
+
+`meta` is part of the result, not an afterthought. Carry request IDs, operation names, and other correlation data from the start.
 
 ## Core rules
 
-- Success-path methods (`then`, `map`, `ensure`) run only when result is ok.
-- Failure-path methods (`otherwise`, `catchException`, `recover`) run only when result is failed.
-- Metadata is carried through every step unless you explicitly replace it.
-- `then()` catches thrown exceptions and converts them to `Result::fail(Throwable)`.
-- `thenUnsafe()` does not catch; exceptions bubble.
+- Success methods skip failures.
+- Failure methods skip successes.
+- `then(...)` catches thrown exceptions and turns them into failure.
+- `thenUnsafe(...)` lets exceptions bubble.
+- `defer(...)` accepts a callback that may return a plain value or a `Result`.
 
-## Read in this order (first-time users)
+## Read this next
 
-1. [Result Guide](/result/)
-2. [Constructing Results](/result/constructing)
-3. [Chaining and Transforming](/result/chaining)
-4. [Error Handling](/result/error-handling)
-5. [Matching and Unwrapping](/result/matching-unwrapping)
-6. [Composition Patterns](/result/compositions)
-7. [Examples](/examples/)
+1. [Result model](/concepts/result-model)
+2. [Constructing results](/concepts/constructing)
+3. [Chaining](/concepts/chaining)
+4. [Failure handling](/concepts/failure-handling)
+5. [Finalization boundaries](/concepts/finalization-boundaries)
 
-## Learn by concept lane
+## Reference pages
 
-- Foundations: [Result Guide](/result/), [Constructing Results](/result/constructing), [Chaining and Transforming](/result/chaining)
-- Core composition: [Composition Patterns](/result/compositions), [Core Pipelines](/result/compositions/core-pipelines)
-- Failure lane: [Failure and Recovery](/result/compositions/failure-recovery), [Error Handling](/result/error-handling)
-- Boundary lane: [Finalization Boundaries](/result/compositions/finalization-boundaries), [Matching and Unwrapping](/result/matching-unwrapping), [Transformers](/result/transformers)
-- Observability lane: [Metadata and Observability](/result/compositions/metadata-observability), [Metadata and Debugging](/result/metadata-debugging)
-
-## Batch processing in one glance
-
-- `Result::mapItems($items, $fn)` returns one `Result` per item.
-- `Result::mapAll($items, $fn)` fails fast on first error.
-- `Result::mapCollectErrors($items, $fn)` evaluates all items and returns keyed errors.
-
-See [Batch Processing](/result/batch-processing) for full behavior and examples.
-
-## Laravel Boost (optional)
-
-- This package ships Boost source assets that guide AI behavior in downstream consumer Laravel apps.
-- Package-shipped guideline source: `resources/boost/guidelines/core.blade.php`.
-- Package-shipped central skill source: `resources/boost/skills/result-flow/SKILL.md`.
-- Package-shipped concept references: `resources/boost/skills/result-flow/references/*.md`.
-- In your app, install Boost and apply package guidance there. See [Laravel Boost](/laravel-boost).
-
-## What to read next
-
-- [Result Guide](/result/)
-- [Composition Patterns](/result/compositions)
-- [Examples](/examples/)
-- [API Reference](/api)
+- [Construction reference](/reference/construction)
+- [Chaining reference](/reference/chaining)
+- [Failure handling reference](/reference/failure-handling)
+- [Metadata and debugging reference](/reference/metadata-debugging)
+- [Batch processing reference](/reference/batch-processing)

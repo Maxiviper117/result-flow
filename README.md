@@ -17,11 +17,13 @@ composer require maxiviper117/result-flow
 
 - [Home](https://maxiviper117.github.io/result-flow/)
 - [Getting Started](https://maxiviper117.github.io/result-flow/getting-started.html)
-- [Result Guide](https://maxiviper117.github.io/result-flow/result/)
-- [Composition Patterns](https://maxiviper117.github.io/result-flow/result/compositions.html)
-- [Batch Processing](https://maxiviper117.github.io/result-flow/result/batch-processing.html)
-- [API Reference](https://maxiviper117.github.io/result-flow/api.html)
-- [Examples](https://maxiviper117.github.io/result-flow/examples/)
+- [Concepts](https://maxiviper117.github.io/result-flow/concepts/)
+- [Guides](https://maxiviper117.github.io/result-flow/guides/)
+- [Recipes](https://maxiviper117.github.io/result-flow/recipes/)
+- [Reference](https://maxiviper117.github.io/result-flow/reference/)
+- [Kitchen sink](https://maxiviper117.github.io/result-flow/kitchen-sink/)
+- [FAQ](https://maxiviper117.github.io/result-flow/faq.html)
+- [Laravel Boost](https://maxiviper117.github.io/result-flow/laravel-boost.html)
 
 ## Why Result Flow
 

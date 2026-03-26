@@ -16,9 +16,11 @@ Use this skill when the user asks for ResultFlow workflow design, implementation
 ## High-level workflow
 
 1. Identify the primary intent (construct, chain, failure map, batch, boundary, retry, debug).
-2. Load only the matching `references/*.md` file(s).
-3. Keep branch semantics explicit (`ok`/`fail`) and preserve metadata.
-4. End flows intentionally at app boundaries (`match`, `toResponse`, `unwrap*`, `throwIfFail`).
+2. Use the kitchen-sink pages when you need a grouped tour of related methods before picking one.
+3. Load only the matching `references/*.md` file(s) for exact signatures or edge behavior.
+4. Keep branch semantics explicit (`ok`/`fail`) and preserve metadata.
+5. End flows intentionally at app boundaries (`match`, `toResponse`, `unwrap*`, `throwIfFail`).
+6. Prefer `defer(...)` over `of(...)` when the callback may already return a `Result`.
 
 ## Progressive disclosure rule
 
