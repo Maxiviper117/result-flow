@@ -30,7 +30,6 @@ final class MetaOps
 
     private static function parameterCount(callable $callable): int
     {
-        /** @var \Closure $closure */
         $closure = \Closure::fromCallable($callable);
 
         $reflection = new \ReflectionFunction($closure);
