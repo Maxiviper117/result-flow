@@ -4,18 +4,18 @@ Use for collection workflows and aggregation semantics.
 
 ## Decision table
 
-| Input | Need | Method |
-|---|---|---|
-| Raw items | Per-item `Result` map | `mapItems` |
-| Raw items | Fail-fast aggregate | `mapAll` |
-| Raw items | Collect-all keyed errors | `mapCollectErrors` |
-| Existing `Result[]` | Fail-fast aggregate | `combine` |
-| Existing `Result[]` | Collect-all failures | `combineAll` |
+| Input               | Need                                               | Method             |
+| ------------------- | -------------------------------------------------- | ------------------ |
+| Raw items           | Per-item `Result` map                              | `mapItems`         |
+| Raw items           | Fail-fast aggregate                                | `mapAll`           |
+| Raw items           | Collect-all keyed errors                           | `mapCollectErrors` |
+| Existing `Result[]` | Fail-fast aggregate                                | `combine`          |
+| Existing `Result[]` | Collect-all failures; no success values on failure | `combineAll`       |
 
 ## Guidance
 
 - Preserve keys for UI/form diagnostics.
-- Choose collect-all when consumer needs complete error visibility.
+- Choose collect-all when consumer needs complete error visibility; `combineAll` returns only the collected failures if any input fails.
 
 ## Anti-patterns
 

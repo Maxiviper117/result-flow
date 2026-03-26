@@ -22,10 +22,18 @@ It reduces ceremony at call sites that already have mixed behavior:
 
 `defer(...)` normalizes all three cases into one `Result` shape.
 
+It also differs from `of(...)` in one important way: `defer(...)` preserves a returned `Result` instead of wrapping it as a success value.
+
 ## How it behaves
 
 - plain value -> `ok(value)`
 - returned `Result` -> returned as-is
+- thrown exception -> `fail(Throwable)`
+
+Compare that with `of(...)`:
+
+- plain value -> `ok(value)`
+- returned `Result` -> `ok(Result(...))`
 - thrown exception -> `fail(Throwable)`
 
 ## When to use it
@@ -33,6 +41,8 @@ It reduces ceremony at call sites that already have mixed behavior:
 Use `defer(...)` when the callback is not under your control or already mixes value and `Result` returns.
 
 Use `of(...)` when the callback always returns a plain success value.
+
+If you are unsure whether a callback might already return `Result`, prefer `defer(...)` to avoid nested `Result` values.
 
 ## Related pages
 

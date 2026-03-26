@@ -6,7 +6,7 @@ title: Kitchen Sink
 
 This section is the full method tour.
 
-Use it when you want every public `Result` method and the retry builder covered in one place, grouped by behavior. Start with the compact map, then open the category pages for the full explanation of each function.
+Use it when you want every public `Result` method and the retry builder covered in one place, grouped by behavior. Start with the quick map, then open the category pages for the full explanation of each function.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
@@ -20,16 +20,16 @@ $result = Result::ok($input, ['request_id' => 'r-1'])
     ], $meta));
 ```
 
-## Compact Map
+## Quick Map
 
-| Group | Page |
-| --- | --- |
-| Constructors and resource safety | [Construction and entry points](./construction) |
-| Collection operations | [Collections](./collections) |
-| Branch state and metadata | [Branch state and metadata](./state-and-metadata) |
-| Chaining and recovery | [Chaining and recovery](./chaining-and-recovery) |
-| Finalization and output | [Finalization and output](./finalization-and-output) |
-| Retry builder | [Retry builder](./retry-builder) |
+| Group                            | Page                                                 |
+| -------------------------------- | ---------------------------------------------------- |
+| Constructors and resource safety | [Construction and entry points](./construction)      |
+| Collection operations            | [Collections](./collections)                         |
+| Branch state and metadata        | [Branch state and metadata](./state-and-metadata)    |
+| Chaining and recovery            | [Chaining and recovery](./chaining-and-recovery)     |
+| Finalization and output          | [Finalization and output](./finalization-and-output) |
+| Retry builder                    | [Retry builder](./retry-builder)                     |
 
 ## How To Use This Section
 

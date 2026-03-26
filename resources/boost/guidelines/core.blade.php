@@ -12,15 +12,17 @@
 
 - Use `Maxiviper117\ResultFlow\Result` when failure is expected and should be handled explicitly in normal control flow.
 - Prefer ResultFlow for multi-step workflows (validation, persistence, side effects, response mapping).
-- Use the kitchen-sink docs for a full method tour when you need to compare related APIs; use the reference docs when you only need exact signatures or edge behavior.
+- Use the kitchen-sink docs for a full method tour when you need to compare related APIs; the pages use a consistent quick-map + method-by-method structure, and the reference docs stay best for exact signatures or edge behavior.
 - Keep exception throwing for truly exceptional conditions; use `Result::fail(...)` for expected domain/application failures.
 - Use `Result::failWithValue(...)` when the input that triggered failure should stay visible in metadata.
-- Use `Result::defer(...)` when a callback may return either a plain value or another `Result`.
+- Use `Result::of(...)` when a callback returns a plain value on success and throws on failure; it always wraps the callback return value as success.
+- Use `Result::defer(...)` when a callback may return either a plain value or another `Result`; it preserves returned `Result` instances instead of wrapping them.
 - Use `Result::retryDefer(...)` or `Result::retrier()` for transient retries, not for validation or deterministic business rules.
+- Use `Result::combineAll(...)` when aggregating existing `Result[]` and you need every failure preserved; if any input fails, it returns only the collected failures and no success values.
 
 ## Canonical flow shape
 
-- Start with `Result::ok($input, $meta)`, `Result::fail($error, $meta)`, `Result::defer(fn () => ...)`, or `Result::bracket(...)` when resource safety is required.
+- Start with `Result::ok($input, $meta)`, `Result::fail($error, $meta)`, `Result::of(fn () => ...)`, `Result::defer(fn () => ...)`, or `Result::bracket(...)` when resource safety is required.
 - Compose steps with `->ensure(...)`, `->then(...)`, and `->otherwise(...)`.
 - Use `->thenUnsafe(...)` only when exception bubbling is the desired boundary behavior, such as transaction rollback.
 - Use `->recover(...)` only when you intentionally convert failure into success.
