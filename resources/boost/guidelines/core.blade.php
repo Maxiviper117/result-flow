@@ -12,16 +12,22 @@
 
 - Use `Maxiviper117\ResultFlow\Result` when failure is expected and should be handled explicitly in normal control flow.
 - Prefer ResultFlow for multi-step workflows (validation, persistence, side effects, response mapping).
+- Use the kitchen-sink docs for a full method tour when you need to compare related APIs; use the reference docs when you only need exact signatures or edge behavior.
 - Keep exception throwing for truly exceptional conditions; use `Result::fail(...)` for expected domain/application failures.
+- Use `Result::failWithValue(...)` when the input that triggered failure should stay visible in metadata.
+- Use `Result::defer(...)` when a callback may return either a plain value or another `Result`.
+- Use `Result::retryDefer(...)` or `Result::retrier()` for transient retries, not for validation or deterministic business rules.
 
 ## Canonical flow shape
 
 - Start with `Result::ok($input, $meta)`, `Result::fail($error, $meta)`, `Result::defer(fn () => ...)`, or `Result::bracket(...)` when resource safety is required.
 - Compose steps with `->ensure(...)`, `->then(...)`, and `->otherwise(...)`.
+- Use `->thenUnsafe(...)` only when exception bubbling is the desired boundary behavior, such as transaction rollback.
 - Use `->recover(...)` only when you intentionally convert failure into success.
 - End branches explicitly with either:
   - `->toResponse()` in Laravel HTTP flows, or
   - `->match(onSuccess: ..., onFailure: ...)` for non-HTTP/custom boundaries.
+- Use `->matchException(...)` when the boundary needs Throwable-class-specific handling.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
@@ -43,6 +49,8 @@ return $result->toResponse();
 - Preserve metadata across steps; when transforming failure, forward existing `$meta`.
 - Use stable keys like `request_id`, `trace_id`, `operation`, and `context`.
 - If a pipeline step throws, prefer the built-in `failed_step` metadata over ad-hoc duplicate step labels.
+- `mapMeta()` and `mergeMeta()` can inspect the current success value when the result is `Ok`.
+- `Result::retry(...)` and `Result::retryDefer(...)` can expose retry attempt metadata when the builder enables it.
 - Do not silently discard metadata inside `then`, `otherwise`, or `recover` handlers.
 
 ## Laravel response and transaction patterns
@@ -54,6 +62,7 @@ return $result->toResponse();
 - Use `Result::retryDefer(...)` for transient operations that may return value/Result or throw.
 - Use `Result::bracket(...)` for acquire/use/release flows where cleanup must always run.
 - If you serialize to XML, remember tag names are normalized for XML safety; treat XML output as a transport format, not a lossless mirror of arbitrary array keys.
+- Use `toDebugArray()` for logs and diagnostics instead of `toArray()` when payloads may contain secrets or large strings.
 
 ## Error payload conventions
 

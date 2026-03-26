@@ -17,7 +17,8 @@
 
 ## Where to change things
 - Core behavior lives in `src/` (primary class: `src/Result.php`).
-- Static constructor APIs (`ok`, `fail`, `failWithValue`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`) must stay documented in `docs/api.md` and reflected in Boost assets.
+- Public docs now live in `docs/` as a VitePress site with `concepts/`, `guides/`, `recipes/`, `reference/`, `kitchen-sink/`, `getting-started.md`, `faq.md`, and `laravel-boost.md`.
+- Static constructor APIs (`ok`, `fail`, `failWithValue`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`) must stay documented in the reference pages and reflected in Boost assets.
 - Internal helpers are organized under `src/Support/Traits/`, `src/Support/Operations/`, and `src/Support/Output/`.
 - `src/Support/Traits/` contains focused `Result` behavior traits (e.g., transform, unwrap, matching, taps, metadata ops).
 - `src/Support/Operations/` contains operation-style services/builders (e.g., retry, pipeline, batch mapping).
@@ -53,7 +54,8 @@
 ## Documentation expectations
 - Keep examples minimal and type-safe.
 - When adding a new method, include: signature, behavior, and a short example.
-- Ensure the guide and README stay consistent with the public API surface.
+- Ensure the concept, guide, recipe, reference, kitchen-sink, and README pages stay consistent with the public API surface.
+- Kitchen-sink docs should be organized as a section hub plus category pages, with each category covering the relevant methods in a scannable order.
 - Keep boundary serialization docs aligned with implementation details such as fallback response shape and encoding failure behavior.
 - Keep XML boundary docs aligned with the actual element-name normalization rules used by `toXml()`.
 - Keep observability docs aligned with emitted metadata keys such as `failed_step`.
