@@ -4,19 +4,20 @@ Use when diagnosing failures and preserving safe observability.
 
 ## Decision table
 
-| Need | Method |
-|---|---|
-| Add metadata keys | `mergeMeta` |
-| Replace metadata map | `mapMeta` |
-| Non-invasive metadata inspection | `tapMeta` |
-| Branch inspection | `inspect` / `inspectError` |
-| Safe diagnostics output | `toDebugArray` |
+| Need                             | Method                     |
+| -------------------------------- | -------------------------- |
+| Add metadata keys                | `mergeMeta`                |
+| Replace metadata map             | `mapMeta`                  |
+| Non-invasive metadata inspection | `tapMeta`                  |
+| Branch inspection                | `inspect` / `inspectError` |
+| Safe diagnostics output          | `toDebugArray`             |
 
 ## Guidance
 
 - Keep metadata keys stable (`request_id`, `operation`, `trace_id`).
 - Prefer `toDebugArray` in logs/diagnostics.
 - Keep instrumentation side-effect only.
+- `mapMeta` and `mergeMeta` now support success-aware callbacks: `fn ($meta, $value)`.
 - When a pipeline step throws, inspect `failed_step` metadata before adding your own step labels.
 
 ## Anti-patterns

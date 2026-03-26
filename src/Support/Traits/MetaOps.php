@@ -29,16 +29,17 @@ final class MetaOps
     }
 
     /**
-     * @template TSuccess
-     * @template TFailure
-     *
-     * @param  Result<TSuccess, TFailure>  $result
-     * @param  callable(array<string,mixed>): array<string,mixed>  $map
-     * @return Result<TSuccess, TFailure>
+     * @param  callable  $callable
+     * @return int
      */
-    public static function mapMeta(Result $result, callable $map): Result
+    private static function parameterCount(callable $callable): int
     {
-        return self::withMeta($result, $map($result->meta()));
+        /** @var \Closure $closure */
+        $closure = \Closure::fromCallable($callable);
+
+        $reflection = new \ReflectionFunction($closure);
+
+        return $reflection->getNumberOfParameters();
     }
 
     /**
@@ -46,12 +47,51 @@ final class MetaOps
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
-     * @param  array<string,mixed>  $meta
+     * @param  callable  $map
      * @return Result<TSuccess, TFailure>
      */
-    public static function mergeMeta(Result $result, array $meta): Result
+    public static function mapMeta(Result $result, callable $map): Result
     {
-        return self::withMeta($result, array_merge($result->meta(), $meta));
+        $meta = $result->meta();
+
+        if ($result->isOk() && self::parameterCount($map) > 1) {
+            /** @var array<string,mixed> $mappedMeta */
+            $mappedMeta = $map($meta, $result->value());
+        } else {
+            /** @var array<string,mixed> $mappedMeta */
+            $mappedMeta = $map($meta);
+        }
+
+        return self::withMeta($result, $mappedMeta);
+    }
+
+    /**
+     * @template TSuccess
+     * @template TFailure
+     *
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  array<string,mixed>|callable  $meta
+     * @return Result<TSuccess, TFailure>
+     */
+    public static function mergeMeta(Result $result, array|callable $meta): Result
+    {
+        $baseMeta = $result->meta();
+
+        if (is_callable($meta)) {
+            $patch = null;
+
+            if ($result->isOk() && self::parameterCount($meta) > 1) {
+                /** @var array<string,mixed> $patch */
+                $patch = $meta($baseMeta, $result->value());
+            } else {
+                /** @var array<string,mixed> $patch */
+                $patch = $meta($baseMeta);
+            }
+
+            return self::withMeta($result, [...$baseMeta, ...$patch]);
+        }
+
+        return self::withMeta($result, [...$baseMeta, ...$meta]);
     }
 
     /**

@@ -35,7 +35,8 @@ final class Result
         private mixed $value,
         private mixed $error,
         private array $meta = [],
-    ) {}
+    ) {
+    }
 
     // =========================================================================
     // Static Constructors
@@ -177,7 +178,7 @@ final class Result
             ->maxAttempts($times)
             ->delay($delay)
             ->exponential($exponential)
-            ->attempt(fn () => self::defer($fn));
+            ->attempt(fn() => self::defer($fn));
 
         return $result;
     }
@@ -226,7 +227,7 @@ final class Result
         $resource = $acquired->value();
 
         /** @var Result<T, E|Throwable> $used */
-        $used = self::defer(fn () => $use($resource));
+        $used = self::defer(fn() => $use($resource));
 
         try {
             $release($resource);
@@ -316,7 +317,7 @@ final class Result
             }
         }
 
-        if (! empty($errors)) {
+        if (!empty($errors)) {
             /** @var Result<array<T>, array<E>> */
             return self::fail($errors, $mergedMeta);
         }
@@ -393,7 +394,7 @@ final class Result
      */
     public function isFail(): bool
     {
-        return ! $this->ok;
+        return !$this->ok;
     }
 
     // =========================================================================
@@ -463,6 +464,10 @@ final class Result
     /**
      * Transform the metadata.
      *
+     * For Ok results, the callback may optionally accept a second parameter
+     * representing the current value, e.g. `fn (array $meta, mixed $value): array`.
+     * For Err results, the callback only receives metadata (as before).
+     *
      * @param  callable(array<string,mixed>): array<string,mixed>  $map
      * @return Result<TSuccess, TFailure>
      */
@@ -474,10 +479,16 @@ final class Result
     /**
      * Merge additional metadata into the result.
      *
-     * @param  array<string,mixed>  $meta
+     * Accepts either an array or a callback.
+     *
+     * When a callable is used:
+     * - On Ok, callback may be `fn (array $meta): array` or `fn (array $meta, mixed $value): array`.
+     * - On Err, callback is called with metadata only (existing behavior).
+     *
+     * @param  array<string,mixed>|callable  $meta
      * @return Result<TSuccess, TFailure>
      */
-    public function mergeMeta(array $meta): self
+    public function mergeMeta(array|callable $meta): self
     {
         return MetaOps::mergeMeta($this, $meta);
     }
@@ -598,7 +609,7 @@ final class Result
      */
     public function then(callable|object|array $next): self
     {
-        if (! $this->ok) {
+        if (!$this->ok) {
             /** @var Result<U, TFailure> $this @phpstan-ignore varTag.nativeType */
             return $this;
         }
@@ -649,7 +660,7 @@ final class Result
      */
     public function thenUnsafe(callable|object $next): self
     {
-        if (! $this->ok) {
+        if (!$this->ok) {
             /** @var Result<U, TFailure> $this @phpstan-ignore varTag.nativeType */
             return $this;
         }

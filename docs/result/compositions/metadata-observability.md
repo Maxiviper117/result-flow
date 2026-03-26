@@ -93,6 +93,33 @@ Try it:
 - `php examples\debug\debug-sanitization-demo.php`
 - `php examples\retry\retry-defer-test.php`
 
+## Ok value-aware metadata composition
+
+`mapMeta` and `mergeMeta` now optionally pass the successful value when the callback signature includes a second argument.
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::ok(['user' => 'alice', 'roles' => ['admin', 'user']], ['request_id' => 'r-1'])
+    ->mergeMeta(fn (array $meta, array $value) => [
+        ...$meta,
+        'role_count' => count($value['roles']),
+        'user' => $value['user'],
+    ])
+    ->mapMeta(fn (array $meta, array $value) => [
+        ...$meta,
+        'summary' => sprintf('%s (%d roles)', $value['user'], count($value['roles'])),
+    ]);
+
+// On failure, callbacks are called with metadata only (no value Arg).
+$failed = Result::fail('missing-data', ['request_id' => 'r-2'])
+    ->mergeMeta(fn (array $meta) => [...$meta, 'error_note' => 'skipped value']);
+```
+
 ## Failure modes and edge cases
 
 - Overwriting keys with `mergeMeta` is last-write-wins.
