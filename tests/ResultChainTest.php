@@ -64,7 +64,7 @@ describe('thenUnsafe()', function () {
     });
 
     it('lets exceptions bubble up (does not catch)', function () {
-        $exception = new \RuntimeException('Intentional failure');
+        $exception = new RuntimeException('Intentional failure');
 
         $this->expectExceptionObject($exception);
 

@@ -463,6 +463,10 @@ final class Result
     /**
      * Transform the metadata.
      *
+     * For Ok results, the callback may optionally accept a second parameter
+     * representing the current value, e.g. `fn (array $meta, mixed $value): array`.
+     * For Err results, the callback only receives metadata (as before).
+     *
      * @param  callable(array<string,mixed>): array<string,mixed>  $map
      * @return Result<TSuccess, TFailure>
      */
@@ -474,10 +478,16 @@ final class Result
     /**
      * Merge additional metadata into the result.
      *
-     * @param  array<string,mixed>  $meta
+     * Accepts either an array or a callback.
+     *
+     * When a callable is used:
+     * - On Ok, callback may be `fn (array $meta): array` or `fn (array $meta, mixed $value): array`.
+     * - On Err, callback is called with metadata only (existing behavior).
+     *
+     * @param  array<string,mixed>|callable  $meta
      * @return Result<TSuccess, TFailure>
      */
-    public function mergeMeta(array $meta): self
+    public function mergeMeta(array|callable $meta): self
     {
         return MetaOps::mergeMeta($this, $meta);
     }

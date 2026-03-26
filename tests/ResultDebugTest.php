@@ -108,7 +108,7 @@ describe('toDebugArray()', function () {
         ConfigStub::reset();
         ConfigStub::set('result-flow.debug', ['max_string_length' => 200]);
 
-        $result = Result::fail(new \RuntimeException('Connection failed'));
+        $result = Result::fail(new RuntimeException('Connection failed'));
         $debug = $result->toDebugArray();
 
         expect($debug['ok'])->toBeFalse();
@@ -152,7 +152,7 @@ describe('edge cases: toArray and toDebugArray', function () {
     });
 
     it('toDebugArray shows type for objects', function () {
-        $obj = new \stdClass;
+        $obj = new stdClass;
         $result = Result::ok($obj);
         $debug = $result->toDebugArray();
 

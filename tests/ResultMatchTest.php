@@ -52,9 +52,9 @@ describe('match()', function () {
 describe('exception matchers', function () {
     it('catchException recovers from matching Throwable and wraps plain values', function () {
         $result = Result::of(function () {
-            throw new \RuntimeException('boom');
+            throw new RuntimeException('boom');
         })->catchException([
-            \RuntimeException::class => fn (\RuntimeException $e, array $meta) => 'recovered',
+            RuntimeException::class => fn (RuntimeException $e, array $meta) => 'recovered',
         ]);
 
         expect($result->isOk())->toBeTrue();
@@ -62,9 +62,9 @@ describe('exception matchers', function () {
     });
 
     it('catchException returns original result if no handler matches and no fallback provided', function () {
-        $ex = new \InvalidArgumentException('bad');
+        $ex = new InvalidArgumentException('bad');
         $result = Result::fail($ex)->catchException([
-            \RuntimeException::class => fn (\RuntimeException $e) => Result::ok('recovered'),
+            RuntimeException::class => fn (RuntimeException $e) => Result::ok('recovered'),
         ]);
 
         expect($result->isFail())->toBeTrue();
@@ -72,9 +72,9 @@ describe('exception matchers', function () {
     });
 
     it('catchException uses fallback when provided', function () {
-        $ex = new \InvalidArgumentException('bad');
+        $ex = new InvalidArgumentException('bad');
         $result = Result::fail($ex)->catchException([
-            \RuntimeException::class => fn (\RuntimeException $e) => Result::ok('recovered'),
+            RuntimeException::class => fn (RuntimeException $e) => Result::ok('recovered'),
         ], fallback: fn ($err, $meta) => 'fallback');
 
         expect($result->isOk())->toBeTrue();
@@ -85,13 +85,13 @@ describe('exception matchers', function () {
         $ok = Result::ok('hello')->matchException([], onSuccess: fn ($v) => strtoupper($v), onUnhandled: fn () => 'nope');
         expect($ok)->toBe('HELLO');
 
-        $handled = Result::fail(new \RuntimeException('boom'))->matchException([
-            \RuntimeException::class => fn (\RuntimeException $e) => 'handled',
+        $handled = Result::fail(new RuntimeException('boom'))->matchException([
+            RuntimeException::class => fn (RuntimeException $e) => 'handled',
         ], onSuccess: fn () => 'ignored', onUnhandled: fn () => 'fallback');
         expect($handled)->toBe('handled');
 
         $unhandled = Result::fail('plain-error')->matchException([
-            \RuntimeException::class => fn (\RuntimeException $e) => 'handled',
+            RuntimeException::class => fn (RuntimeException $e) => 'handled',
         ], onSuccess: fn () => 'ignored', onUnhandled: fn ($e, $meta) => 'unhandled');
         expect($unhandled)->toBe('unhandled');
     });

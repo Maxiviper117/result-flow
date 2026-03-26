@@ -281,17 +281,19 @@ Contract:
 ### `mapMeta(callable $map): Result`
 
 Contract:
-- Callback: `fn (array $meta): array`
+- Callback: `fn (array $meta): array` or `fn (array $meta, mixed $value): array` (Ok only)
 - Replaces metadata with callback output.
 
-### `mergeMeta(array $meta): Result`
+### `mergeMeta(array|callable $meta): Result`
 
 Contract:
-- Merge metadata keys into current metadata.
+- `array`: merge metadata keys into current metadata.
+- `callable`: `fn (array $meta): array` or `fn (array $meta, mixed $value): array` (Ok only)
 
 Example:
 ```php
 $result = Result::ok($dto, ['request_id' => 'r-1'])->mergeMeta(['step' => 'validated']);
+$result = Result::ok($user)->mergeMeta(fn ($meta, $user) => [...$meta, 'user_id' => $user->id]);
 ```
 
 ## Tap and inspection methods
@@ -531,19 +533,19 @@ Behavior:
 
 ## Method selection quick table
 
-| Need | Method |
-|---|---|
-| Build result from value/error | `ok`, `fail`, `failWithValue` |
-| Wrap throwing call | `of` |
-| Transform success value | `map` |
-| Chain step returning Result | `then` / `flatMap` |
-| Handle failure branch | `otherwise` / `catchException` |
-| Recover to success | `recover` |
-| Fail-fast combine | `combine` / `mapAll` |
-| Collect-all combine | `combineAll` / `mapCollectErrors` |
-| Final branch handling | `match` |
-| Throwing extraction | `unwrap`, `getOrThrow`, `throwIfFail` |
-| Boundary serialization | `toJson`, `toXml`, `toResponse` |
+| Need                          | Method                                |
+| ----------------------------- | ------------------------------------- |
+| Build result from value/error | `ok`, `fail`, `failWithValue`         |
+| Wrap throwing call            | `of`                                  |
+| Transform success value       | `map`                                 |
+| Chain step returning Result   | `then` / `flatMap`                    |
+| Handle failure branch         | `otherwise` / `catchException`        |
+| Recover to success            | `recover`                             |
+| Fail-fast combine             | `combine` / `mapAll`                  |
+| Collect-all combine           | `combineAll` / `mapCollectErrors`     |
+| Final branch handling         | `match`                               |
+| Throwing extraction           | `unwrap`, `getOrThrow`, `throwIfFail` |
+| Boundary serialization        | `toJson`, `toXml`, `toResponse`       |
 
 ## Related pages
 

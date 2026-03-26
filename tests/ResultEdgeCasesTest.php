@@ -72,7 +72,7 @@ describe('edge cases: unwrap behavior', function () {
     it('unwrap throws RuntimeException for non-Throwable string error', function () {
         $result = Result::fail('string error');
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('string error');
 
         $result->unwrap();
@@ -81,7 +81,7 @@ describe('edge cases: unwrap behavior', function () {
     it('unwrap throws RuntimeException with default message for non-string error', function () {
         $result = Result::fail(['complex' => 'error']);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Result failed');
 
         $result->unwrap();
@@ -258,7 +258,7 @@ describe('edge cases: ensure method', function () {
     });
 
     it('ensure preserves original value on pass', function () {
-        $original = new \stdClass;
+        $original = new stdClass;
         $original->id = 123;
 
         $result = Result::ok($original)
@@ -314,7 +314,7 @@ describe('edge cases: match method', function () {
             onFailure: fn () => null,
         );
 
-        Result::fail(new \RuntimeException('error'))->match(
+        Result::fail(new RuntimeException('error'))->match(
             onSuccess: fn () => null,
             onFailure: function ($e) use (&$failureType) {
                 $failureType = get_class($e);
@@ -324,7 +324,7 @@ describe('edge cases: match method', function () {
         );
 
         expect($successType)->toBe('array');
-        expect($failureType)->toBe(\RuntimeException::class);
+        expect($failureType)->toBe(RuntimeException::class);
     });
 });
 
@@ -419,13 +419,13 @@ describe('edge cases: of() static constructor', function () {
     });
 
     it('of captures nested exceptions', function () {
-        $innerException = new \InvalidArgumentException('inner');
+        $innerException = new InvalidArgumentException('inner');
         $result = Result::of(function () use ($innerException) {
-            throw new \RuntimeException('outer', 0, $innerException);
+            throw new RuntimeException('outer', 0, $innerException);
         });
 
         expect($result->isFail())->toBeTrue();
-        expect($result->error())->toBeInstanceOf(\RuntimeException::class);
+        expect($result->error())->toBeInstanceOf(RuntimeException::class);
         expect($result->error()->getPrevious())->toBe($innerException);
     });
 });
@@ -440,7 +440,7 @@ describe('edge cases: step invocation patterns', function () {
         $result = Result::ok('value')->then($badStep);
 
         expect($result->isFail())->toBeTrue();
-        expect($result->error())->toBeInstanceOf(\InvalidArgumentException::class);
+        expect($result->error())->toBeInstanceOf(InvalidArgumentException::class);
     });
 
     it('prefers __invoke over handle', function () {
@@ -536,5 +536,33 @@ describe('edge cases: meta operations', function () {
             });
 
         expect($received)->toBe(['current' => 'meta']);
+    });
+
+    it('mapMeta can access Ok value when the callback accepts it', function () {
+        $result = Result::ok('value', ['current' => 'meta'])
+            ->mapMeta(fn ($meta, $value) => [...$meta, 'computed' => strtoupper($value)]);
+
+        expect($result->meta())->toBe(['current' => 'meta', 'computed' => 'VALUE']);
+    });
+
+    it('mapMeta still works on Err with a callback that optionally accepts value', function () {
+        $result = Result::fail('nope', ['current' => 'meta'])
+            ->mapMeta(fn ($meta, $value = null) => [...$meta, 'value' => $value]);
+
+        expect($result->meta())->toBe(['current' => 'meta', 'value' => null]);
+    });
+
+    it('mergeMeta can use callback value-aware patches', function () {
+        $result = Result::ok('value', ['current' => 'meta'])
+            ->mergeMeta(fn ($meta, $value) => ['added' => strlen($value)]);
+
+        expect($result->meta())->toBe(['current' => 'meta', 'added' => 5]);
+    });
+
+    it('mergeMeta with callable on Err only receives meta', function () {
+        $result = Result::fail('err', ['current' => 'meta'])
+            ->mergeMeta(fn ($meta) => ['added' => 'no-value']);
+
+        expect($result->meta())->toBe(['current' => 'meta', 'added' => 'no-value']);
     });
 });

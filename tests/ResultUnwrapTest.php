@@ -21,7 +21,7 @@ describe('throwIfFail()', function () {
     });
 
     it('throws Throwable error directly', function () {
-        $exception = new \InvalidArgumentException('Custom exception');
+        $exception = new InvalidArgumentException('Custom exception');
 
         $this->expectExceptionObject($exception);
 
@@ -29,21 +29,21 @@ describe('throwIfFail()', function () {
     });
 
     it('throws RuntimeException for string error', function () {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Something went wrong');
 
         Result::fail('Something went wrong')->throwIfFail();
     });
 
     it('throws RuntimeException with JSON for non-string non-throwable error', function () {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('{"code":500,"message":"Server error"}');
 
         Result::fail(['code' => 500, 'message' => 'Server error'])->throwIfFail();
     });
 
     it('throws RuntimeException with fallback for non-encodable error', function () {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('INF');
 
         Result::fail(INF)->throwIfFail();
@@ -88,24 +88,24 @@ describe('unwrapOrElse()', function () {
 describe('getOrThrow()', function () {
     it('returns value on success', function () {
         $value = Result::ok('success')
-            ->getOrThrow(fn () => new \RuntimeException('Should not throw'));
+            ->getOrThrow(fn () => new RuntimeException('Should not throw'));
 
         expect($value)->toBe('success');
     });
 
     it('throws custom exception on failure', function () {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Custom error: validation failed');
 
         Result::fail('validation failed')
-            ->getOrThrow(fn ($e) => new \InvalidArgumentException("Custom error: {$e}"));
+            ->getOrThrow(fn ($e) => new InvalidArgumentException("Custom error: {$e}"));
     });
 
     it('receives meta in exception factory', function () {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Error code: 404');
 
         Result::fail('not found', ['code' => 404])
-            ->getOrThrow(fn ($e, $meta) => new \RuntimeException("Error code: {$meta['code']}"));
+            ->getOrThrow(fn ($e, $meta) => new RuntimeException("Error code: {$meta['code']}"));
     });
 });
