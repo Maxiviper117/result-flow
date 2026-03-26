@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.4](https://github.com/Maxiviper117/result-flow/compare/v1.11.3...v1.11.4) (2026-03-26)
+
+
+### Bug Fixes
+
+* styling and maintenance ([#80](https://github.com/Maxiviper117/result-flow/issues/80)) ([e646fc2](https://github.com/Maxiviper117/result-flow/commit/e646fc27a251de08911d93b4563a2b0a590b918e))
+
 ## [1.11.3](https://github.com/Maxiviper117/result-flow/compare/v1.11.2...v1.11.3) (2026-03-06)
 
 
