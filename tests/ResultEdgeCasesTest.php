@@ -559,6 +559,13 @@ describe('edge cases: meta operations', function () {
         expect($result->meta())->toBe(['current' => 'meta', 'added' => 5]);
     });
 
+    it('mergeMeta still supports Ok callbacks that only accept meta', function () {
+        $result = Result::ok('value', ['current' => 'meta'])
+            ->mergeMeta(fn ($meta) => ['added' => strtoupper($meta['current'])]);
+
+        expect($result->meta())->toBe(['current' => 'meta', 'added' => 'META']);
+    });
+
     it('mergeMeta with callable on Err only receives meta', function () {
         $result = Result::fail('err', ['current' => 'meta'])
             ->mergeMeta(fn ($meta) => ['added' => 'no-value']);
