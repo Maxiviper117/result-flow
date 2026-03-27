@@ -31,4 +31,4 @@ Use `toDebugArray()`, not `toArray()`, when the output may contain secrets or lo
 - raw items and fail fast -> `mapAll`
 - raw items and collect all errors -> `mapCollectErrors`
 - existing `Result[]` and fail fast -> `combine`
-- existing `Result[]` and collect all errors -> `combineAll`
+- existing `Result[]` and collect all errors -> `combineAll` (returns only failures if any input fails)

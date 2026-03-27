@@ -27,6 +27,9 @@ $result = Result::of(fn () => $gateway->send($payload))
 - it keeps one stable error schema
 - it preserves metadata
 - it avoids mixing raw exceptions with structured failures
+- `of(...)` is the right entry point here when `$gateway->send(...)` returns a plain payload on success and throws on failure
+
+If the upstream gateway may already return `Result::ok(...)` or `Result::fail(...)`, switch the entry point to `Result::defer(...)` so the upstream result is preserved instead of wrapped as a success value.
 
 ## Related pages
 

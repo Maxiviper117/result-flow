@@ -18,10 +18,11 @@ Combines existing `Result` values.
 
 ## `combineAll(array $results): Result`
 
-Combines existing `Result` values and collects all failures.
+Combines existing `Result` values, returns no success values when any failure exists, and collects all failures.
 
 - success values are collected into an array
 - failures are collected into an array of errors
+- no success values are returned if any input fails
 - metadata from all processed results is merged in order
 
 ## `mapItems(array $items, callable $fn): array`

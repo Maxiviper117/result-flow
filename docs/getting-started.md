@@ -43,7 +43,9 @@ $result = Result::ok(['total' => 42], ['request_id' => 'r-1'])
 - Failure methods skip successes.
 - `then(...)` catches thrown exceptions and turns them into failure.
 - `thenUnsafe(...)` lets exceptions bubble.
-- `defer(...)` accepts a callback that may return a plain value or a `Result`.
+- `of(...)` is for callbacks that return a plain value on success and throw on failure.
+- `defer(...)` is for callbacks that may return a plain value, return a `Result`, or throw.
+- `of(...)` wraps a returned `Result` as a success value; `defer(...)` preserves a returned `Result` as the active branch.
 
 ## Read this next
 

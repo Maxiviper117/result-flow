@@ -3,12 +3,25 @@
 Run these scripts from project root to manually inspect behavior outside automated tests.
 
 Suggested order if you are new:
-1. `examples\defer\defer-test.php`
-2. `examples\retry\retry-test.php`
-3. `examples\retry\retry-defer-test.php`
-4. `examples\defer\bracket-test.php`
-5. `examples\batch\batch-map-demo.php`
-6. `examples\debug\debug-sanitization-demo.php`
+1. `examples\construction\of-defer-demo.php`
+2. `examples\defer\defer-test.php`
+3. `examples\retry\retry-test.php`
+4. `examples\retry\retry-defer-test.php`
+5. `examples\defer\bracket-test.php`
+6. `examples\batch\batch-map-demo.php`
+7. `examples\debug\debug-sanitization-demo.php`
+
+## Construction examples
+
+### `php examples\construction\of-defer-demo.php`
+
+Purpose:
+- Compare `Result::of()` and `Result::defer()` in one place.
+
+Concept:
+- `Result::of()` wraps a callback that returns a plain value or throws.
+- `Result::defer()` wraps a callback that may return either a plain value or another `Result`.
+- Both constructors convert thrown exceptions into failure results.
 
 ## Debug examples
 

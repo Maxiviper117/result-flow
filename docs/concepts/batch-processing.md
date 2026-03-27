@@ -22,7 +22,7 @@ $results = Result::mapItems($rows, fn (array $row, string $key) => validateRow($
 ## What to remember
 
 - `mapAll(...)` and `combine(...)` are fail-fast.
-- `mapCollectErrors(...)` and `combineAll(...)` collect all failures.
+- `mapCollectErrors(...)` and `combineAll(...)` collect all failures; `combineAll(...)` does not return success values if any input fails.
 - keys are preserved where the API says they are preserved.
 
 ## Related pages

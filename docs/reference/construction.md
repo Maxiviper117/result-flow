@@ -29,7 +29,10 @@ Creates a failure result and stores the value that caused it in metadata under `
 Runs a throwing callback and converts thrown exceptions to failure.
 
 - return value -> success
+- returned `Result` -> success containing that `Result` as the value
 - thrown exception -> failure with the exception object
+
+Choose this when the callback's success path returns a plain value and failure is expressed by throwing.
 
 ## `Result::defer(callable $fn): Result`
 
@@ -38,6 +41,8 @@ Runs a callback that may return a plain value, return a `Result`, or throw.
 - plain value -> success
 - returned `Result` -> returned as-is
 - thrown exception -> failure
+
+Choose this when the callback may already return `Result::ok(...)` or `Result::fail(...)` and you do not want nested `Result` values.
 
 ## `Result::retry(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result`
 

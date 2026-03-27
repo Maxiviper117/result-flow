@@ -4,17 +4,18 @@ Use when finalizing a `Result` into app-facing output.
 
 ## Decision table
 
-| Boundary need | Method |
-|---|---|
-| Branch-aware output object | `match` |
-| Throwable-class branch handling | `matchException` |
-| Plain value fallback | `unwrapOr` / `unwrapOrElse` |
-| Throw custom exception | `getOrThrow` |
-| Throw on failure with default conversion | `throwIfFail` |
-| HTTP edge conversion | `toResponse` |
+| Boundary need                            | Method                      |
+| ---------------------------------------- | --------------------------- |
+| Branch-aware output object               | `match`                     |
+| Throwable-class branch handling          | `matchException`            |
+| Plain value fallback                     | `unwrapOr` / `unwrapOrElse` |
+| Throw custom exception                   | `getOrThrow`                |
+| Throw on failure with default conversion | `throwIfFail`               |
+| HTTP edge conversion                     | `toResponse`                |
 
 ## Guidance
 
+- Use the kitchen-sink finalization page when you want the grouped walkthrough of `match`, `unwrap*`, `getOrThrow`, `throwIfFail`, and transport helpers before choosing a boundary method.
 - Use one boundary style per function unless bridging layers.
 - Normalize errors before exposing to transport/UI boundaries.
 - Keep `toJson` and non-Laravel `toResponse` payloads JSON-encodable; invalid encoding should be treated as a boundary error.
