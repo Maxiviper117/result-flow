@@ -25,8 +25,7 @@ final class ResultCorePipelineDto
         public string $sku,
         public int $price,
         public string $description,
-    ) {
-    }
+    ) {}
 
     public function toArray(): array
     {

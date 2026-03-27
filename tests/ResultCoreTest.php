@@ -4,7 +4,7 @@ use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Tests\Support\ResultCoreCallableArrayService;
 use Maxiviper117\ResultFlow\Tests\Support\ResultCorePipelineDto;
 
-require_once __DIR__ . '/Support/ResultCoreHelpers.php';
+require_once __DIR__.'/Support/ResultCoreHelpers.php';
 
 function resultFlowThrowingNamedStep(mixed $value, array $meta): mixed
 {
@@ -258,7 +258,7 @@ it('preserves string callable names in failed_step metadata', function () {
 });
 
 it('accepts callable array steps without splitting them', function () {
-    $service = new ResultCoreCallableArrayService();
+    $service = new ResultCoreCallableArrayService;
 
     $result = Result::ok(10, ['base' => true])
         ->then([$service, 'handle']) // should be treated as a single callable, not two steps

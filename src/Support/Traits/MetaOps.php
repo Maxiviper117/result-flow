@@ -86,13 +86,11 @@ final class MetaOps
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
-     * @param  callable  $callback
      * @param  array<string,mixed>  $meta
-     * @return mixed
      */
     private static function callMetaCallback(Result $result, callable $callback, array $meta): mixed
     {
-        if (! $result->isOk()) {
+        if (!$result->isOk()) {
             return $callback($meta);
         }
 
