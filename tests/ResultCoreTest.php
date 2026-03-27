@@ -1,6 +1,10 @@
 <?php
 
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Tests\Support\ResultCoreCallableArrayService;
+use Maxiviper117\ResultFlow\Tests\Support\ResultCorePipelineDto;
+
+require_once __DIR__.'/Support/ResultCoreHelpers.php';
 
 function resultFlowThrowingNamedStep(mixed $value, array $meta): mixed
 {
@@ -254,17 +258,7 @@ it('preserves string callable names in failed_step metadata', function () {
 });
 
 it('accepts callable array steps without splitting them', function () {
-    $service = new class
-    {
-        public array $calledWith = [];
-
-        public function handle($value, $meta)
-        {
-            $this->calledWith = [$value, $meta];
-
-            return Result::ok($value + 5, array_merge($meta, ['from' => 'service']));
-        }
-    };
+    $service = new ResultCoreCallableArrayService;
 
     $result = Result::ok(10, ['base' => true])
         ->then([$service, 'handle']) // should be treated as a single callable, not two steps
@@ -294,20 +288,7 @@ it('converts thrown exception in then() to failure and unwrap throws', function 
 
 it('pipeline then() with a local NotifyAction that throws becomes failure and onFailure runs', function () {
     // Create a lightweight test DTO class inline so the test doesn't depend on repo classes
-    $dto = new class('Another Test Product', 'ANOTHERSKU456', 2999, 'Another dummy product for testing.')
-    {
-        public function __construct(public string $name, public string $sku, public int $price, public string $description) {}
-
-        public function toArray(): array
-        {
-            return [
-                'name' => $this->name,
-                'sku' => $this->sku,
-                'price' => $this->price,
-                'description' => $this->description,
-            ];
-        }
-    };
+    $dto = new ResultCorePipelineDto('Another Test Product', 'ANOTHERSKU456', 2999, 'Another dummy product for testing.');
 
     // Local NotifyAction-like object that throws when invoked
     $notify = new class

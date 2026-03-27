@@ -26,11 +26,11 @@ $result = Result::ok($value, ['request_id' => 'r-1'])
 ## How it behaves
 
 - `meta()` returns the current map.
-- `tapMeta(...)` observes metadata without changing the result.
+- `tapMeta(...)` observes metadata without changing the result. On success the callback may also receive the value as a second argument.
 - `mapMeta(...)` replaces the metadata map.
 - `mergeMeta(...)` adds or overwrites keys.
 
-On `Ok`, `mapMeta(...)` and `mergeMeta(...)` may accept callbacks that also receive the current value.
+On `Ok`, `mapMeta(...)` and `mergeMeta(...)` may accept callbacks that also receive the current value as a second argument (callbacks receive metadata first).
 
 ## A useful rule
 

@@ -18,23 +18,15 @@ final class MetaOps
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
-     * @param  callable(array<string,mixed>): void  $tap
      * @return Result<TSuccess, TFailure>
      */
     public static function tapMeta(Result $result, callable $tap): Result
     {
-        $tap($result->meta());
+        // Allow tap callbacks to accept either (meta) or (meta, value) just like
+        // the other meta helpers. We ignore the return value.
+        self::callMetaCallback($result, $tap, $result->meta());
 
         return $result;
-    }
-
-    private static function parameterCount(callable $callable): int
-    {
-        $closure = \Closure::fromCallable($callable);
-
-        $reflection = new \ReflectionFunction($closure);
-
-        return $reflection->getNumberOfParameters();
     }
 
     /**
@@ -46,15 +38,8 @@ final class MetaOps
      */
     public static function mapMeta(Result $result, callable $map): Result
     {
-        $meta = $result->meta();
-
-        if ($result->isOk() && self::parameterCount($map) > 1) {
-            /** @var array<string,mixed> $mappedMeta */
-            $mappedMeta = $map($meta, $result->value());
-        } else {
-            /** @var array<string,mixed> $mappedMeta */
-            $mappedMeta = $map($meta);
-        }
+        /** @var array<string,mixed> $mappedMeta */
+        $mappedMeta = self::callMetaCallback($result, $map, $result->meta());
 
         return self::withMeta($result, $mappedMeta);
     }
@@ -72,15 +57,8 @@ final class MetaOps
         $baseMeta = $result->meta();
 
         if (is_callable($meta)) {
-            $patch = null;
-
-            if ($result->isOk() && self::parameterCount($meta) > 1) {
-                /** @var array<string,mixed> $patch */
-                $patch = $meta($baseMeta, $result->value());
-            } else {
-                /** @var array<string,mixed> $patch */
-                $patch = $meta($baseMeta);
-            }
+            /** @var array<string,mixed> $patch */
+            $patch = self::callMetaCallback($result, $meta, $baseMeta);
 
             return self::withMeta($result, [...$baseMeta, ...$patch]);
         }
@@ -98,11 +76,29 @@ final class MetaOps
      */
     private static function withMeta(Result $result, array $meta): Result
     {
-        $cloned = $result->isOk()
-            ? Result::ok($result->value(), $meta)
-            : Result::fail($result->error(), $meta);
+        $cloned = $result->isOk() ? Result::ok($result->value(), $meta) : Result::fail($result->error(), $meta);
 
         /** @var Result<TSuccess, TFailure> $cloned */
         return $cloned;
+    }
+
+    /**
+     * @template TSuccess
+     * @template TFailure
+     *
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  array<string,mixed>  $meta
+     */
+    private static function callMetaCallback(Result $result, callable $callback, array $meta): mixed
+    {
+        if (! $result->isOk()) {
+            return $callback($meta);
+        }
+
+        try {
+            return $callback($meta, $result->value());
+        } catch (\ArgumentCountError) {
+            return $callback($meta);
+        }
     }
 }
