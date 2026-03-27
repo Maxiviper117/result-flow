@@ -130,7 +130,7 @@ $meta = $result->meta();
 
 ## tapMeta
 
-`tapMeta(...)` calls the callback with the current metadata and leaves the result unchanged.
+`tapMeta(...)` calls the callback with the current metadata and leaves the result unchanged. On `Ok`, the callback will be invoked with the metadata as the first argument and the success value as an optional second argument; on `Fail` the callback receives metadata only.
 
 ```php
 tapMeta(callable $tap): self
@@ -138,9 +138,9 @@ tapMeta(callable $tap): self
 
 ### Inputs:
 
-* `$tap`: callback that receives the metadata
+* `$tap`: callback that receives the metadata (and optionally the value when the result is `Ok`)
 
-Use it for metadata-only observation, logging, or debugging.
+Use it for metadata observation, logging, or debugging.
 
 Use:
 
@@ -149,7 +149,7 @@ use Maxiviper117\ResultFlow\Result;
 
 $result = Result::ok(42);
 
-$result = $result->tapMeta(fn (array $meta) => logger()->debug('meta', $meta));
+$result = $result->tapMeta(fn (array $meta, $value = null) => logger()->debug('meta', compact('meta', 'value')));
 ```
 
 ## mapMeta
@@ -162,11 +162,11 @@ mapMeta(callable $map): self
 
 ### Inputs:
 
-* `$map`: callback that receives the current value and metadata on success, or metadata only on failure
+* `$map`: callback that receives the current metadata and, when the result is `Ok`, the current value as a second argument
 
 ### Behavior:
 
-- on `Ok`, the callback receives the current value and metadata
+- on `Ok`, the callback receives the current metadata and the value as the second argument
 - on `Fail`, the callback receives metadata only
 - the result keeps the same branch and new metadata
 
@@ -179,7 +179,7 @@ use Maxiviper117\ResultFlow\Result;
 
 $result = Result::ok(42);
 
-$result = $result->mapMeta(fn ($value, array $meta) => [
+$result = $result->mapMeta(fn (array $meta, $value = null) => [
     ...$meta,
     'operation' => 'normalize',
     'value_type' => get_debug_type($value),
@@ -201,7 +201,7 @@ mergeMeta(array|callable $meta): self
 ### Behavior:
 
 - array input merges keys directly
-- callable input may inspect metadata, and on `Ok` also receives the current value
+- callable input may inspect metadata, and on `Ok` also receives the current value as a second argument
 
 Use it when you want to add a few keys without replacing the whole map.
 
@@ -210,7 +210,7 @@ Use:
 ```php
 $result = $result->mergeMeta(['operation' => 'normalize']);
 
-$result = $result->mergeMeta(fn ($value, array $meta) => [
+$result = $result->mergeMeta(fn (array $meta, $value = null) => [
     ...$meta,
     'operation' => 'normalize',
     'value_type' => get_debug_type($value),

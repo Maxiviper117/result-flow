@@ -18,12 +18,13 @@ final class MetaOps
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
-     * @param  callable(array<string,mixed>): void  $tap
      * @return Result<TSuccess, TFailure>
      */
     public static function tapMeta(Result $result, callable $tap): Result
     {
-        $tap($result->meta());
+        // Allow tap callbacks to accept either (meta) or (meta, value) just like
+        // the other meta helpers. We ignore the return value.
+        self::callMetaCallback($result, $tap, $result->meta());
 
         return $result;
     }
@@ -90,7 +91,7 @@ final class MetaOps
      */
     private static function callMetaCallback(Result $result, callable $callback, array $meta): mixed
     {
-        if (!$result->isOk()) {
+        if (! $result->isOk()) {
             return $callback($meta);
         }
 

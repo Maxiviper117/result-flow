@@ -14,7 +14,7 @@ Returns the current metadata map.
 
 ## `tapMeta(callable $tap): Result`
 
-Observes metadata without changing the result.
+Observes metadata without changing the result. On `Ok`, the callback will be invoked with the metadata as the first argument and the success value as an optional second argument; on `Fail` the callback receives metadata only.
 
 ## `mapMeta(callable $map): Result`
 
@@ -22,12 +22,12 @@ Replaces metadata with the callback output.
 
 The argument is a callable only.
 
-On `Ok`, the callback receives the current value as the first argument and the current metadata as the second argument.
+On `Ok`, the callback receives the current metadata as the first argument and the current value as the second argument.
 
 On `Fail`, the callback receives metadata only.
 
 ```php
-$result = $result->mapMeta(fn ($value, array $meta) => [
+$result = $result->mapMeta(fn (array $meta, $value = null) => [
     ...$meta,
     'operation' => 'normalize',
     'value_type' => get_debug_type($value),
@@ -40,12 +40,12 @@ Adds or overwrites metadata keys.
 
 The argument may be either an array or a callable.
 
-On `Ok`, the callable receives the current value as the first argument and the current metadata as the second argument.
+On `Ok`, the callable receives the current metadata as the first argument and the current value as the second argument.
 
 On `Fail`, the callable receives metadata only.
 
 ```php
-$result = $result->mergeMeta(fn ($value, array $meta) => [
+$result = $result->mergeMeta(fn (array $meta, $value = null) => [
     ...$meta,
     'operation' => 'normalize',
     'value_type' => get_debug_type($value),
