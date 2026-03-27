@@ -6,7 +6,6 @@ namespace Maxiviper117\ResultFlow\Support\Traits;
 
 use Maxiviper117\ResultFlow\Result;
 
-
 /**
  * Metadata manipulation helpers for Result.
  *
@@ -19,7 +18,7 @@ final class MetaOps
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
-     * @param (callable(array<string,mixed>): mixed)|(callable(array<string,mixed>, TSuccess|null): mixed) $tap
+     * @param  (callable(array<string,mixed>): mixed)|(callable(array<string,mixed>, TSuccess|null): mixed)  $tap
      * @return Result<TSuccess, TFailure>
      */
     public static function tapMeta(Result $result, callable $tap): Result
@@ -100,9 +99,9 @@ final class MetaOps
      * @template TSuccess
      * @template TFailure
      *
-     * @param Result<TSuccess, TFailure> $result
-     * @param (callable(array<string,mixed>): mixed)|(callable(array<string,mixed>, TSuccess|null): mixed) $callback
-     * @param array<string,mixed> $meta
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  (callable(array<string,mixed>): mixed)|(callable(array<string,mixed>, TSuccess|null): mixed)  $callback
+     * @param  array<string,mixed>  $meta
      */
     private static function callMetaCallback(Result $result, callable $callback, array $meta): mixed
     {
@@ -114,6 +113,7 @@ final class MetaOps
 
         if ($ref->getNumberOfParameters() >= 2) {
             $value = $result->isOk() ? $result->value() : null;
+
             return $closure($meta, $value);
         }
 
