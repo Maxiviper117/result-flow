@@ -22,6 +22,8 @@ logger()->info('safe-debug', $result->toDebugArray());
 - `mergeMeta(...)` to add keys.
 - `mapMeta(...)` to replace metadata.
 - `tapMeta(...)` to inspect metadata.
+ 
+Note: If your metadata callback accepts two parameters, the library will pass the flow value as the second argument for `Ok` results and `null` for `Fail` results. Use an optional/nullable second parameter to handle both branches safely (for example `fn(array $meta, $value = null)`).
 - `tap(...)`, `onSuccess(...)`, `inspect(...)`, `onFailure(...)`, and `inspectError(...)` for side effects.
 - `toDebugArray(...)` for log-safe output.
 

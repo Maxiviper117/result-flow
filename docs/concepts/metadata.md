@@ -32,6 +32,8 @@ $result = Result::ok($value, ['request_id' => 'r-1'])
 
 On `Ok`, `mapMeta(...)` and `mergeMeta(...)` may accept callbacks that also receive the current value as a second argument (callbacks receive metadata first).
 
+Note: When a callable accepts two parameters the library now passes the value as the second argument for `Ok` results and `null` for `Fail` results. Prefer an optional or nullable second parameter (e.g. `fn(array $meta, $value = null)` or `fn(array $meta, ?MyType $value = null)`) to handle both branches safely and avoid static analysis warnings.
+
 ## A useful rule
 
 If a step changes the result shape, decide whether metadata should be preserved or updated at the same time. Do not silently drop it.
