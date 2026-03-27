@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.6](https://github.com/Maxiviper117/result-flow/compare/v1.11.5...v1.11.6) (2026-03-27)
+
+
+### Bug Fixes
+
+* (metaops): enable tap, map and merge Meta two-arg callback null on failure ([#86](https://github.com/Maxiviper117/result-flow/issues/86)) ([ed03819](https://github.com/Maxiviper117/result-flow/commit/ed03819ff020fd5e34640d3a8b6abb1924b03b75))
+
 ## [1.11.5](https://github.com/Maxiviper117/result-flow/compare/v1.11.4...v1.11.5) (2026-03-27)
 
 
