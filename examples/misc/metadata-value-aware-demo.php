@@ -24,8 +24,8 @@ if ($result->isOk()) {
 
 // Tap into metadata for logging or side effects
 $result->tapMeta(function (array $meta, $value) {
-    echo "Logging metadata: ".json_encode($meta)."\n";
-    echo "Value: ".json_encode($value)."\n";
+    echo 'Logging metadata: '.json_encode($meta)."\n";
+    echo 'Value: '.json_encode($value)."\n";
 });
 
 // Map metadata to transform it
@@ -36,6 +36,7 @@ $result = $result->mapMeta(function (array $meta, $value) {
 
 // Merge additional metadata
 $result = $result->mergeMeta(function (array $meta, $value) {
-    echo "Merging additional metadata based on value: ".json_encode($value)."\n";
+    echo 'Merging additional metadata based on value: '.json_encode($value)."\n";
+
     return ['processed_by' => 'metadata-value-aware-demo.php'];
 });
