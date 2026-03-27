@@ -16,6 +16,8 @@ Returns the current metadata map.
 
 Observes metadata without changing the result. On `Ok`, the callback will be invoked with the metadata as the first argument and the success value as an optional second argument; on `Fail` the callback receives metadata only.
 
+Note: If the provided callable accepts two parameters the library will pass the value as the second argument for `Ok` and `null` for `Fail`. To be explicit and friendly to static analyzers prefer an optional/nullable second parameter, e.g. `fn(array $meta, $value = null)` or `fn(array $meta, ?MyType $value = null)`.
+
 ## `mapMeta(callable $map): Result`
 
 Replaces metadata with the callback output.
@@ -24,7 +26,7 @@ The argument is a callable only.
 
 On `Ok`, the callback receives the current metadata as the first argument and the current value as the second argument.
 
-On `Fail`, the callback receives metadata only.
+On `Fail`, the callback receives metadata only. When the callable accepts two arguments, the second argument will be `null` on `Fail`.
 
 ```php
 $result = $result->mapMeta(fn (array $meta, $value = null) => [
@@ -42,7 +44,7 @@ The argument may be either an array or a callable.
 
 On `Ok`, the callable receives the current metadata as the first argument and the current value as the second argument.
 
-On `Fail`, the callable receives metadata only.
+On `Fail`, the callable receives metadata only. When the callable accepts two arguments, the second argument will be `null` on `Fail`.
 
 ```php
 $result = $result->mergeMeta(fn (array $meta, $value = null) => [
