@@ -146,6 +146,26 @@ it('tapMeta observes metadata without changing the payload', function () {
     expect($r->unwrap())->toBe('ok');
 });
 
+it('tapMeta two-arg callback receives value on ok and null on fail', function () {
+    $observedOk = null;
+
+    Result::ok('present', ['a' => 1])
+        ->tapMeta(function (array $meta, $value) use (&$observedOk) {
+            $observedOk = $value;
+        });
+
+    expect($observedOk)->toBe('present');
+
+    $observedFail = 'unset';
+
+    Result::fail('err', ['a' => 2])
+        ->tapMeta(function (array $meta, $value) use (&$observedFail) {
+            $observedFail = $value;
+        });
+
+    expect($observedFail)->toBeNull();
+});
+
 it('mapMeta replaces metadata when needed', function () {
     $r = Result::fail('boom', ['code' => 500])
         ->mapMeta(fn ($meta) => ['code' => 501, 'handled' => true]);

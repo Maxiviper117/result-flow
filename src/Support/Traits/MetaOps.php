@@ -6,6 +6,7 @@ namespace Maxiviper117\ResultFlow\Support\Traits;
 
 use Maxiviper117\ResultFlow\Result;
 
+
 /**
  * Metadata manipulation helpers for Result.
  *
@@ -18,6 +19,7 @@ final class MetaOps
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
+     * @param (callable(array<string,mixed>): mixed)|(callable(array<string,mixed>, TSuccess|null): mixed) $tap
      * @return Result<TSuccess, TFailure>
      */
     public static function tapMeta(Result $result, callable $tap): Result
@@ -49,7 +51,7 @@ final class MetaOps
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
-     * @param  array<string,mixed>|callable  $meta
+     * @param  array<string,mixed>|(callable(array<string,mixed>): array<string,mixed>)|(callable(array<string,mixed>, TSuccess|null): array<string,mixed>)  $meta
      * @return Result<TSuccess, TFailure>
      */
     public static function mergeMeta(Result $result, array|callable $meta): Result
@@ -83,22 +85,38 @@ final class MetaOps
     }
 
     /**
+     * Invokes a metadata callback that can optionally receive the result value.
+     *
+     * Supported callback signatures:
+     * - fn(array<string,mixed> $meta): mixed
+     * - fn(array<string,mixed> $meta, TSuccess|null $value): mixed
+     *
+     * If the callback expects two or more parameters, the result value is passed
+     * as the second argument. For failed results, `null` is provided. This means
+     * `Ok(null)` and `Fail(...)` are indistinguishable from the callback’s perspective.
+     *
+     * The callable is converted to a Closure to enable reflection-based arity detection.
+     *
      * @template TSuccess
      * @template TFailure
      *
-     * @param  Result<TSuccess, TFailure>  $result
-     * @param  array<string,mixed>  $meta
+     * @param Result<TSuccess, TFailure> $result
+     * @param (callable(array<string,mixed>): mixed)|(callable(array<string,mixed>, TSuccess|null): mixed) $callback
+     * @param array<string,mixed> $meta
      */
     private static function callMetaCallback(Result $result, callable $callback, array $meta): mixed
     {
-        if (! $result->isOk()) {
-            return $callback($meta);
+        /** @var \Closure $closure */
+        $closure = \Closure::fromCallable($callback);
+
+        /** @var \ReflectionFunction $ref */
+        $ref = new \ReflectionFunction($closure);
+
+        if ($ref->getNumberOfParameters() >= 2) {
+            $value = $result->isOk() ? $result->value() : null;
+            return $closure($meta, $value);
         }
 
-        try {
-            return $callback($meta, $result->value());
-        } catch (\ArgumentCountError) {
-            return $callback($meta);
-        }
+        return $closure($meta);
     }
 }

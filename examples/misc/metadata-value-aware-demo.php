@@ -33,3 +33,36 @@ $failed = Result::fail('validation_failed', ['request_id' => 'r-456'])
 
 echo "\nFailed value example:\n";
 print_r($failed->toArray());
+
+//  tapMeta
+
+echo "\nInside tapMeta callback on success:\n";
+$result->tapMeta(function (array $meta, array $value) {
+    print_r($meta);
+    print_r($value);
+    // convert to json for logging
+    $logEntry = json_encode([
+        ...$meta,
+        ...$value,
+    ]);
+    echo "Log entry: $logEntry\n";
+});
+
+echo "\nInside tapMeta callback on failure:\n";
+$failed->tapMeta(function (array $meta, $value) {
+    print_r($meta);
+
+    $payload = [
+        'meta' => $meta,
+        'value' => $value,
+    ];
+
+    echo 'JSON payload: '.json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n";
+});
+// if ($failed->isOk()) {
+//     echo "This won't run since the result is a failure.\n";
+// } else {
+//     $failed->tapMeta(function (array $meta, $value) {
+//         print_r($meta);
+//     });
+// }
