@@ -150,6 +150,8 @@ use Maxiviper117\ResultFlow\Result;
 $result = Result::ok(42);
 
 $result = $result->tapMeta(fn (array $meta, $value = null) => logger()->debug('meta', compact('meta', 'value')));
+
+Note: Callbacks that accept two parameters will now receive the current value for `Ok` results and `null` for `Fail` results. To be explicit and avoid static analyzer warnings, prefer an optional/nullable second parameter (e.g. `fn(array $meta, $value = null)` or `fn(array $meta, ?MyType $value = null)`).
 ```
 
 ## mapMeta
@@ -169,6 +171,8 @@ mapMeta(callable $map): self
 - on `Ok`, the callback receives the current metadata and the value as the second argument
 - on `Fail`, the callback receives metadata only
 - the result keeps the same branch and new metadata
+
+Note: If the callback accepts two parameters, the library will pass the value as the second argument when the result is `Ok` and `null` when the result is `Fail`. Use an optional/nullable second parameter to handle both branches safely.
 
 Use it when the metadata shape itself should change.
 
@@ -202,6 +206,8 @@ mergeMeta(array|callable $meta): self
 
 - array input merges keys directly
 - callable input may inspect metadata, and on `Ok` also receives the current value as a second argument
+
+Note: As with `mapMeta`, when a callable is provided that accepts two parameters it will receive `(meta, value)` on `Ok` and `(meta, null)` on `Fail`. Prefer `fn(array $meta, $value = null)` or a nullable typed second parameter.
 
 Use it when you want to add a few keys without replacing the whole map.
 

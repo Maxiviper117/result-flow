@@ -16,8 +16,8 @@ it('propagates types through map/then and unwrap', function () {
     $r = Result::ok(123);
 
     $r2 = $r
-        ->map(fn (int $n, array $meta) => (string) $n) // should become Result<string, Exception>
-        ->then(fn (string $s, array $meta) => strlen($s)); // returns int -> Result<int, Exception>
+        ->map(fn(int $n, array $meta) => (string) $n) // should become Result<string, Exception>
+        ->then(fn(string $s, array $meta) => strlen($s)); // returns int -> Result<int, Exception>
 
     $val = $r2->unwrap();
 
@@ -41,7 +41,7 @@ it('unwrapOr returns default on failure', function () {
 
 it('recover converts failure into success', function () {
     $r = Result::fail('oops')
-        ->recover(fn ($err, $meta) => 'fixed');
+        ->recover(fn($err, $meta) => 'fixed');
 
     expect($r->unwrap())->toBe('fixed');
 });
@@ -68,7 +68,7 @@ it('onSuccess and onFailure taps are called appropriately', function () {
 });
 
 it('of() wraps thrown exceptions into failure and returns success otherwise', function () {
-    $ok = Result::of(fn () => 5);
+    $ok = Result::of(fn() => 5);
     expect($ok->unwrap())->toBe(5);
 
     $fail = Result::of(function () {
@@ -79,14 +79,14 @@ it('of() wraps thrown exceptions into failure and returns success otherwise', fu
 });
 
 it('defer() returns success for plain values and null', function () {
-    expect(Result::defer(fn () => 5)->unwrap())->toBe(5);
-    expect(Result::defer(fn () => null)->isOk())->toBeTrue();
-    expect(Result::defer(fn () => null)->value())->toBeNull();
+    expect(Result::defer(fn() => 5)->unwrap())->toBe(5);
+    expect(Result::defer(fn() => null)->isOk())->toBeTrue();
+    expect(Result::defer(fn() => null)->value())->toBeNull();
 });
 
 it('defer() preserves returned result instances and metadata', function () {
-    $ok = Result::defer(fn () => Result::ok('done', ['source' => 'defer']));
-    $fail = Result::defer(fn () => Result::fail('nope', ['source' => 'defer-fail']));
+    $ok = Result::defer(fn() => Result::ok('done', ['source' => 'defer']));
+    $fail = Result::defer(fn() => Result::fail('nope', ['source' => 'defer-fail']));
 
     expect($ok->isOk())->toBeTrue();
     expect($ok->value())->toBe('done');
@@ -109,8 +109,8 @@ it('defer() converts thrown exceptions into failure with same instance', functio
 });
 
 it('defer() chains with then() like other constructors', function () {
-    $result = Result::defer(fn () => 5)
-        ->then(fn (int $value, array $meta) => $value * 2);
+    $result = Result::defer(fn() => 5)
+        ->then(fn(int $value, array $meta) => $value * 2);
 
     expect($result->isOk())->toBeTrue();
     expect($result->value())->toBe(10);
@@ -119,8 +119,8 @@ it('defer() chains with then() like other constructors', function () {
 it('then accepts an array of steps and folds sequentially', function () {
     $r = Result::ok(2)
         ->then([
-            fn ($v, $m) => $v + 3,
-            fn ($v, $m) => Result::ok($v * 2),
+            fn($v, $m) => $v + 3,
+            fn($v, $m) => Result::ok($v * 2),
         ]);
 
     expect($r->unwrap())->toBe(10);
@@ -128,7 +128,7 @@ it('then accepts an array of steps and folds sequentially', function () {
 
 it('mapError transforms the error payload', function () {
     $r = Result::fail('err')
-        ->mapError(fn ($e, $m) => new RuntimeException($e));
+        ->mapError(fn($e, $m) => new RuntimeException($e));
 
     expect($r->error())->toBeInstanceOf(RuntimeException::class);
 });
@@ -166,9 +166,29 @@ it('tapMeta two-arg callback receives value on ok and null on fail', function ()
     expect($observedFail)->toBeNull();
 });
 
+it('mapMeta and mergeMeta two-arg callbacks receive null value on fail', function () {
+    $mapValue = 'unset';
+    $mergeValue = 'unset';
+
+    Result::fail('boom', ['foo' => 'bar'])
+        ->mapMeta(function (array $meta, $value) use (&$mapValue) {
+            $mapValue = $value;
+            return $meta;
+        });
+
+    Result::fail('boom', ['foo' => 'bar'])
+        ->mergeMeta(function (array $meta, $value) use (&$mergeValue) {
+            $mergeValue = $value;
+            return [];
+        });
+
+    expect($mapValue)->toBeNull();
+    expect($mergeValue)->toBeNull();
+});
+
 it('mapMeta replaces metadata when needed', function () {
     $r = Result::fail('boom', ['code' => 500])
-        ->mapMeta(fn ($meta) => ['code' => 501, 'handled' => true]);
+        ->mapMeta(fn($meta) => ['code' => 501, 'handled' => true]);
 
     expect($r->isFail())->toBeTrue();
     expect($r->error())->toBe('boom');
@@ -185,14 +205,13 @@ it('mergeMeta merges additional metadata', function () {
 
 it('otherwise chains failure into success', function () {
     $r = Result::fail('nope')
-        ->otherwise(fn ($e, $m) => Result::ok('recovered'));
+        ->otherwise(fn($e, $m) => Result::ok('recovered'));
 
     expect($r->unwrap())->toBe('recovered');
 });
 
 it('then accepts objects with __invoke', function () {
-    $obj = new class
-    {
+    $obj = new class {
         public function __invoke($v, $m)
         {
             return Result::ok($v + 1);
@@ -204,16 +223,14 @@ it('then accepts objects with __invoke', function () {
 });
 
 it('then accepts objects with handle() and execute() methods', function () {
-    $handler = new class
-    {
+    $handler = new class {
         public function handle($v, $m)
         {
             return Result::ok($v + 2);
         }
     };
 
-    $executor = new class
-    {
+    $executor = new class {
         public function execute($v, $m)
         {
             // return a non-Result value to ensure auto-wrapping works
@@ -231,19 +248,19 @@ it('then accepts objects with handle() and execute() methods', function () {
 it('runChain handles arrays, exceptions, and value propagation', function () {
     // Array of steps: value should propagate through all
     $r = Result::ok(1)->then([
-        fn ($v, $m) => $v + 2, // 3
-        fn ($v, $m) => $v * 5, // 15
-        fn ($v, $m) => Result::ok($v - 4), // 11
+        fn($v, $m) => $v + 2, // 3
+        fn($v, $m) => $v * 5, // 15
+        fn($v, $m) => Result::ok($v - 4), // 11
     ]);
     expect($r->unwrap())->toBe(11);
 
     // Exception in a step: should convert to fail, meta should include failed_step
     $r2 = Result::ok(10)->then([
-        fn ($v, $m) => $v + 1,
+        fn($v, $m) => $v + 1,
         function ($v, $m) {
             throw new RuntimeException('fail here');
         },
-        fn ($v, $m) => $v * 2, // should not run
+        fn($v, $m) => $v * 2, // should not run
     ]);
     expect($r2->isFail())->toBeTrue();
     expect($r2->error())->toBeInstanceOf(RuntimeException::class);
@@ -252,7 +269,7 @@ it('runChain handles arrays, exceptions, and value propagation', function () {
     // Meta is preserved through steps
     $meta = ['foo' => 'bar'];
     $r3 = Result::ok(2, $meta)->then([
-        fn ($v, $m) => $v * 2,
+        fn($v, $m) => $v * 2,
     ]);
     expect($r3->meta())->toBe($meta);
 });
@@ -282,7 +299,7 @@ it('accepts callable array steps without splitting them', function () {
 
     $result = Result::ok(10, ['base' => true])
         ->then([$service, 'handle']) // should be treated as a single callable, not two steps
-        ->then(fn ($v, $m) => Result::ok($v * 2, $m));
+        ->then(fn($v, $m) => Result::ok($v * 2, $m));
 
     expect($result->isOk())->toBeTrue();
     expect($result->value())->toBe(30);
@@ -311,8 +328,7 @@ it('pipeline then() with a local NotifyAction that throws becomes failure and on
     $dto = new ResultCorePipelineDto('Another Test Product', 'ANOTHERSKU456', 2999, 'Another dummy product for testing.');
 
     // Local NotifyAction-like object that throws when invoked
-    $notify = new class
-    {
+    $notify = new class {
         public function __invoke(mixed $payload, array $meta = [])
         {
             throw new Exception('Notification failed');
