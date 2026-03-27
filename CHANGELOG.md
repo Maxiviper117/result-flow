@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.5](https://github.com/Maxiviper117/result-flow/compare/v1.11.4...v1.11.5) (2026-03-27)
+
+
+### Bug Fixes
+
+* metaops-reflection-arity-and-test-helper-diagnostics ([#84](https://github.com/Maxiviper117/result-flow/issues/84)) ([e9aa13e](https://github.com/Maxiviper117/result-flow/commit/e9aa13e42dcab74c4245fd9169059b13e7a99482))
+
 ## [1.11.4](https://github.com/Maxiviper117/result-flow/compare/v1.11.3...v1.11.4) (2026-03-26)
 
 
