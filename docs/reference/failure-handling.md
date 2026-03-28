@@ -25,6 +25,37 @@ Matches `Throwable` failures by class.
 - non-Throwable failure -> original result if no fallback is provided
 - handlers and fallback may return a plain value or a `Result`
 
+## `matchError(array $handlers, callable $onSuccess, callable $onUnhandled): mixed`
+
+Matches structured domain errors by class.
+
+- handlers are keyed by `DataTaggedError` / `ResultError` class name
+- unmatched structured errors fall through to `$onUnhandled`
+- string codes are not used for dispatch
+
+```php
+$message = $result->matchError(
+    [UserPersistError::class => fn (UserPersistError $e) => $e->code()],
+    onSuccess: fn ($value) => 'ok',
+    onUnhandled: fn ($error) => 'unhandled',
+);
+```
+
+## `catchError(array $handlers, ?callable $fallback = null): Result`
+
+Handles structured domain errors by class and keeps the flow inside `Result`.
+
+- handlers are keyed by `DataTaggedError` / `ResultError` class name
+- handlers may return a plain value or a `Result`
+- unmatched failures return unchanged when no fallback is provided
+- fallback also handles legacy non-`ResultError` failures
+
+```php
+$result = $result->catchError([
+    UserPersistError::class => fn (UserPersistError $e) => 'retry-later',
+]);
+```
+
 ## `recover(callable $fn): Result`
 
 Converts any failure into a success result.

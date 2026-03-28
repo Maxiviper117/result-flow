@@ -12,6 +12,7 @@ This group covers the functions that create a result, retry work, or guard a res
 | --------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `ok`            | Creates a success result                                                                                           |
 | `fail`          | Creates a failure result                                                                                           |
+| `failTagged`    | Creates a failure result containing a structured `DataTaggedError`                                                 |
 | `failWithValue` | Creates a failure result and stores the rejected input in metadata                                                 |
 | `of`            | Runs a callback that returns a plain value or throws; returned `Result` values are wrapped as plain success values |
 | `defer`         | Runs a callback that may return a value, a `Result`, or throw; returned `Result` values are preserved              |
@@ -73,6 +74,17 @@ $result = Result::fail('Invalid state', ['step' => 'validate']);
 ```php
 failWithValue(mixed $error, mixed $failedValue, array $meta = []): self
 ```
+
+## failTagged
+
+`failTagged(...)` creates a failure with a structured `DataTaggedError`.
+
+```php
+failTagged(string $code, string $message, mixed $payload = null, array $meta = [], ?Cause $cause = null): self
+```
+
+Use it for quick structured failures. For named domain errors, prefer a subclass of
+`DataTaggedError` with a `CODE` constant and construct it via `::from(...)`.
 
 ### Inputs:
 

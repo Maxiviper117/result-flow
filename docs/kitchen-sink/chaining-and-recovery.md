@@ -8,17 +8,19 @@ This group covers the functions that transform the success or failure branch, th
 
 ## Quick Map
 
-| Function         | What it does                            |
-| ---------------- | --------------------------------------- |
-| `map`            | Transforms the success value            |
-| `ensure`         | Converts a false predicate into failure |
-| `mapError`       | Transforms the failure value            |
-| `otherwise`      | Runs only on failure and may recover    |
-| `catchException` | Matches Throwable failures by class     |
-| `recover`        | Converts failure into success           |
-| `then`           | Chains a step with exception capture    |
-| `flatMap`        | Alias of `then`                         |
-| `thenUnsafe`     | Chains a step without exception capture |
+| Function         | What it does                              |
+| ---------------- | ----------------------------------------- |
+| `map`            | Transforms the success value              |
+| `ensure`         | Converts a false predicate into failure   |
+| `mapError`       | Transforms the failure value              |
+| `otherwise`      | Runs only on failure and may recover      |
+| `catchException` | Matches Throwable failures by class       |
+| `matchError`     | Matches structured domain errors by class |
+| `catchError`     | Handles structured domain errors by class |
+| `recover`        | Converts failure into success             |
+| `then`           | Chains a step with exception capture      |
+| `flatMap`        | Alias of `then`                           |
+| `thenUnsafe`     | Chains a step without exception capture   |
 
 ## map
 
@@ -157,6 +159,43 @@ Use:
 $result = Result::fail(new InvalidArgumentException('bad input'))
     ->catchException([
         InvalidArgumentException::class => fn ($error) => Result::fail('normalized'),
+    ]);
+```
+
+## matchError
+
+`matchError(...)` handles structured domain errors by class.
+
+```php
+matchError(array $handlers, callable $onSuccess, callable $onUnhandled): mixed
+```
+
+Use it when failures are named `DataTaggedError` subclasses rather than raw strings,
+arrays, or infrastructure exceptions.
+
+```php
+$message = Result::fail(UserPersistError::from('Unable to save user'))
+    ->matchError(
+        [UserPersistError::class => fn (UserPersistError $e) => $e->code()],
+        onSuccess: fn ($value) => 'ok',
+        onUnhandled: fn ($error) => 'unhandled',
+    );
+```
+
+## catchError
+
+`catchError(...)` recovers or re-fails structured domain errors by class.
+
+```php
+catchError(array $handlers, ?callable $fallback = null): self
+```
+
+Use it when the failure path should stay inside the `Result` flow.
+
+```php
+$result = Result::fail(UserPersistError::from('Unable to save user'))
+    ->catchError([
+        UserPersistError::class => fn (UserPersistError $e) => 'retry-later',
     ]);
 ```
 
