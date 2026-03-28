@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow\Support\Traits;
 
 use Maxiviper117\ResultFlow\Result;
-use Throwable;
 use Maxiviper117\ResultFlow\Support\Errors\ResultError;
+use Throwable;
 
 /**
  * Pattern-matching helpers for Result values and exceptions.
@@ -142,10 +142,10 @@ final class Matcher
      * @template TError of ResultError
      * @template R
      *
-     * @param Result<TSuccess, TFailure> $result
-     * @param array<class-string<TError>, callable(TError, array<string,mixed>): R> $errorHandlers
-     * @param callable(TSuccess, array<string,mixed>): R $onSuccess
-     * @param callable(TFailure, array<string,mixed>): R $onUnhandled
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  array<class-string<TError>, callable(TError, array<string,mixed>): R>  $errorHandlers
+     * @param  callable(TSuccess, array<string,mixed>): R  $onSuccess
+     * @param  callable(TFailure, array<string,mixed>): R  $onUnhandled
      * @return R
      */
     public static function matchError(Result $result, array $errorHandlers, callable $onSuccess, callable $onUnhandled): mixed
@@ -180,9 +180,9 @@ final class Matcher
      * @template TError of ResultError
      * @template UFailure
      *
-     * @param Result<TSuccess, TFailure> $result
-     * @param array<class-string<TError>, callable(TError, array<string,mixed>): (Result<TSuccess, UFailure>|TSuccess)> $handlers
-     * @param null|callable(TFailure, array<string,mixed>): (Result<TSuccess, UFailure>|TSuccess) $fallback
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  array<class-string<TError>, callable(TError, array<string,mixed>): (Result<TSuccess, UFailure>|TSuccess)>  $handlers
+     * @param  null|callable(TFailure, array<string,mixed>): (Result<TSuccess, UFailure>|TSuccess)  $fallback
      * @return Result<TSuccess, UFailure>
      */
     public static function catchError(Result $result, array $handlers, ?callable $fallback = null): Result

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow;
 
 use Maxiviper117\ResultFlow\Laravel\ResultResponse;
+use Maxiviper117\ResultFlow\Support\Errors\Cause;
+use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
 use Maxiviper117\ResultFlow\Support\Operations\Batch;
 use Maxiviper117\ResultFlow\Support\Operations\Pipeline;
 use Maxiviper117\ResultFlow\Support\Operations\Retry;
@@ -16,8 +18,6 @@ use Maxiviper117\ResultFlow\Support\Traits\Taps;
 use Maxiviper117\ResultFlow\Support\Traits\Transform;
 use Maxiviper117\ResultFlow\Support\Traits\Unwrap;
 use Throwable;
-use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
-use Maxiviper117\ResultFlow\Support\Errors\Cause;
 
 /**
  * A minimal Result type with branch-aware chaining.
@@ -37,8 +37,7 @@ final class Result
         private mixed $value,
         private mixed $error,
         private array $meta = [],
-    ) {
-    }
+    ) {}
 
     // =========================================================================
     // Static Constructors
@@ -93,11 +92,7 @@ final class Result
     /**
      * Create a failure result backed by a structured DataTaggedError.
      *
-     * @param string $code
-     * @param string $message
-     * @param mixed $payload
-     * @param array<string,mixed> $meta
-     * @param null|Cause $cause
+     * @param  array<string,mixed>  $meta
      * @return Result<never, DataTaggedError>
      */
     public static function failTagged(string $code, string $message, mixed $payload = null, array $meta = [], ?Cause $cause = null): self
@@ -198,7 +193,7 @@ final class Result
             ->maxAttempts($times)
             ->delay($delay)
             ->exponential($exponential)
-            ->attempt(fn() => self::defer($fn));
+            ->attempt(fn () => self::defer($fn));
 
         return $result;
     }
@@ -247,7 +242,7 @@ final class Result
         $resource = $acquired->value();
 
         /** @var Result<T, E|Throwable> $used */
-        $used = self::defer(fn() => $use($resource));
+        $used = self::defer(fn () => $use($resource));
 
         try {
             $release($resource);
@@ -337,7 +332,7 @@ final class Result
             }
         }
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             /** @var Result<array<T>, array<E>> */
             return self::fail($errors, $mergedMeta);
         }
@@ -414,7 +409,7 @@ final class Result
      */
     public function isFail(): bool
     {
-        return !$this->ok;
+        return ! $this->ok;
     }
 
     // =========================================================================
@@ -629,7 +624,7 @@ final class Result
      */
     public function then(callable|object|array $next): self
     {
-        if (!$this->ok) {
+        if (! $this->ok) {
             /** @var Result<U, TFailure> $this @phpstan-ignore varTag.nativeType */
             return $this;
         }
@@ -680,7 +675,7 @@ final class Result
      */
     public function thenUnsafe(callable|object $next): self
     {
-        if (!$this->ok) {
+        if (! $this->ok) {
             /** @var Result<U, TFailure> $this @phpstan-ignore varTag.nativeType */
             return $this;
         }

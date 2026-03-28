@@ -10,16 +10,15 @@ namespace Maxiviper117\ResultFlow\Support\Errors;
 final class Cause
 {
     /**
-     * @param array<string,mixed> $metadata
-     * @param array<int, Cause> $causes
+     * @param  array<string,mixed>  $metadata
+     * @param  array<int, Cause>  $causes
      */
     public function __construct(
         private ?string $code,
         private string $message,
         private array $metadata = [],
         private array $causes = [],
-    ) {
-    }
+    ) {}
 
     public function code(): ?string
     {
@@ -56,7 +55,7 @@ final class Cause
             'metadata' => $this->metadata,
         ];
 
-        if (!empty($this->causes)) {
+        if (! empty($this->causes)) {
             $causesArr = [];
             foreach ($this->causes as $c) {
                 $causesArr[] = $c->toArray();

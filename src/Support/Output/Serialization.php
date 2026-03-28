@@ -123,7 +123,7 @@ final class Serialization
             return 'item';
         }
 
-        if (!preg_match('/^[A-Za-z_]/', $normalized) || str_starts_with(strtolower($normalized), 'xml')) {
+        if (! preg_match('/^[A-Za-z_]/', $normalized) || str_starts_with(strtolower($normalized), 'xml')) {
             $normalized = 'item_'.$normalized;
         }
 

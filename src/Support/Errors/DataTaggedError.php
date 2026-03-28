@@ -19,7 +19,7 @@ use LogicException;
  *
  * @phpstan-consistent-constructor
  */
-class DataTaggedError extends \RuntimeException implements ResultError, JsonSerializable
+class DataTaggedError extends \RuntimeException implements JsonSerializable, ResultError
 {
     /**
      * Optional subclass constant used by `from(...)` for ergonomic construction.
@@ -27,11 +27,9 @@ class DataTaggedError extends \RuntimeException implements ResultError, JsonSeri
     public const CODE = '';
 
     private mixed $payload;
+
     private ?Cause $causeObj;
 
-    /**
-     * @param mixed $payload
-     */
     public function __construct(string $code, string $message, mixed $payload = null, ?Cause $cause = null)
     {
         parent::__construct($message);
@@ -42,9 +40,6 @@ class DataTaggedError extends \RuntimeException implements ResultError, JsonSeri
 
     /**
      * Construct a named error from the subclass-defined `CODE` constant.
-     *
-     * @param mixed $payload
-     * @return static
      */
     public static function from(string $message, mixed $payload = null, ?Cause $cause = null): static
     {
@@ -108,7 +103,7 @@ class DataTaggedError extends \RuntimeException implements ResultError, JsonSeri
     {
         $code = static::CODE;
 
-        if (!is_string($code) || $code === '') {
+        if (! is_string($code) || $code === '') {
             throw new LogicException(sprintf(
                 '%s must define a non-empty CODE constant or be instantiated with an explicit code.',
                 static::class

@@ -15,8 +15,6 @@ interface ResultError
 
     /**
      * Optional payload useful for HTTP APIs / debugging.
-     *
-     * @return mixed
      */
     public function payload(): mixed;
 

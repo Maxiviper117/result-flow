@@ -3,8 +3,8 @@
 require __DIR__.'/../vendor/autoload.php';
 
 use Maxiviper117\ResultFlow\Result;
-use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
 use Maxiviper117\ResultFlow\Support\Errors\Cause;
+use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
 
 // Minimal demo showing structured error, matching, and recovery
 $cause = new Cause('E_DB', 'Primary key violation');
@@ -18,14 +18,14 @@ print_r($result->toDebugArray());
 
 // match by class
 $matched = $result->matchError([
-    DataTaggedError::class => fn(DataTaggedError $e) => 'matched:'.$e->code(),
-], fn() => 'ok', fn() => 'unhandled');
+    DataTaggedError::class => fn (DataTaggedError $e) => 'matched:'.$e->code(),
+], fn () => 'ok', fn () => 'unhandled');
 
 echo "\nmatchError: $matched\n";
 
 // recover using catchError by class
 $recovered = $result->catchError([
-    DataTaggedError::class => fn(DataTaggedError $e) => 'recovered:'.$e->code(),
+    DataTaggedError::class => fn (DataTaggedError $e) => 'recovered:'.$e->code(),
 ]);
 
 echo "\ncatchError -> ";
@@ -43,8 +43,8 @@ $r3 = Result::fail($userErr);
 echo "\nNamed-class JSON:\n".$r3->toJson(JSON_PRETTY_PRINT)."\n\n";
 
 $matchByClass = $r3->matchError([
-    UserPersistError::class => fn(UserPersistError $e) => 'matched_named:'.$e->code(),
-], fn() => 'ok', fn() => 'unhandled');
+    UserPersistError::class => fn (UserPersistError $e) => 'matched_named:'.$e->code(),
+], fn () => 'ok', fn () => 'unhandled');
 
 echo "matchError by named class: $matchByClass\n";
 
@@ -57,12 +57,12 @@ class AnotherUserError extends DataTaggedError
 /**
  * Create a user (demo).
  *
- * @param bool $useAlternate If true, returns an error variant
+ * @param  bool  $useAlternate  If true, returns an error variant
  * @return Result<array{id: int, email: string}, AnotherUserError|UserPersistError>
  */
 function createUser(bool $useAlternate = false): Result
 {
-    if (!$useAlternate) {
+    if (! $useAlternate) {
         return Result::fail(UserPersistError::from('User persist failed', ['step' => 'save']));
     }
 
@@ -81,19 +81,19 @@ $resB = createUser(true);
 
 echo "\ncreateUser(false) -> ";
 print_r($resA->toArray());
-echo "createUser(true) -> ";
+echo 'createUser(true) -> ';
 print_r($resB->toArray());
 
 // Match either error by providing both classes
 $handleA = $resA->matchError([
-    UserPersistError::class => fn(UserPersistError $e) => 'handled_user_persist: '.$e->code(),
-    AnotherUserError::class => fn(AnotherUserError $e) => 'handled_another: '.$e->code(),
-], fn() => 'ok', fn() => 'unhandled');
+    UserPersistError::class => fn (UserPersistError $e) => 'handled_user_persist: '.$e->code(),
+    AnotherUserError::class => fn (AnotherUserError $e) => 'handled_another: '.$e->code(),
+], fn () => 'ok', fn () => 'unhandled');
 
 $handleB = $resB->matchError([
-    UserPersistError::class => fn(UserPersistError $e) => 'handled_user_persist: '.$e->code(),
-    AnotherUserError::class => fn(AnotherUserError $e) => 'handled_another: '.$e->code(),
-], fn() => 'ok', fn() => 'unhandled');
+    UserPersistError::class => fn (UserPersistError $e) => 'handled_user_persist: '.$e->code(),
+    AnotherUserError::class => fn (AnotherUserError $e) => 'handled_another: '.$e->code(),
+], fn () => 'ok', fn () => 'unhandled');
 
 echo "\nmatch createUser(false): $handleA\n";
 echo "match createUser(true): $handleB\n";
