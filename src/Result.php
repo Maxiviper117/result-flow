@@ -16,6 +16,8 @@ use Maxiviper117\ResultFlow\Support\Traits\Taps;
 use Maxiviper117\ResultFlow\Support\Traits\Transform;
 use Maxiviper117\ResultFlow\Support\Traits\Unwrap;
 use Throwable;
+use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
+use Maxiviper117\ResultFlow\Support\Errors\Cause;
 
 /**
  * A minimal Result type with branch-aware chaining.
@@ -35,7 +37,8 @@ final class Result
         private mixed $value,
         private mixed $error,
         private array $meta = [],
-    ) {}
+    ) {
+    }
 
     // =========================================================================
     // Static Constructors
@@ -85,6 +88,24 @@ final class Result
     public static function failWithValue(mixed $error, mixed $failedValue, array $meta = []): self
     {
         return self::fail($error, array_merge(['failed_value' => $failedValue], $meta));
+    }
+
+    /**
+     * Create a failure result backed by a structured DataTaggedError.
+     *
+     * @param string $code
+     * @param string $message
+     * @param mixed $payload
+     * @param array<string,mixed> $meta
+     * @param null|Cause $cause
+     * @return Result<never, DataTaggedError>
+     */
+    public static function failTagged(string $code, string $message, mixed $payload = null, array $meta = [], ?Cause $cause = null): self
+    {
+        $err = new DataTaggedError($code, $message, $payload, $cause);
+
+        /** @var Result<never, DataTaggedError> */
+        return self::fail($err, $meta);
     }
 
     /**
@@ -177,7 +198,7 @@ final class Result
             ->maxAttempts($times)
             ->delay($delay)
             ->exponential($exponential)
-            ->attempt(fn () => self::defer($fn));
+            ->attempt(fn() => self::defer($fn));
 
         return $result;
     }
@@ -226,7 +247,7 @@ final class Result
         $resource = $acquired->value();
 
         /** @var Result<T, E|Throwable> $used */
-        $used = self::defer(fn () => $use($resource));
+        $used = self::defer(fn() => $use($resource));
 
         try {
             $release($resource);
@@ -316,7 +337,7 @@ final class Result
             }
         }
 
-        if (! empty($errors)) {
+        if (!empty($errors)) {
             /** @var Result<array<T>, array<E>> */
             return self::fail($errors, $mergedMeta);
         }
@@ -393,7 +414,7 @@ final class Result
      */
     public function isFail(): bool
     {
-        return ! $this->ok;
+        return !$this->ok;
     }
 
     // =========================================================================
@@ -438,7 +459,7 @@ final class Result
      * Convert the Result to a debug-safe array (hides sensitive data).
      *
      * @param  callable(mixed): mixed|null  $sanitizer
-     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: mixed, meta: mixed}
+     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_code: string|null, error_message: mixed, meta: mixed}
      */
     public function toDebugArray(?callable $sanitizer = null): array
     {
@@ -608,7 +629,7 @@ final class Result
      */
     public function then(callable|object|array $next): self
     {
-        if (! $this->ok) {
+        if (!$this->ok) {
             /** @var Result<U, TFailure> $this @phpstan-ignore varTag.nativeType */
             return $this;
         }
@@ -659,7 +680,7 @@ final class Result
      */
     public function thenUnsafe(callable|object $next): self
     {
-        if (! $this->ok) {
+        if (!$this->ok) {
             /** @var Result<U, TFailure> $this @phpstan-ignore varTag.nativeType */
             return $this;
         }
@@ -772,6 +793,41 @@ final class Result
     public function catchException(array $handlers, ?callable $fallback = null): self
     {
         return Matcher::catchException($this, $handlers, $fallback);
+    }
+
+    /**
+     * Match on structured ResultError instances by class.
+     *
+     * Use named classes extending DataTaggedError to model distinct domain errors.
+     *
+     * @template TError of \Maxiviper117\ResultFlow\Support\Errors\ResultError
+     * @template R
+     *
+     * @param  array<class-string<TError>, callable(TError, array<string,mixed>): R>  $errorHandlers
+     * @param  callable(TSuccess, array<string,mixed>): R  $onSuccess
+     * @param  callable(TFailure, array<string,mixed>): R  $onUnhandled
+     * @return R
+     */
+    public function matchError(array $errorHandlers, callable $onSuccess, callable $onUnhandled): mixed
+    {
+        return Matcher::matchError($this, $errorHandlers, $onSuccess, $onUnhandled);
+    }
+
+    /**
+     * Handle structured ResultError instances and produce a Result.
+     *
+     * @template TError of \Maxiviper117\ResultFlow\Support\Errors\ResultError
+     *
+     * @param  array<class-string<TError>, callable(TError, array<string,mixed>): (Result<TSuccess, mixed>|TSuccess)>  $handlers
+     * @param  null|callable(TFailure, array<string,mixed>): (Result<TSuccess, mixed>|TSuccess)  $fallback
+     * @return Result<TSuccess, mixed>
+     */
+    public function catchError(array $handlers, ?callable $fallback = null): self
+    {
+        /** @var Result<TSuccess, mixed> $result */
+        $result = Matcher::catchError($this, $handlers, $fallback);
+
+        return $result;
     }
 
     /**

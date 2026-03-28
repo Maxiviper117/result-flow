@@ -6,6 +6,7 @@ namespace Maxiviper117\ResultFlow\Support\Traits;
 
 use Maxiviper117\ResultFlow\Result;
 use Throwable;
+use Maxiviper117\ResultFlow\Support\Errors\ResultError;
 
 /**
  * Pattern-matching helpers for Result values and exceptions.
@@ -100,6 +101,103 @@ final class Matcher
         if ($error instanceof Throwable) {
             foreach ($handlers as $class => $handler) {
                 if ($error instanceof $class) {
+                    $out = $handler($error, $result->meta());
+
+                    if ($out instanceof Result) {
+                        /** @var Result<TSuccess, UFailure> $out */
+                        return $out;
+                    }
+
+                    /** @var Result<TSuccess, UFailure> */
+                    return Result::ok($out, $result->meta());
+                }
+            }
+        }
+
+        if ($fallback !== null) {
+            $out = $fallback($error, $result->meta());
+
+            if ($out instanceof Result) {
+                /** @var Result<TSuccess, UFailure> $out */
+                return $out;
+            }
+
+            /** @var Result<TSuccess, UFailure> */
+            return Result::ok($out, $result->meta());
+        }
+
+        /** @var Result<TSuccess, UFailure> $result @phpstan-ignore varTag.nativeType */
+        return $result;
+    }
+
+    /**
+     * Match on structured ResultError instances by class name.
+     *
+     * Each named class extending DataTaggedError is treated as a distinct error.
+     * Stable string codes remain useful for serialization and external boundaries,
+     * but matching is class-based only.
+     *
+     * @template TSuccess
+     * @template TFailure
+     * @template TError of ResultError
+     * @template R
+     *
+     * @param Result<TSuccess, TFailure> $result
+     * @param array<class-string<TError>, callable(TError, array<string,mixed>): R> $errorHandlers
+     * @param callable(TSuccess, array<string,mixed>): R $onSuccess
+     * @param callable(TFailure, array<string,mixed>): R $onUnhandled
+     * @return R
+     */
+    public static function matchError(Result $result, array $errorHandlers, callable $onSuccess, callable $onUnhandled): mixed
+    {
+        if ($result->isOk()) {
+            /** @var TSuccess $value */
+            $value = $result->value();
+
+            return $onSuccess($value, $result->meta());
+        }
+
+        /** @var TFailure $error */
+        $error = $result->error();
+
+        if ($error instanceof ResultError) {
+            foreach ($errorHandlers as $key => $handler) {
+                if (class_exists($key) && $error instanceof $key) {
+                    return $handler($error, $result->meta());
+                }
+            }
+        }
+
+        return $onUnhandled($error, $result->meta());
+    }
+
+    /**
+     * Handle structured ResultError instances and produce a Result.
+     * Similar to catchException but matches by class name only.
+     *
+     * @template TSuccess
+     * @template TFailure
+     * @template TError of ResultError
+     * @template UFailure
+     *
+     * @param Result<TSuccess, TFailure> $result
+     * @param array<class-string<TError>, callable(TError, array<string,mixed>): (Result<TSuccess, UFailure>|TSuccess)> $handlers
+     * @param null|callable(TFailure, array<string,mixed>): (Result<TSuccess, UFailure>|TSuccess) $fallback
+     * @return Result<TSuccess, UFailure>
+     */
+    public static function catchError(Result $result, array $handlers, ?callable $fallback = null): Result
+    {
+        if ($result->isOk()) {
+            /** @var Result<TSuccess, UFailure> $result */
+            return $result;
+        }
+
+        /** @var TFailure $error */
+        $error = $result->error();
+
+        if ($error instanceof ResultError) {
+            foreach ($handlers as $key => $handler) {
+                if (class_exists($key) && $error instanceof $key) {
                     $out = $handler($error, $result->meta());
 
                     if ($out instanceof Result) {
