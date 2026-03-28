@@ -23,6 +23,7 @@ Use this skill when the user asks for ResultFlow workflow design, implementation
 6. Use `of(...)` when the callback only returns a value or throws; it wraps the callback return value as the success payload.
 7. Prefer `defer(...)` over `of(...)` when the callback may already return a `Result`, because `defer(...)` preserves that `Result` instead of nesting it.
 8. For batch aggregation, remember `combine(...)` is fail-fast while `combineAll(...)` preserves every failure and returns no success values if any input fails.
+9. When a flow needs named domain failures, prefer subclasses of `DataTaggedError` with class-based `matchError(...)` / `catchError(...)` handling rather than ad-hoc string-based branching.
 
 ## Progressive disclosure rule
 

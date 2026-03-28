@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow\Support\Output;
 
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Support\Errors\ResultError;
 
 /**
  * Helpers for serializing Results to arrays and text formats.
@@ -22,10 +23,18 @@ final class Serialization
      */
     public static function toArray(Result $result): array
     {
+        $error = $result->error();
+
+        if ($error instanceof ResultError) {
+            $errorOut = $error->toArray();
+        } else {
+            $errorOut = $error;
+        }
+
         return [
             'ok' => $result->isOk(),
             'value' => $result->value(),
-            'error' => $result->error(),
+            'error' => $errorOut,
             'meta' => $result->meta(),
         ];
     }

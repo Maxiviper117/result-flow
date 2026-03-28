@@ -21,3 +21,9 @@ This section is for exact lookup.
 - scan the signature
 - check the behavior notes and edge cases
 - jump back to the related concept page if you need the mental model
+
+Structured domain errors are documented across:
+
+- [Construction](/reference/construction) for `failTagged(...)` and named error creation
+- [Failure handling](/reference/failure-handling) for `matchError(...)` / `catchError(...)`
+- [Boundaries](/reference/boundaries) for serialization and finalization behavior

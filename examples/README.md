@@ -10,6 +10,19 @@ Suggested order if you are new:
 5. `examples\defer\bracket-test.php`
 6. `examples\batch\batch-map-demo.php`
 7. `examples\debug\debug-sanitization-demo.php`
+8. `examples\tagged-error-demo.php`
+
+## Structured error examples
+
+### `php examples\tagged-error-demo.php`
+
+Purpose:
+- Demonstrate structured domain errors with `DataTaggedError`, nested `Cause`, and class-based `matchError()` / `catchError()` handling.
+
+Concept:
+- Builds a failing `Result` with a structured error and nested cause.
+- Prints JSON and debug output so you can inspect the boundary shape.
+- Shows the recommended named-error pattern with subclasses defining a `CODE` constant and constructed via `::from(...)`.
 
 ## Construction examples
 

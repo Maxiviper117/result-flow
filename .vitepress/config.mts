@@ -138,6 +138,7 @@ export default defineConfig({
               items: [
                 { text: 'ok', link: '/kitchen-sink/construction#ok' },
                 { text: 'fail', link: '/kitchen-sink/construction#fail' },
+                { text: 'failTagged', link: '/kitchen-sink/construction#failtagged' },
                 { text: 'failWithValue', link: '/kitchen-sink/construction#failwithvalue' },
                 { text: 'of', link: '/kitchen-sink/construction#of' },
                 { text: 'defer', link: '/kitchen-sink/construction#defer' },
@@ -186,6 +187,8 @@ export default defineConfig({
                 { text: 'mapError', link: '/kitchen-sink/chaining-and-recovery#maperror' },
                 { text: 'otherwise', link: '/kitchen-sink/chaining-and-recovery#otherwise' },
                 { text: 'catchException', link: '/kitchen-sink/chaining-and-recovery#catchexception' },
+                { text: 'matchError', link: '/kitchen-sink/chaining-and-recovery#matcherror' },
+                { text: 'catchError', link: '/kitchen-sink/chaining-and-recovery#catcherror' },
                 { text: 'recover', link: '/kitchen-sink/chaining-and-recovery#recover' },
                 { text: 'then', link: '/kitchen-sink/chaining-and-recovery#then' },
                 { text: 'flatMap', link: '/kitchen-sink/chaining-and-recovery#flatmap' },

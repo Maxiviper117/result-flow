@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow\Support\Output;
 
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Support\Errors\ResultError;
 use Throwable;
 
 /**
@@ -20,7 +21,7 @@ final class Debug
      *
      * @param  Result<TSuccess, TFailure>  $result
      * @param  callable(mixed): mixed|null  $sanitizer
-     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_message: mixed, meta: mixed}
+     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_code: string|null, error_message: mixed, meta: mixed}
      */
     public static function toDebugArray(Result $result, ?callable $sanitizer = null): array
     {
@@ -28,13 +29,26 @@ final class Debug
         $ok = $result->isOk();
         $error = $result->error();
 
+        $errorCode = null;
+        $errorMessage = null;
+
+        if (! $ok) {
+            if ($error instanceof ResultError) {
+                $errorCode = $error->code();
+                $errorMessage = $sanitizer($error->message());
+            } elseif ($error instanceof Throwable) {
+                $errorMessage = $sanitizer($error->getMessage());
+            } elseif (is_string($error)) {
+                $errorMessage = $sanitizer($error);
+            }
+        }
+
         return [
             'ok' => $ok,
             'value_type' => $ok ? get_debug_type($result->value()) : null,
             'error_type' => ! $ok ? get_debug_type($error) : null,
-            'error_message' => ! $ok && $error instanceof Throwable
-                ? $sanitizer($error->getMessage())
-                : (! $ok && is_string($error) ? $sanitizer($error) : null),
+            'error_code' => $errorCode,
+            'error_message' => $errorMessage,
             'meta' => $sanitizer($result->meta()),
         ];
     }
