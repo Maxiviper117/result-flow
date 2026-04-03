@@ -60,6 +60,45 @@ describe('DataTaggedError and Cause integration', function () {
         expect($out)->toBe('handled:E_HANDLE');
     });
 
+    it('matchError passes metadata to matched handler when accepted', function () {
+        $err = new ReviewTestError('E_META', 'Has meta', null);
+        $result = Result::fail($err, ['request_id' => 'r-42']);
+
+        $out = $result->matchError([
+            ReviewTestError::class => function ($e, array $meta) {
+                return $meta['request_id'];
+            }
+        ], fn() => 'ok', fn() => 'unhandled');
+
+        expect($out)->toBe('r-42');
+    });
+
+    it('matchError supports onSuccess with zero arguments', function () {
+        $out = Result::ok('value')->matchError([], onSuccess: fn() => 'no-arg', onUnhandled: fn() => 'uh');
+
+        expect($out)->toBe('no-arg');
+    });
+
+    it('catchError handlers may be zero-arg and return plain values', function () {
+        $result = Result::fail(ReviewTestError::from('Recover me'));
+
+        $recovered = $result->catchError([
+            ReviewTestError::class => fn() => 'recovered-no-arg',
+        ]);
+
+        expect($recovered->isOk())->toBeTrue();
+        expect($recovered->value())->toBe('recovered-no-arg');
+    });
+
+    it('catchError fallback may be zero-arg and handle legacy failures', function () {
+        $result = Result::fail('legacy-error');
+
+        $handled = $result->catchError([], fn() => 'fallback-no-arg');
+
+        expect($handled->isOk())->toBeTrue();
+        expect($handled->value())->toBe('fallback-no-arg');
+    });
+
     it('throwIfFail throws the DataTaggedError (it is Throwable)', function () {
         $err = new DataTaggedError('E_THROW', 'Throw me');
         $result = Result::fail($err);
