@@ -24,6 +24,10 @@ Handles Throwable failures by class, otherwise falls back to the unhandled callb
 Handles structured domain errors by class.
 
 - use this for `DataTaggedError` subclasses and other `ResultError` implementations
+- handlers are checked in array iteration order; the first matching class wins
+- matched handlers may accept the error only or the error plus metadata
+- `onSuccess` / `onUnhandled` may accept no arguments, the value/error only, or the value/error plus metadata
+- if the failure is not a `ResultError`, or no handler matches, `onUnhandled` runs
 - unlike `matchException(...)`, matching is based on named error classes, not exception classes from infrastructure
 - `code()` is for serialization/boundaries, not dispatch
 

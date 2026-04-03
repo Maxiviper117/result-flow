@@ -8,19 +8,19 @@ This group covers the functions that transform the success or failure branch, th
 
 ## Quick Map
 
-| Function         | What it does                              |
-| ---------------- | ----------------------------------------- |
-| `map`            | Transforms the success value              |
-| `ensure`         | Converts a false predicate into failure   |
-| `mapError`       | Transforms the failure value              |
-| `otherwise`      | Runs only on failure and may recover      |
-| `catchException` | Matches Throwable failures by class       |
-| `matchError`     | Matches structured domain errors by class |
-| `catchError`     | Handles structured domain errors by class |
-| `recover`        | Converts failure into success             |
-| `then`           | Chains a step with exception capture      |
-| `flatMap`        | Alias of `then`                           |
-| `thenUnsafe`     | Chains a step without exception capture   |
+| Function         | What it does                                                    |
+| ---------------- | --------------------------------------------------------------- |
+| `map`            | Transforms the success value                                    |
+| `ensure`         | Converts a false predicate into failure                         |
+| `mapError`       | Transforms the failure value                                    |
+| `otherwise`      | Runs only on failure and may recover                            |
+| `catchException` | Matches Throwable failures by class                             |
+| `matchError`     | Finalizes structured `ResultError` failures by class            |
+| `catchError`     | Recovers or re-fails structured `ResultError` failures by class |
+| `recover`        | Converts failure into success                                   |
+| `then`           | Chains a step with exception capture                            |
+| `flatMap`        | Alias of `then`                                                 |
+| `thenUnsafe`     | Chains a step without exception capture                         |
 
 ## map
 
@@ -164,14 +164,22 @@ $result = Result::fail(new InvalidArgumentException('bad input'))
 
 ## matchError
 
-`matchError(...)` handles structured domain errors by class.
+`matchError(...)` finalizes structured `ResultError` failures by class.
 
 ```php
-matchError(array $handlers, callable $onSuccess, callable $onUnhandled): mixed
+matchError(array $errorHandlers, callable $onSuccess, callable $onUnhandled): mixed
 ```
 
+### Behavior:
+
+- handlers are checked in array order; the first matching class wins
+- handler callbacks may accept the error only, or the error plus metadata
+- `onSuccess` / `onUnhandled` may accept no arguments, the value/error only, or the value/error plus metadata
+- if the failure is not a `ResultError`, or no class matches, `onUnhandled` runs
+
 Use it when failures are named `DataTaggedError` subclasses rather than raw strings,
-arrays, or infrastructure exceptions.
+arrays, or infrastructure exceptions. Any `ResultError` implementation is valid;
+`DataTaggedError` is simply the common built-in choice.
 
 ```php
 $message = Result::fail(UserPersistError::from('Unable to save user'))
@@ -184,11 +192,19 @@ $message = Result::fail(UserPersistError::from('Unable to save user'))
 
 ## catchError
 
-`catchError(...)` recovers or re-fails structured domain errors by class.
+`catchError(...)` recovers or re-fails structured `ResultError` failures by class.
 
 ```php
 catchError(array $handlers, ?callable $fallback = null): self
 ```
+
+### Behavior:
+
+- handlers are checked in array order; the first matching class wins
+- handler and fallback callbacks may accept no arguments, the error only, or the error plus metadata
+- callbacks may return either a plain recovered success value or a `Result`
+- if no handler matches, fallback is used when provided
+- if no handler matches and no fallback exists, the original failure is preserved
 
 Use it when the failure path should stay inside the `Result` flow.
 

@@ -25,12 +25,15 @@ Matches `Throwable` failures by class.
 - non-Throwable failure -> original result if no fallback is provided
 - handlers and fallback may return a plain value or a `Result`
 
-## `matchError(array $handlers, callable $onSuccess, callable $onUnhandled): mixed`
+## `matchError(array $errorHandlers, callable $onSuccess, callable $onUnhandled): mixed`
 
 Matches structured domain errors by class.
 
-- handlers are keyed by `DataTaggedError` / `ResultError` class name
-- unmatched structured errors fall through to `$onUnhandled`
+- handlers are keyed by `ResultError` class name (including `DataTaggedError` subclasses)
+- handlers are checked in array iteration order; the first matching class wins
+- matched handlers may accept either `(TError)` or `(TError, array $meta)`
+- `onSuccess` and `onUnhandled` may accept `()`, `(valueOrError)`, or `(valueOrError, array $meta)`
+- if the failure is not a `ResultError`, or no class matches, `$onUnhandled` runs
 - string codes are not used for dispatch
 
 ```php
@@ -45,10 +48,13 @@ $message = $result->matchError(
 
 Handles structured domain errors by class and keeps the flow inside `Result`.
 
-- handlers are keyed by `DataTaggedError` / `ResultError` class name
-- handlers may return a plain value or a `Result`
+- handlers are keyed by `ResultError` class name (including `DataTaggedError` subclasses)
+- handlers are checked in array iteration order; the first matching class wins
+- handlers and fallback may accept `()`, `(error)`, or `(error, array $meta)`
+- each callback may return either a plain recovered success value or a `Result`
+- if the failure is not a `ResultError`, class handlers are skipped and fallback is used when provided
 - unmatched failures return unchanged when no fallback is provided
-- fallback also handles legacy non-`ResultError` failures
+- fallback can handle both unmatched structured errors and legacy non-`ResultError` failures
 
 ```php
 $result = $result->catchError([

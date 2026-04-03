@@ -18,7 +18,8 @@ $result = Result::fail('timeout')
 - `mapError(...)` changes the failure payload.
 - `otherwise(...)` handles the failure branch and can either recover or keep failing.
 - `catchException(...)` handles failure values that are `Throwable` instances by class.
-- `matchError(...)` and `catchError(...)` handle structured domain errors that implement `ResultError`.
+- `matchError(...)` finalizes structured `ResultError` failures by class.
+- `catchError(...)` recovers from structured `ResultError` failures by class while staying inside the `Result` flow.
 - `recover(...)` always returns success.
 - `throwIfFail(...)` converts failure back into exception-style control flow.
 
@@ -47,7 +48,16 @@ $message = $result->matchError(
 
 Use the class to distinguish one domain failure from another. The string `code()`
 is still useful for JSON output, logs, and external contracts, but class identity
-is the matching mechanism.
+is the matching mechanism. Handlers are checked in array order, so the first
+matching class wins.
+
+`matchError(...)` supports flexible callbacks:
+
+- error handlers may accept the matched error only, or the error plus metadata
+- `onSuccess` / `onUnhandled` may accept no arguments, the value/error only, or the value/error plus metadata
+
+`catchError(...)` uses the same flexible callback style for handlers and fallback.
+Each callback may return either a recovered success value or a full `Result`.
 
 ## How to think about it
 
@@ -59,7 +69,8 @@ Use `throwIfFail(...)` at a boundary that expects exceptions, such as a transact
 
 Use `catchException(...)` for infrastructure/library exceptions.
 
-Use `matchError(...)` / `catchError(...)` for class-based domain errors.
+Use `matchError(...)` / `catchError(...)` for class-based domain errors that
+implement `ResultError`.
 
 ## Common mistakes
 

@@ -1,99 +1,192 @@
 <?php
 
-require __DIR__.'/../vendor/autoload.php';
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
 
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Support\Errors\Cause;
 use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
 
-// Minimal demo showing structured error, matching, and recovery
-$cause = new Cause('E_DB', 'Primary key violation');
-$err = new DataTaggedError('E_USER_PERSIST', 'Unable to create user', ['email' => 'jane@example.com'], $cause);
-$result = Result::fail($err);
+/*
+|--------------------------------------------------------------------------
+| Named domain errors
+|--------------------------------------------------------------------------
+*/
 
-echo "JSON:\n".$result->toJson(JSON_PRETTY_PRINT)."\n\n";
-
-echo "Debug:\n";
-print_r($result->toDebugArray());
-
-// match by class
-$matched = $result->matchError([
-    DataTaggedError::class => fn (DataTaggedError $e) => 'matched:'.$e->code(),
-], fn () => 'ok', fn () => 'unhandled');
-
-echo "\nmatchError: $matched\n";
-
-// recover using catchError by class
-$recovered = $result->catchError([
-    DataTaggedError::class => fn (DataTaggedError $e) => 'recovered:'.$e->code(),
-]);
-
-echo "\ncatchError -> ";
-print_r($recovered->toArray());
-
-// --- Alternative opt-in: create a named domain error class and match by class ---
-class UserPersistError extends DataTaggedError
+final class UserPersistError extends DataTaggedError
 {
     public const CODE = 'E_USER_PERSIST';
 }
 
-$userErr = UserPersistError::from('Could not create user (named class)', ['email' => 'john@example.com']);
-$r3 = Result::fail($userErr);
-
-echo "\nNamed-class JSON:\n".$r3->toJson(JSON_PRETTY_PRINT)."\n\n";
-
-$matchByClass = $r3->matchError([
-    UserPersistError::class => fn (UserPersistError $e) => 'matched_named:'.$e->code(),
-], fn () => 'ok', fn () => 'unhandled');
-
-echo "matchError by named class: $matchByClass\n";
-
-// --- Add another named error and a function that may return either ---
-class AnotherUserError extends DataTaggedError
+final class UserValidationError extends DataTaggedError
 {
-    public const CODE = 'E_USER_ALT';
+    public const CODE = 'E_USER_VALIDATE';
 }
+
+/*
+|--------------------------------------------------------------------------
+| Demo function returning named error classes
+|--------------------------------------------------------------------------
+*/
 
 /**
- * Create a user (demo).
+ * Create a user for demo purposes.
  *
- * @param  bool  $useAlternate  If true, returns an error variant
- * @return Result<array{id: int, email: string}, AnotherUserError|UserPersistError>
+ * @param 'persist'|'validate'|'ok' $mode
+ * @return Result<array{id: int, email: string}, UserPersistError|UserValidationError>
  */
-function createUser(bool $useAlternate = false): Result
+function createUser(string $mode): Result
 {
-    if (! $useAlternate) {
-        return Result::fail(UserPersistError::from('User persist failed', ['step' => 'save']));
+    if ($mode === 'persist') {
+        $cause = new Cause(
+            code: 'E_DB',
+            message: 'Primary key violation',
+            metadata: [
+                'table' => 'users',
+                'constraint' => 'email_unique',
+            ],
+            causes: [
+                new Cause(
+                    code: 'E_SQL',
+                    message: 'SQL error 1062',
+                    metadata: [
+                        'sqlState' => '23000',
+                        'errorCode' => 1062,
+                    ],
+                ),
+            ],
+        );
+
+        return Result::fail(
+            new UserPersistError(
+                code: UserPersistError::CODE,
+                message: 'Unable to persist user',
+                payload: ['email' => 'jane@example.com'],
+                cause: $cause,
+            )
+        );
     }
 
-    if ($useAlternate) {
-        return Result::fail(AnotherUserError::from('Alternate user error', ['step' => 'validate']));
+    if ($mode === 'validate') {
+        return Result::fail(
+            new UserValidationError(
+                code: UserValidationError::CODE,
+                message: 'User data is invalid',
+                payload: [
+                    'email' => 'not-an-email',
+                    'field' => 'email',
+                ],
+            )
+        );
     }
 
-    // Simulate a successful creation path when not using the alternate error
-    return Result::ok(['id' => 123, 'email' => 'john@example.com']);
+    return Result::ok([
+        'id' => 123,
+        'email' => 'john@example.com',
+    ]);
 }
 
-/** @var Result<array{id:int,email:string}, AnotherUserError|UserPersistError> $resA */
-$resA = createUser(false);
-/** @var Result<array{id:int,email:string}, AnotherUserError|UserPersistError> $resB */
-$resB = createUser(true);
+/*
+|--------------------------------------------------------------------------
+| Example 1: Persist failure
+|--------------------------------------------------------------------------
+*/
 
-echo "\ncreateUser(false) -> ";
-print_r($resA->toArray());
-echo 'createUser(true) -> ';
-print_r($resB->toArray());
+/** @var Result<array{id:int,email:string}, UserPersistError|UserValidationError> $persistResult */
+$persistResult = createUser('persist');
 
-// Match either error by providing both classes
-$handleA = $resA->matchError([
-    UserPersistError::class => fn (UserPersistError $e) => 'handled_user_persist: '.$e->code(),
-    AnotherUserError::class => fn (AnotherUserError $e) => 'handled_another: '.$e->code(),
-], fn () => 'ok', fn () => 'unhandled');
+echo "Persist failure JSON:\n" . $persistResult->toJson(JSON_PRETTY_PRINT) . "\n\n";
 
-$handleB = $resB->matchError([
-    UserPersistError::class => fn (UserPersistError $e) => 'handled_user_persist: '.$e->code(),
-    AnotherUserError::class => fn (AnotherUserError $e) => 'handled_another: '.$e->code(),
-], fn () => 'ok', fn () => 'unhandled');
+echo "Persist failure debug:\n";
+print_r($persistResult->toDebugArray());
 
-echo "\nmatch createUser(false): $handleA\n";
-echo "match createUser(true): $handleB\n";
+$matchedPersist = $persistResult->matchError(
+    [
+        UserPersistError::class => fn(UserPersistError $e) => 'matched persist: ' . $e->code(),
+        UserValidationError::class => fn(UserValidationError $e) => 'matched validation: ' . $e->code(),
+    ],
+    fn($user) => 'ok: ' . $user['email'],
+    fn($error) => 'unhandled'
+);
+
+echo "\nmatchError (persist): {$matchedPersist}\n";
+
+$recoveredPersist = $persistResult->catchError(
+    [
+        UserPersistError::class => fn(UserPersistError $e) => [
+            'id' => 999,
+            'email' => 'recovered-from-persist@example.com',
+        ],
+    ],
+    fn($error) => Result::fail($error)
+);
+
+echo "\ncatchError (persist) ->\n";
+print_r($recoveredPersist->toArray());
+
+/*
+|--------------------------------------------------------------------------
+| Example 2: Validation failure
+|--------------------------------------------------------------------------
+*/
+
+/** @var Result<array{id:int,email:string}, UserPersistError|UserValidationError> $validationResult */
+$validationResult = createUser('validate');
+
+echo "\nValidation failure JSON:\n" . $validationResult->toJson(JSON_PRETTY_PRINT) . "\n\n";
+
+$matchedValidation = $validationResult->matchError(
+    [
+        UserPersistError::class => fn(UserPersistError $e) => 'matched persist: ' . $e->code(),
+        UserValidationError::class => fn(UserValidationError $e, array $meta) => 'matched validation: ' . $e->code(),
+    ],
+    fn($user) => 'ok: ' . $user['email'],
+    fn($error) => 'unhandled'
+);
+
+echo "matchError (validate): {$matchedValidation}\n";
+
+$recoveredValidation = $validationResult->catchError(
+    [
+        UserValidationError::class => fn(UserValidationError $e) => [
+            'id' => 1000,
+            'email' => 'recovered-from-validation@example.com',
+        ],
+    ]
+);
+
+echo "\ncatchError (validate) ->\n";
+print_r($recoveredValidation->toArray());
+
+/*
+|--------------------------------------------------------------------------
+| Example 3: Success path
+|--------------------------------------------------------------------------
+*/
+
+/** @var Result<array{id:int,email:string}, UserPersistError|UserValidationError> $okResult */
+$okResult = createUser('ok');
+
+echo "\nSuccess JSON:\n" . $okResult->toJson(JSON_PRETTY_PRINT) . "\n\n";
+
+$matchedOk = $okResult->matchError(
+    [
+        UserPersistError::class => fn(UserPersistError $e) => 'matched persist: ' . $e->code(),
+        UserValidationError::class => fn(UserValidationError $e) => 'matched validation: ' . $e->code(),
+    ],
+    fn($user) => 'ok user: ' . $user['email'],
+    fn($error) => 'unhandled'
+);
+
+echo "matchError (ok): {$matchedOk}\n";
+
+$recoveredOk = $okResult->catchError(
+    [
+        UserPersistError::class => fn(UserPersistError $e) => ['id' => 0, 'email' => 'should-not-run@example.com'],
+        UserValidationError::class => fn(UserValidationError $e) => ['id' => 0, 'email' => 'should-not-run@example.com'],
+    ]
+);
+
+echo "\ncatchError (ok) ->\n";
+print_r($recoveredOk->toArray());

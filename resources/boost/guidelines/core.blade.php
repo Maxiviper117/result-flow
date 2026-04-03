@@ -40,7 +40,9 @@ fails, it returns only the collected failures and no success values.
 - `->match(onSuccess: ..., onFailure: ...)` for non-HTTP/custom boundaries.
 - Use `->matchException(...)` when the boundary needs Throwable-class-specific handling.
 - Use `->matchError(...)` and `->catchError(...)` for structured domain errors that implement `ResultError`; these
-methods match by class, not by string code.
+methods match by class, not by string code. `matchError(...)` supports flexible callback arity for success,
+unhandled, and matched-error handlers. `catchError(...)` handlers/fallback may return either a recovered value or a
+`Result`.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
@@ -86,9 +88,9 @@ return $result->toResponse();
     - If using arrays, include at least a user-facing `message` key and forward correlation keys from metadata.
     - Avoid mixing many unrelated error shapes in the same chain unless the call site normalizes them.
     - Prefer named classes extending `DataTaggedError` for app/domain failures that need stable API payloads and
-    explicit branch handling.
+        explicit branch handling.
     - Treat `code()` as the stable domain/API identifier for structured errors; matching should be based on the error
-    class.
+        class, with the first matching `matchError(...)` / `catchError(...)` handler winning in array order.
 
     ## Type-safety defaults
 

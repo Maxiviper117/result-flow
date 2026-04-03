@@ -25,5 +25,5 @@ This section is for exact lookup.
 Structured domain errors are documented across:
 
 - [Construction](/reference/construction) for `failTagged(...)` and named error creation
-- [Failure handling](/reference/failure-handling) for `matchError(...)` / `catchError(...)`
+- [Failure handling](/reference/failure-handling) for `matchError(...)` / `catchError(...)` and flexible `ResultError` callbacks
 - [Boundaries](/reference/boundaries) for serialization and finalization behavior

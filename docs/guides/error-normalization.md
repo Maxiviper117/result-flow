@@ -52,7 +52,9 @@ $result = Result::of(fn () => $gateway->send($payload))
 ```
 
 That keeps the boundary payload predictable while allowing later `matchError(...)`
-or `catchError(...)` calls to branch by error class.
+or `catchError(...)` calls to branch by `ResultError` class. Those handlers can
+stay terse with `fn (UpstreamTimeoutError $e) => ...` or opt into metadata with
+`fn (UpstreamTimeoutError $e, array $meta) => ...`.
 
 If the upstream gateway may already return `Result::ok(...)` or `Result::fail(...)`, switch the entry point to `Result::defer(...)` so the upstream result is preserved instead of wrapped as a success value.
 
