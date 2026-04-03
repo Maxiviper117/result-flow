@@ -153,10 +153,10 @@ final class Matcher
      * @template TError of ResultError
      * @template R
      *
-     * @param Result<TSuccess, TFailure> $result
-     * @param array<class-string<TError>, callable> $errorHandlers
-     * @param callable(): R|callable(TSuccess): R|callable(TSuccess, array<string, mixed>): R $onSuccess
-     * @param callable(): R|callable(TFailure): R|callable(TFailure, array<string, mixed>): R $onUnhandled
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  array<class-string<TError>, callable>  $errorHandlers
+     * @param  callable(): R|callable(TSuccess): R|callable(TSuccess, array<string, mixed>): R  $onSuccess
+     * @param  callable(): R|callable(TFailure): R|callable(TFailure, array<string, mixed>): R  $onUnhandled
      * @return R
      */
     public static function matchError(
@@ -212,9 +212,9 @@ final class Matcher
      * @template TError of ResultError
      * @template UFailure
      *
-     * @param Result<TSuccess, TFailure> $result
-     * @param array<class-string<TError>, callable> $handlers
-     * @param (callable(): (Result<TSuccess, UFailure>|TSuccess)|callable(TFailure): (Result<TSuccess, UFailure>|TSuccess)|callable(TFailure, array<string, mixed>): (Result<TSuccess, UFailure>|TSuccess))|null $fallback
+     * @param  Result<TSuccess, TFailure>  $result
+     * @param  array<class-string<TError>, callable>  $handlers
+     * @param  (callable(): (Result<TSuccess, UFailure>|TSuccess)|callable(TFailure): (Result<TSuccess, UFailure>|TSuccess)|callable(TFailure, array<string, mixed>): (Result<TSuccess, UFailure>|TSuccess))|null  $fallback
      * @return Result<TSuccess, TFailure|UFailure>
      */
     public static function catchError(Result $result, array $handlers, ?callable $fallback = null): Result
@@ -264,10 +264,8 @@ final class Matcher
     /**
      * @template TValue
      *
-     * @param callable $callback
-     * @param TValue $value
-     * @param array<string, mixed> $meta
-     * @return mixed
+     * @param  TValue  $value
+     * @param  array<string, mixed>  $meta
      */
     private static function invokeMatchCallback(callable $callback, mixed $value, array $meta): mixed
     {
@@ -281,9 +279,6 @@ final class Matcher
         };
     }
 
-    /**
-     * @param callable $callback
-     */
     private static function reflectCallable(callable $callback): \ReflectionFunctionAbstract
     {
         if ($callback instanceof \Closure) {
@@ -322,10 +317,8 @@ final class Matcher
      *
      * @template TValue
      *
-     * @param callable $callback
-     * @param TValue $value
-     * @param array<string, mixed> $meta
-     * @return mixed
+     * @param  TValue  $value
+     * @param  array<string, mixed>  $meta
      */
     private static function invokeCatchCallback(callable $callback, mixed $value, array $meta): mixed
     {

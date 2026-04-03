@@ -11,10 +11,10 @@ namespace Maxiviper117\ResultFlow\Support\Errors;
 final class Cause
 {
     /**
-     * @param string|null $code - optional domain-level code for the cause (e.g. 'E_DB', 'E_SQL', etc.)
-     * @param string $message - human-readable message describing the cause
-     * @param array<string,mixed> $metadata - optional structured metadata about the cause (e.g. DB table, constraint, etc.)
-     * @param array<int, Cause> $causes - nested causes for multi-level error representation
+     * @param  string|null  $code  - optional domain-level code for the cause (e.g. 'E_DB', 'E_SQL', etc.)
+     * @param  string  $message  - human-readable message describing the cause
+     * @param  array<string,mixed>  $metadata  - optional structured metadata about the cause (e.g. DB table, constraint, etc.)
+     * @param  array<int, Cause>  $causes  - nested causes for multi-level error representation
      */
     public function __construct(
         private ?string $code,

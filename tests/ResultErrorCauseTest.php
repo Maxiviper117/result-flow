@@ -67,14 +67,14 @@ describe('DataTaggedError and Cause integration', function () {
         $out = $result->matchError([
             ReviewTestError::class => function ($e, array $meta) {
                 return $meta['request_id'];
-            }
-        ], fn() => 'ok', fn() => 'unhandled');
+            },
+        ], fn () => 'ok', fn () => 'unhandled');
 
         expect($out)->toBe('r-42');
     });
 
     it('matchError supports onSuccess with zero arguments', function () {
-        $out = Result::ok('value')->matchError([], onSuccess: fn() => 'no-arg', onUnhandled: fn() => 'uh');
+        $out = Result::ok('value')->matchError([], onSuccess: fn () => 'no-arg', onUnhandled: fn () => 'uh');
 
         expect($out)->toBe('no-arg');
     });
@@ -83,7 +83,7 @@ describe('DataTaggedError and Cause integration', function () {
         $result = Result::fail(ReviewTestError::from('Recover me'));
 
         $recovered = $result->catchError([
-            ReviewTestError::class => fn() => 'recovered-no-arg',
+            ReviewTestError::class => fn () => 'recovered-no-arg',
         ]);
 
         expect($recovered->isOk())->toBeTrue();
@@ -93,7 +93,7 @@ describe('DataTaggedError and Cause integration', function () {
     it('catchError fallback may be zero-arg and handle legacy failures', function () {
         $result = Result::fail('legacy-error');
 
-        $handled = $result->catchError([], fn() => 'fallback-no-arg');
+        $handled = $result->catchError([], fn () => 'fallback-no-arg');
 
         expect($handled->isOk())->toBeTrue();
         expect($handled->value())->toBe('fallback-no-arg');
