@@ -41,6 +41,7 @@
 - Format check only (dry-run): `composer pint-test`
 - Static analysis: `composer analyse` (or `composer phpstan`)
 - Refactoring check: `composer rector-dry` (apply fixes with `composer rector`)
+- Preserve public named constructor arguments when Rector suggests constructor promotion.
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
 
 ## Python usage

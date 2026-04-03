@@ -38,7 +38,7 @@ describe('DataTaggedError and Cause integration', function () {
     });
 
     it('provides debug fields including error_code and message', function () {
-        $err = new DataTaggedError('E_X', 'Something broke', null);
+        $err = new DataTaggedError('E_X', 'Something broke');
         $result = Result::fail($err);
 
         $debug = $result->toDebugArray();
@@ -48,26 +48,22 @@ describe('DataTaggedError and Cause integration', function () {
     });
 
     it('can match by error class using matchError', function () {
-        $err = new ReviewTestError('E_HANDLE', 'Handle me', null);
+        $err = new ReviewTestError('E_HANDLE', 'Handle me');
         $result = Result::fail($err);
 
         $out = $result->matchError([
-            ReviewTestError::class => function ($e) {
-                return 'handled:' . $e->code();
-            },
-        ], fn($v) => 'ok', fn($e) => 'unhandled');
+            ReviewTestError::class => fn ($e) => 'handled:'.$e->code(),
+        ], fn ($v) => 'ok', fn ($e) => 'unhandled');
 
         expect($out)->toBe('handled:E_HANDLE');
     });
 
     it('matchError passes metadata to matched handler when accepted', function () {
-        $err = new ReviewTestError('E_META', 'Has meta', null);
+        $err = new ReviewTestError('E_META', 'Has meta');
         $result = Result::fail($err, ['request_id' => 'r-42']);
 
         $out = $result->matchError([
-            ReviewTestError::class => function ($e, array $meta) {
-                return $meta['request_id'];
-            },
+            ReviewTestError::class => fn ($e, array $meta) => $meta['request_id'],
         ], fn () => 'ok', fn () => 'unhandled');
 
         expect($out)->toBe('r-42');
@@ -112,7 +108,7 @@ describe('DataTaggedError and Cause integration', function () {
         $result = Result::fail(ReviewTestError::from('Recover me'));
 
         $recovered = $result->catchError([
-            ReviewTestError::class => fn(ReviewTestError $e) => 'recovered:' . $e->code(),
+            ReviewTestError::class => fn (ReviewTestError $e) => 'recovered:'.$e->code(),
         ]);
 
         expect($recovered->isOk())->toBeTrue();
@@ -123,7 +119,7 @@ describe('DataTaggedError and Cause integration', function () {
         $result = Result::fail(AnotherReviewTestError::from('No handler'));
 
         $unchanged = $result->catchError([
-            ReviewTestError::class => fn(ReviewTestError $e) => 'wrong',
+            ReviewTestError::class => fn (ReviewTestError $e) => 'wrong',
         ]);
 
         expect($unchanged->isFail())->toBeTrue();
@@ -134,8 +130,8 @@ describe('DataTaggedError and Cause integration', function () {
         $result = Result::fail('legacy-error');
 
         $handled = $result->catchError([
-            ReviewTestError::class => fn(ReviewTestError $e) => 'wrong',
-        ], fn($error) => 'fallback:' . $error);
+            ReviewTestError::class => fn (ReviewTestError $e) => 'wrong',
+        ], fn ($error) => 'fallback:'.$error);
 
         expect($handled->isOk())->toBeTrue();
         expect($handled->value())->toBe('fallback:legacy-error');
@@ -145,7 +141,7 @@ describe('DataTaggedError and Cause integration', function () {
         $result = Result::fail(ReviewTestError::from('Refail'));
 
         $handled = $result->catchError([
-            ReviewTestError::class => fn(ReviewTestError $e) => Result::fail(AnotherReviewTestError::from('Still failing')),
+            ReviewTestError::class => fn (ReviewTestError $e) => Result::fail(AnotherReviewTestError::from('Still failing')),
         ]);
 
         expect($handled->isFail())->toBeTrue();
@@ -161,6 +157,6 @@ describe('DataTaggedError and Cause integration', function () {
     });
 
     it('throws when named constructor is used without a subclass CODE constant', function () {
-        expect(fn() => MissingCodeReviewError::from('Missing code'))->toThrow(LogicException::class);
+        expect(fn () => MissingCodeReviewError::from('Missing code'))->toThrow(LogicException::class);
     });
 });

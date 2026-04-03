@@ -35,7 +35,7 @@ class DataTaggedError extends \RuntimeException implements JsonSerializable, Res
         parent::__construct($message);
         $this->payload = $payload;
         $this->causeObj = $cause;
-        $this->reflectionCode = $code;
+        $this->domainCode = $code;
     }
 
     /**
@@ -46,11 +46,11 @@ class DataTaggedError extends \RuntimeException implements JsonSerializable, Res
         return new static(static::definedCode(), $message, $payload, $cause);
     }
 
-    private string $reflectionCode = '';
+    private string $domainCode = '';
 
     public function code(): string
     {
-        return $this->reflectionCode;
+        return $this->domainCode;
     }
 
     public function message(): string
@@ -82,7 +82,7 @@ class DataTaggedError extends \RuntimeException implements JsonSerializable, Res
             $out['payload'] = $this->payload;
         }
 
-        if ($this->causeObj !== null) {
+        if ($this->causeObj instanceof Cause) {
             $out['cause'] = $this->causeObj->toArray();
         }
 

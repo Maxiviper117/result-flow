@@ -58,7 +58,7 @@ final class Cause
             'metadata' => $this->metadata,
         ];
 
-        if (! empty($this->causes)) {
+        if ($this->causes !== []) {
             $causesArr = [];
             foreach ($this->causes as $c) {
                 $causesArr[] = $c->toArray();

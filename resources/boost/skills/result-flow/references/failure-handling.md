@@ -8,6 +8,8 @@ Use when shaping failure behavior and recovery strategy.
 |---|---|
 | Conditional failure mapping/recovery | `otherwise` |
 | Throwable class-based handling | `catchException` |
+| Structured error matching | `matchError` |
+| Structured error recovery | `catchError` |
 | Always recover to success | `recover` |
 | Convert failure to exception at boundary | `throwIfFail` |
 
@@ -15,6 +17,8 @@ Use when shaping failure behavior and recovery strategy.
 
 - Keep one stable failure schema for consumers.
 - Preserve metadata when mapping failures.
+- Use `matchError` and `catchError` for class-based `ResultError` handling.
+- Match structured errors by class, not by string code.
 - Place `throwIfFail` at boundaries, not deep in domain logic.
 
 ## Anti-patterns

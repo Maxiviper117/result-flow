@@ -59,8 +59,7 @@ function createUser(string $mode): Result
         );
 
         return Result::fail(
-            new UserPersistError(
-                code: UserPersistError::CODE,
+            UserPersistError::from(
                 message: 'Unable to persist user',
                 payload: ['email' => 'jane@example.com'],
                 cause: $cause,
@@ -70,8 +69,7 @@ function createUser(string $mode): Result
 
     if ($mode === 'validate') {
         return Result::fail(
-            new UserValidationError(
-                code: UserValidationError::CODE,
+            UserValidationError::from(
                 message: 'User data is invalid',
                 payload: [
                     'email' => 'not-an-email',
