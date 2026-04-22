@@ -27,6 +27,7 @@ $result = Result::of(fn () => $gateway->send($payload))
 - it keeps one stable error schema
 - it preserves metadata
 - it avoids mixing raw exceptions with structured failures
+- it collapses `TFailure|Throwable` widening from `of(...)` / `defer(...)` into a predictable contract
 - `of(...)` is the right entry point here when `$gateway->send(...)` returns a plain payload on success and throws on failure
 
 ## Structured domain errors

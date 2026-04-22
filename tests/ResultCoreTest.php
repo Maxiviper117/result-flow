@@ -197,6 +197,35 @@ it('mapMeta replaces metadata when needed', function () {
     expect($r->meta())->toBe(['code' => 501, 'handled' => true]);
 });
 
+it('meta callbacks support array and invokable callable forms', function () {
+    $mapService = new class
+    {
+        public function apply(array $meta, $value = null): array
+        {
+            return [...$meta, 'mapped' => is_string($value) ? strtoupper($value) : 'none'];
+        }
+    };
+
+    $mergeService = new class
+    {
+        public function __invoke(array $meta, $value = null): array
+        {
+            return ['merged' => is_string($value) ? strlen($value) : -1];
+        }
+    };
+
+    $result = Result::ok('meta', ['base' => true])
+        ->mapMeta([$mapService, 'apply'])
+        ->mergeMeta($mergeService)
+        ->tapMeta([$mapService, 'apply']);
+
+    expect($result->meta())->toBe([
+        'base' => true,
+        'mapped' => 'META',
+        'merged' => 4,
+    ]);
+});
+
 it('mergeMeta merges additional metadata', function () {
     $r = Result::ok('fine', ['env' => 'prod', 'stage' => 'build'])
         ->mergeMeta(['stage' => 'deploy', 'trace' => 'abc']);

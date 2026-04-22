@@ -14,6 +14,11 @@ use Maxiviper117\ResultFlow\Result;
 final class MetaOps
 {
     /**
+     * @var array<string, int>
+     */
+    private static array $callableArityCache = [];
+
+    /**
      * @template TSuccess
      * @template TFailure
      *
@@ -105,18 +110,88 @@ final class MetaOps
      */
     private static function callMetaCallback(Result $result, callable $callback, array $meta): mixed
     {
-        /** @var \Closure $closure */
-        $closure = \Closure::fromCallable($callback);
-
-        /** @var \ReflectionFunction $ref */
-        $ref = new \ReflectionFunction($closure);
-
-        if ($ref->getNumberOfParameters() >= 2) {
+        if (self::callableArity($callback) >= 2) {
             $value = $result->isOk() ? $result->value() : null;
 
-            return $closure($meta, $value);
+            return $callback($meta, $value);
         }
 
-        return $closure($meta);
+        return $callback($meta);
+    }
+
+    private static function callableArity(callable $callback): int
+    {
+        $cacheKey = self::callableCacheKey($callback);
+
+        if (isset(self::$callableArityCache[$cacheKey])) {
+            return self::$callableArityCache[$cacheKey];
+        }
+
+        $arity = self::reflectCallable($callback)->getNumberOfParameters();
+        self::$callableArityCache[$cacheKey] = $arity;
+
+        return $arity;
+    }
+
+    private static function callableCacheKey(callable $callback): string
+    {
+        if ($callback instanceof \Closure) {
+            $reflection = new \ReflectionFunction($callback);
+
+            return 'closure#'.$reflection->getFileName().':'.$reflection->getStartLine().':'.$reflection->getEndLine();
+        }
+
+        if (is_array($callback)) {
+            $target = $callback[0] ?? null;
+            $method = $callback[1] ?? null;
+
+            if ((is_object($target) || is_string($target)) && is_string($method)) {
+                if (is_object($target)) {
+                    return 'array#obj:'.$target::class.'::'.$method;
+                }
+
+                return 'array#class:'.$target.'::'.$method;
+            }
+
+            throw new \InvalidArgumentException('Invalid array callable.');
+        }
+
+        if (is_string($callback)) {
+            return 'string#'.$callback;
+        }
+
+        if (is_object($callback)) {
+            return 'invokable#'.$callback::class;
+        }
+
+        return 'fallback#'.md5((string) spl_object_id(\Closure::fromCallable($callback)));
+    }
+
+    private static function reflectCallable(callable $callback): \ReflectionFunctionAbstract
+    {
+        if ($callback instanceof \Closure) {
+            return new \ReflectionFunction($callback);
+        }
+
+        if (is_array($callback)) {
+            $target = $callback[0] ?? null;
+            $method = $callback[1] ?? null;
+
+            if ((is_object($target) || is_string($target)) && is_string($method)) {
+                return new \ReflectionMethod($target, $method);
+            }
+
+            throw new \InvalidArgumentException('Invalid array callable.');
+        }
+
+        if (is_string($callback) && str_contains($callback, '::')) {
+            return new \ReflectionMethod($callback);
+        }
+
+        if (is_object($callback)) {
+            return new \ReflectionMethod($callback, '__invoke');
+        }
+
+        return new \ReflectionFunction(\Closure::fromCallable($callback));
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Maxiviper117\ResultFlow\Support\Output;
 
+use JsonSerializable;
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Support\Errors\ResultError;
 use Throwable;
@@ -58,8 +59,7 @@ final class Debug
      */
     private static function defaultSanitizer(mixed $value): mixed
     {
-        // Pull overrides from Laravel config if available; fall back to hardcoded defaults.
-        /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool} $debugConfig */
+        /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int} $debugConfig */
         $debugConfig = self::debugConfig();
         $enabled = ($debugConfig['enabled'] ?? true) === true;
         $redaction = $debugConfig['redaction'] ?? '***REDACTED***';
@@ -86,29 +86,132 @@ final class Debug
             ? $debugConfig['max_string_length']
             : 200;
         $truncateStrings = ($debugConfig['truncate_strings'] ?? true) === true;
+        $sanitizeObjects = ($debugConfig['sanitize_objects'] ?? false) === true;
+        $maxDepth = is_int($debugConfig['object_max_depth'] ?? null)
+            ? max(1, $debugConfig['object_max_depth'])
+            : 3;
 
         if (! $enabled) {
             return $value;
         }
 
+        /** @var array<int, bool> $seen */
+        $seen = [];
+
+        return self::sanitizeValue(
+            $value,
+            redaction: $redaction,
+            sensitiveKeys: $sensitiveKeys,
+            truncateStrings: $truncateStrings,
+            maxStringLength: $max,
+            sanitizeObjects: $sanitizeObjects,
+            maxDepth: $maxDepth,
+            depth: 0,
+            seen: $seen,
+        );
+    }
+
+    /**
+     * @param  array<int, string>  $sensitiveKeys
+     * @param  array<int, bool>  $seen
+     */
+    private static function sanitizeValue(
+        mixed $value,
+        string $redaction,
+        array $sensitiveKeys,
+        bool $truncateStrings,
+        int $maxStringLength,
+        bool $sanitizeObjects,
+        int $maxDepth,
+        int $depth,
+        array &$seen,
+    ): mixed {
         if (is_array($value)) {
             $out = [];
             foreach ($value as $k => $v) {
-                // Only string keys are considered for sensitive matching.
                 if (is_string($k) && self::matchesSensitiveKey($k, $sensitiveKeys)) {
                     $out[$k] = $redaction;
                 } else {
-                    $out[$k] = self::defaultSanitizer($v);
+                    $out[$k] = self::sanitizeValue(
+                        $v,
+                        redaction: $redaction,
+                        sensitiveKeys: $sensitiveKeys,
+                        truncateStrings: $truncateStrings,
+                        maxStringLength: $maxStringLength,
+                        sanitizeObjects: $sanitizeObjects,
+                        maxDepth: $maxDepth,
+                        depth: $depth + 1,
+                        seen: $seen,
+                    );
                 }
             }
 
             return $out;
         }
 
+        if (is_object($value) && $sanitizeObjects) {
+            if ($depth >= $maxDepth) {
+                return '[object_depth_exceeded]';
+            }
+
+            $objectId = spl_object_id($value);
+            if (isset($seen[$objectId])) {
+                return '[circular_reference]';
+            }
+
+            $seen[$objectId] = true;
+
+            if ($value instanceof JsonSerializable) {
+                $sanitized = self::sanitizeValue(
+                    $value->jsonSerialize(),
+                    redaction: $redaction,
+                    sensitiveKeys: $sensitiveKeys,
+                    truncateStrings: $truncateStrings,
+                    maxStringLength: $maxStringLength,
+                    sanitizeObjects: $sanitizeObjects,
+                    maxDepth: $maxDepth,
+                    depth: $depth + 1,
+                    seen: $seen,
+                );
+
+                unset($seen[$objectId]);
+
+                return $sanitized;
+            }
+
+            $props = get_object_vars($value);
+            if ($props !== []) {
+                $out = [];
+
+                foreach ($props as $k => $v) {
+                    if (self::matchesSensitiveKey($k, $sensitiveKeys)) {
+                        $out[$k] = $redaction;
+                    } else {
+                        $out[$k] = self::sanitizeValue(
+                            $v,
+                            redaction: $redaction,
+                            sensitiveKeys: $sensitiveKeys,
+                            truncateStrings: $truncateStrings,
+                            maxStringLength: $maxStringLength,
+                            sanitizeObjects: $sanitizeObjects,
+                            maxDepth: $maxDepth,
+                            depth: $depth + 1,
+                            seen: $seen,
+                        );
+                    }
+                }
+
+                unset($seen[$objectId]);
+
+                return $out;
+            }
+
+            unset($seen[$objectId]);
+        }
+
         if (is_string($value)) {
-            // Truncate very long strings (tokens, dumps) to avoid leaking full contents.
-            if ($truncateStrings && self::stringLength($value) > $max) {
-                return self::stringSlice($value, 0, $max).'…';
+            if ($truncateStrings && self::stringLength($value) > $maxStringLength) {
+                return self::stringSlice($value, 0, $maxStringLength).'…';
             }
 
             return $value;
@@ -120,16 +223,16 @@ final class Debug
     /**
      * Fetch debug config from Laravel if the helper is available; otherwise return defaults.
      *
-     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool}
+     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int}
      */
     private static function debugConfig(): array
     {
         if (function_exists('config')) {
-            /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool}|null $config */
+            /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int}|null $config */
             $config = config('result-flow.debug');
 
             if (is_array($config)) {
-                /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool} $config */
+                /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int} $config */
                 return $config;
             }
         }

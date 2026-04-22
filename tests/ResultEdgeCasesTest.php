@@ -573,3 +573,14 @@ describe('edge cases: meta operations', function () {
         expect($result->meta())->toBe(['current' => 'meta', 'added' => 'no-value']);
     });
 });
+
+describe('edge cases: readonly state', function () {
+    it('stores core state in readonly properties', function () {
+        $reflection = new ReflectionClass(Result::class);
+
+        expect($reflection->getProperty('ok')->isReadOnly())->toBeTrue();
+        expect($reflection->getProperty('value')->isReadOnly())->toBeTrue();
+        expect($reflection->getProperty('error')->isReadOnly())->toBeTrue();
+        expect($reflection->getProperty('meta')->isReadOnly())->toBeTrue();
+    });
+});

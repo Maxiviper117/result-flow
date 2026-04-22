@@ -24,6 +24,7 @@ Matches `Throwable` failures by class.
 - unmatched Throwable failure -> original result if no fallback is provided
 - non-Throwable failure -> original result if no fallback is provided
 - handlers and fallback may return a plain value or a `Result`
+- use this early to normalize `TFailure|Throwable` into one stable domain shape
 
 ## `matchError(array $errorHandlers, callable $onSuccess, callable $onUnhandled): mixed`
 
@@ -70,3 +71,4 @@ Converts any failure into a success result.
 
 - [Failure handling concepts](/concepts/failure-handling)
 - [Finalization boundaries](/concepts/finalization-boundaries)
+- [Error normalization guide](/guides/error-normalization)

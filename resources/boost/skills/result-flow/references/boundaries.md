@@ -18,6 +18,7 @@ Use when finalizing a `Result` into app-facing output.
 - Use the kitchen-sink finalization page when you want the grouped walkthrough of `match`, `unwrap*`, `getOrThrow`, `throwIfFail`, and transport helpers before choosing a boundary method.
 - Use one boundary style per function unless bridging layers.
 - Normalize errors before exposing to transport/UI boundaries.
+- Flows from `of`, `defer`, `retryDefer`, and batch helpers can carry `TFailure|Throwable`; normalize before transport boundaries when consumers require one stable shape.
 - Keep `toJson` and non-Laravel `toResponse` payloads JSON-encodable; invalid encoding should be treated as a boundary error.
 - `toXml()` normalizes invalid element names; do not depend on raw user-provided keys becoming literal XML tag names.
 

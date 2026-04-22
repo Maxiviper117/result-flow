@@ -81,6 +81,9 @@ fail on invalid encoding.
 not a lossless mirror of arbitrary array keys.
 - Use `toDebugArray()` for logs and diagnostics instead of `toArray()` when payloads may contain secrets or large
 strings.
+- By default, `toDebugArray()` sanitizes arrays and strings.
+- Object internals are traversed only when `result-flow.debug.sanitize_objects` is enabled.
+- The sanitizer applies the configured object depth guard.
 
 ## Error payload conventions
 
@@ -91,6 +94,8 @@ strings.
 explicit branch handling.
 - Treat `code()` as the stable domain/API identifier for structured errors; matching should be based on the error
 class, with the first matching `matchError(...)` / `catchError(...)` handler winning in array order.
+- For `of(...)`, `defer(...)`, `retryDefer(...)`, and batch helpers, assume failure may widen to
+  `TFailure|Throwable` until you normalize it.
 
 ## Type-safety defaults
 

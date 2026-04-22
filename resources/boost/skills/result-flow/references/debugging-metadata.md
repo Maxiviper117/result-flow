@@ -18,6 +18,8 @@ Use when diagnosing failures and preserving safe observability.
 - Prefer `toDebugArray` in logs/diagnostics.
 - Keep instrumentation side-effect only.
 - `mapMeta` and `mergeMeta` now support success-aware callbacks: `fn ($meta, $value)`.
+- `toDebugArray` sanitizes arrays/strings by default; object internals are sanitized only when `result-flow.debug.sanitize_objects` is enabled.
+- When object sanitization is enabled, `JsonSerializable` payloads and public properties are traversed with `object_max_depth` and cycle guards.
 - When a pipeline step throws, inspect `failed_step` metadata before adding your own step labels.
 
 ## Anti-patterns
