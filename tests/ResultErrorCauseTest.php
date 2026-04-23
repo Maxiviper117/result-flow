@@ -3,6 +3,7 @@
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Support\Errors\Cause;
 use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
+use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
 class ReviewTestError extends DataTaggedError
 {
@@ -43,6 +44,12 @@ describe('DataTaggedError and Cause integration', function () {
     });
 
     it('provides debug fields including error_code and message', function () {
+        ConfigStub::reset();
+        ConfigStub::set('result-flow.debug', [
+            'max_string_length' => 200,
+            'truncate_strings' => true,
+        ]);
+
         $err = new DataTaggedError('E_X', 'Something broke');
         $result = Result::fail($err);
 
