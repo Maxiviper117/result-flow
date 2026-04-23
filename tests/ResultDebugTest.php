@@ -107,6 +107,13 @@ describe('toDebugArray()', function () {
     });
 
     it('keeps object internals untouched when object sanitization is disabled', function () {
+        ConfigStub::reset();
+        ConfigStub::set('result-flow.debug', [
+            'sanitize_objects' => false,
+            'truncate_strings' => true,
+            'max_string_length' => 200,
+        ]);
+
         $dto = new DebugTestPublicDto('raw-secret', 'visible');
         $result = Result::fail('oops', ['payload' => $dto]);
 
