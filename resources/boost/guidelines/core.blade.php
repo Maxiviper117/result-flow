@@ -7,6 +7,7 @@
 - These guidelines are for agents generating code in Laravel applications that consume `maxiviper117/result-flow`.
 - Focus on app-level usage of public `Result` APIs.
 - Do not include package-maintainer workflow/tooling guidance in generated app code.
+- Keep examples compatible with PHP 8.2+ unless the host app explicitly targets a newer runtime.
 
 ## When to use ResultFlow
 

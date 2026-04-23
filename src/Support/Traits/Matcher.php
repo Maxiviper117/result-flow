@@ -131,7 +131,7 @@ final class Matcher
             return Result::ok($out, $result->meta());
         }
 
-        /** @var Result<TSuccess, UFailure> $result @phpstan-ignore varTag.nativeType */
+        /** @phpstan-ignore-next-line */
         return $result;
     }
 

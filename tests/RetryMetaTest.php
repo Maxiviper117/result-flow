@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Maxiviper117\ResultFlow\Result;
 
 it('does not add retry metadata by default', function () {

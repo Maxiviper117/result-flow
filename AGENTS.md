@@ -2,6 +2,7 @@
 
 ## Scope and compatibility
 - Target PHP 8.2+ and keep public APIs under the `Maxiviper117\ResultFlow` namespace in `src/`.
+- CI test coverage includes PHP 8.5, 8.4, 8.3, and 8.2 in the main test matrix.
 - Preserve type-safety and PHPStan-friendly templates when changing generics or method signatures.
 - Keep behavior deterministic: no network access, randomness, or IO in core `Result` flows unless explicitly intended.
 
