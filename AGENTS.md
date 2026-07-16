@@ -78,3 +78,10 @@
 ## Release hygiene
 - Releases update `CHANGELOG.md` via GitHub workflows.
 - Avoid changing package version metadata in PRs.
+
+## Cursor Cloud specific instructions
+- Two toolchains are used: PHP (CLI `php`, `composer`) for the library, and Node/`pnpm` for the VitePress docs site. The VM has PHP 8.4 as the default `php` (matches the PHPStan CI job; the test matrix also covers 8.2/8.3).
+- Dependencies are refreshed automatically on startup via the update script (`composer install`, `pnpm install --frozen-lockfile`). No manual install needed; standard commands live in `## Quality checks` and `README.md`.
+- No `composer.lock` is committed, so `composer install` resolves the latest allowed dev tools. Newer PHPStan/Rector releases can surface findings that were not present when CI last ran on `main` (e.g. `composer analyse` reporting `isset.offset` / `alreadyNarrowedType` / `ignore.unmatchedIdentifier`, and `composer rector-dry` proposing `declare(strict_types=1)` additions). These are upstream tool drift, not repo regressions; do not "fix" them as part of unrelated work. `composer test` and `composer pint-test` pass cleanly.
+- Run library examples directly, e.g. `php examples/construction/of-defer-demo.php` (each script bootstraps `vendor/autoload.php`).
+- Docs dev server: `pnpm run docs:dev` serves under the base path `/result-flow/` (i.e. `http://127.0.0.1:5173/result-flow/`, not the bare root).
