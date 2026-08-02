@@ -16,7 +16,7 @@ Result Flow ships Boost assets for downstream Laravel applications that use AI-a
 
 - the guideline describes app-level conventions for using `Result`
 - the skill orchestrates ResultFlow-related tasks
-- the reference files give task-specific guidance for construction, chaining, failure handling, retries, batches, boundaries, and observability
+- the reference files give task-specific guidance for construction, generator composition, chaining, failure handling, retries, batches, boundaries, and observability
 
 ## What app teams should remember
 
@@ -25,6 +25,7 @@ Result Flow ships Boost assets for downstream Laravel applications that use AI-a
 - normalize failures at boundaries
 - prefer `toDebugArray()` for logs
 - use `thenUnsafe()` only when exception bubbling is intended
+- use `Result::flow()` only for multi-step workflows, and yield only `Result` values
 
 Official Boost docs: [Laravel Boost](https://laravel.com/docs/12.x/boost)
 

@@ -21,6 +21,7 @@ $result = Result::ok($payload, ['request_id' => 'r-1']);
 - `failWithValue(...)` stores the failed input in metadata under `failed_value`.
 - `of(...)` wraps a throwing callback and always wraps the callback return value as success.
 - `defer(...)` normalizes callbacks that may return a value, a `Result`, or throw.
+- `flow(...)` composes several synchronous `Result` operations with generator syntax.
 
 ## Why `defer` exists
 
@@ -50,6 +51,7 @@ $defer->isFail(); // true
 - Use `failWithValue(...)` when the failed input matters.
 - Use `of(...)` for plain-value callbacks that may throw.
 - Use `defer(...)` for callbacks that may already return `Result`.
+- Use `flow(...)` when later steps need several earlier success values.
 - Start metadata early if the flow will need correlation later.
 
 ## Common mistakes
@@ -62,3 +64,4 @@ $defer->isFail(); // true
 - [Result model](/concepts/result-model)
 - [Deferred execution](/concepts/deferred-execution)
 - [Construction reference](/reference/construction)
+- [Generator composition](/guides/generator-composition)

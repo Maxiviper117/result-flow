@@ -13,6 +13,7 @@ These pages show how multiple parts of Result Flow fit together in real flows.
 - [Transaction rollback](/guides/transaction-rollback)
 - [Observability](/guides/observability)
 - [Batch strategy](/guides/batch-strategy)
+- [Generator composition](/guides/generator-composition)
 
 ## When to use guides
 

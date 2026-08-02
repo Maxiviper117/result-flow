@@ -31,6 +31,7 @@ export default defineConfig({
               { text: 'Overview', link: '/guides/' },
               { text: 'Validate then persist', link: '/guides/validate-then-persist' },
               { text: 'Observability', link: '/guides/observability' },
+              { text: 'Generator composition', link: '/guides/generator-composition' },
             ],
           },
           {
@@ -146,6 +147,9 @@ export default defineConfig({
                 { text: 'retryDefer', link: '/kitchen-sink/construction#retrydefer' },
                 { text: 'retrier', link: '/kitchen-sink/construction#retrier' },
                 { text: 'bracket', link: '/kitchen-sink/construction#bracket' },
+                { text: 'flow', link: '/kitchen-sink/construction#flow' },
+                { text: 'tryFlow', link: '/kitchen-sink/construction#tryflow' },
+                { text: 'bind', link: '/kitchen-sink/construction#bind' },
               ],
             },
             {

@@ -1,6 +1,6 @@
 ---
 name: ResultFlow App Usage
-description: Central orchestration skill for using ResultFlow in downstream Laravel apps; load only the relevant local reference docs for constructing, chaining, failure handling, batch, boundaries, retries, debugging, and API whitelist.
+description: Central orchestration skill for using ResultFlow in downstream Laravel apps; load only the relevant local reference docs for constructing, generator composition, chaining, failure handling, batch, boundaries, retries, debugging, and API whitelist.
 ---
 
 # ResultFlow App Usage
@@ -25,7 +25,7 @@ Use this skill when the user asks for ResultFlow workflow design, implementation
 7. Prefer `defer(...)` over `of(...)` when the callback may already return a `Result`, because `defer(...)` preserves that `Result` instead of nesting it.
 8. For batch aggregation, remember `combine(...)` is fail-fast while `combineAll(...)` preserves every failure and returns no success values if any input fails.
 9. When a flow needs named domain failures, prefer subclasses of `DataTaggedError` with class-based `matchError(...)` / `catchError(...)` handling rather than ad-hoc string-based branching. Those APIs dispatch by error class, not `code()`, and support flexible callback arity.
-10. Use `flow(...)` for multi-step workflows with dependent values, and keep its callback as a generator closure.
+10. Use `flow(...)` for multi-step workflows with dependent values, load `references/generator-composition.md` for strict yield rules, and keep its callback as a generator closure.
 
 ## Progressive disclosure rule
 
@@ -43,6 +43,7 @@ Use this skill when the user asks for ResultFlow workflow design, implementation
 ## Local references
 
 - `references/constructing.md`
+- `references/generator-composition.md`
 - `references/chaining.md`
 - `references/failure-handling.md`
 - `references/batch-processing.md`

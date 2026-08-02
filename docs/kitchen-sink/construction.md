@@ -20,6 +20,9 @@ This group covers the functions that create a result, retry work, or guard a res
 | `retryDefer`    | Retries a `defer`-style callback                                                                                   |
 | `retrier`       | Returns the fluent retry builder                                                                                   |
 | `bracket`       | Runs acquire/use/release with cleanup guarantees                                                                   |
+| `flow`          | Runs a synchronous generator workflow with fail-fast Result steps                                                 |
+| `tryFlow`       | Runs a generator workflow and captures unexpected exceptions                                                     |
+| `bind`          | Adapts one Result for typed `yield from` composition                                                              |
 
 ## ok
 
@@ -555,6 +558,56 @@ $result->match(
 | `retry()`      | Simple     | Basic (attempts, delay, exponential)        | When your callback fits the retry contract and you only need basic retry features.                                 |
 | `retryDefer()` | Moderate   | Normalizes mixed callback behavior          | When your callback may return plain values, `Result`, or throw, and you want automatic normalization with retries. |
 | `retrier()`    | Advanced   | Full control with predicates, jitter, hooks | When you need complex retry policies, conditional retries, or want to execute code during retry attempts.          |
+
+## flow
+
+`flow(...)` runs a synchronous generator workflow.
+
+```php
+use Generator;
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::flow(function (): Generator {
+    $user = yield findUser($userId);
+    $account = yield findAccount($user->accountId);
+
+    return createInvoice($user, $account);
+});
+```
+
+### Behavior
+
+- each yielded value must be a `Result`
+- each success value returns to the generator
+- the first failure stops later workflow statements
+- a plain final value becomes `Result::ok(...)`
+- a final returned `Result` keeps its branch
+- unexpected exceptions escape
+- metadata uses later-step precedence
+
+Use `flow(...)` for multi-step orchestration. Use fluent chaining for short operations.
+
+## tryFlow
+
+`tryFlow(...)` captures unexpected workflow exceptions as failures.
+
+Use it only when the workflow boundary needs exception capture.
+
+```php
+$result = Result::tryFlow(function (): Generator {
+    $user = yield findUser($userId);
+
+    return $user;
+});
+```
+
+## bind
+
+`bind(...)` supports typed nested composition with `yield from`.
+
+```php
+$user = yield from Result::bind(findUser($userId));
+```
 
 ## bracket
 
