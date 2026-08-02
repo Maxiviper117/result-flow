@@ -18,7 +18,7 @@
 
 ## Where to change things
 - Core behavior lives in `src/` (primary class: `src/Result.php`).
-- Public docs now live in `docs/` as a VitePress site with `concepts/`, `guides/`, `recipes/`, `reference/`, `kitchen-sink/`, `getting-started.md`, `faq.md`, and `laravel-boost.md`.
+- Public docs now live in `docs/` as a Blume site (`blume.config.ts`) with `concepts/`, `guides/`, `recipes/`, `reference/`, `kitchen-sink/`, `getting-started.md`, `faq.md`, and `laravel-boost.md`. Section sidebars use folder `meta.ts` files and parenthesized group folders where needed.
 - Static constructor APIs (`ok`, `fail`, `failWithValue`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`) must stay documented in the reference pages and reflected in Boost assets.
 - Internal helpers are organized under `src/Support/Traits/`, `src/Support/Operations/`, and `src/Support/Output/`.
 - Structured error helpers live under `src/Support/Errors/`; keep `DataTaggedError`, `ResultError`, `Cause`, and class-based `matchError()` / `catchError()` behavior aligned with docs, examples, and Boost assets.
@@ -45,8 +45,8 @@
 - Preserve public named constructor arguments when Rector suggests constructor promotion.
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
 - Benchmarks: `composer bench` (phpbench callback dispatch benchmarks)
-- Documentation dependencies: keep the pinned VitePress toolchain current with security fixes.
-- Documentation checks: run `pnpm install --frozen-lockfile` and `pnpm docs:build` after dependency updates.
+- Documentation dependencies: keep the pinned Blume toolchain current with security fixes.
+- Documentation checks: run `pnpm install --frozen-lockfile`, then `pnpm run docs:build` and `pnpm run docs:validate` after dependency updates.
 
 ## Python usage
 - Do not use Python to check files, verify contents, or perform any file validation tasks.

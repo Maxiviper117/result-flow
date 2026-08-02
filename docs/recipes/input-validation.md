@@ -2,7 +2,6 @@
 title: Input Validation
 ---
 
-# Input Validation
 
 Goal: validate input and keep the original branch metadata available for later steps.
 

@@ -2,7 +2,6 @@
 title: Concepts
 ---
 
-# Concepts
 
 This section explains the mental model behind Result Flow.
 

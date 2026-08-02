@@ -2,7 +2,6 @@
 title: Retry Builder
 ---
 
-# Retry Builder
 
 This page documents the fluent retry builder returned by `Result::retrier()` and provides concise, practical end-to-end examples you can copy-and-run. The builder is a small, synchronous retry helper that converts plain return values into `Result` instances, converts thrown exceptions into failure results, and retries failures according to your configuration.
 

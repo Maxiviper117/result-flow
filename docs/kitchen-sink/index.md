@@ -1,8 +1,7 @@
 ---
-title: Kitchen Sink
+title: Kitchen sink
 ---
 
-# Kitchen Sink
 
 This section is the full method tour.
 

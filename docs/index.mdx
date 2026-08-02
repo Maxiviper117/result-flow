@@ -1,0 +1,82 @@
+---
+title: Result Flow
+description: Result Flow gives PHP a small, explicit Result type for success, failure, and metadata. Ordinary failures stay in the type system so you can compose work, preserve context, and finish at a boundary on purpose.
+sidebar:
+  hidden: true
+---
+
+```text
+Ok(value, meta) | Fail(error, meta)
+```
+
+```php
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::ok(['email' => 'dev@example.com'], ['request_id' => 'r-1'])
+    ->ensure(fn (array $input) => isset($input['email']), 'Email is required')
+    ->then(fn (array $input) => Result::ok([
+        'email' => strtolower($input['email']),
+    ], ['operation' => 'normalize-email']))
+    ->otherwise(fn ($error, array $meta) => Result::fail([
+        'message' => (string) $error,
+        'request_id' => $meta['request_id'] ?? null,
+    ], $meta));
+
+$payload = $result->match(
+    onSuccess: fn (array $value, array $meta) => ['ok' => true, 'data' => $value, 'meta' => $meta],
+    onFailure: fn ($error, array $meta) => ['ok' => false, 'error' => $error, 'meta' => $meta],
+);
+```
+
+## Start here
+
+<CardGroup cols={2}>
+  <Card title="Getting started" href="/getting-started" icon="rocket">
+    Install the package and write your first flow in a few minutes.
+  </Card>
+  <Card title="Kitchen sink" href="/kitchen-sink" icon="grid-3x3">
+    Browse every public method and the retry builder in one place.
+  </Card>
+</CardGroup>
+
+## Learn
+
+<CardGroup cols={3}>
+  <Card title="Concepts" href="/concepts" icon="lightbulb">
+    Mental model, chaining, failure handling, metadata, and boundaries.
+  </Card>
+  <Card title="Guides" href="/guides" icon="map">
+    End-to-end patterns for validation, persistence, and observability.
+  </Card>
+  <Card title="Recipes" href="/recipes" icon="flask-conical">
+    Short, problem-focused examples you can copy into your app.
+  </Card>
+</CardGroup>
+
+## Reference and integrations
+
+<CardGroup cols={3}>
+  <Card title="Reference" href="/reference" icon="file-text">
+    Exact signatures, behavior notes, and boundary helpers.
+  </Card>
+  <Card title="FAQ" href="/faq" icon="circle-help">
+    Common questions about design choices and day-to-day usage.
+  </Card>
+  <Card title="Laravel Boost" href="/laravel-boost" icon="sparkles">
+    AI guidance assets for Laravel apps using Result Flow.
+  </Card>
+</CardGroup>
+
+## Suggested reading order
+
+<Steps>
+  <Step title="Result model">
+    Start with the [result model](/concepts/result-model) if Result-style flows are new to you.
+  </Step>
+  <Step title="Chaining">
+    See how work composes in [chaining](/concepts/chaining) and where to stop in [finalization boundaries](/concepts/finalization-boundaries).
+  </Step>
+  <Step title="Look up APIs">
+    Use the [reference](/reference) when you need an exact signature or boundary behavior.
+  </Step>
+</Steps>

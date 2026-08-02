@@ -1,0 +1,42 @@
+---
+import BlumePage from 'blume/components/BlumePage.astro'
+import PageLayout from 'blume/components/layout/PageLayout.astro'
+import data from 'blume:data'
+
+const { config } = data
+const home = data.routes.find((route) => route.path === '/')
+const pageTitle = home?.title ?? config.title
+const pageDescription = home?.description ?? config.description
+---
+
+<PageLayout
+  site={{ title: config.title, description: config.description }}
+  logo={config.logo}
+  banner={config.banner}
+  analytics={config.analytics}
+  navigation={data.navigation}
+  favicon={config.favicon}
+  fontCssVars={data.fontCssVars}
+  themeMode={config.theme.mode}
+  searchEnabled={config.search.enabled}
+  siteUrl={config.site}
+  ogEnabled={config.og.enabled}
+  page={{
+    title: pageTitle,
+    description: pageDescription,
+    route: '/',
+  }}
+  clientData={{
+    config: data.config,
+    navigation: data.navigation,
+    page: { route: '/', title: pageTitle },
+  }}
+>
+  <div class="px-6 pt-6 pb-10 lg:px-8 xl:px-10">
+    <article class="prose mx-auto max-w-content" dir="ltr">
+      <h1>{pageTitle}</h1>
+      {pageDescription && <p>{pageDescription}</p>}
+      {home && <BlumePage id={home.entryId} />}
+    </article>
+  </div>
+</PageLayout>

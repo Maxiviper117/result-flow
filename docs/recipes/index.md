@@ -2,7 +2,6 @@
 title: Recipes
 ---
 
-# Recipes
 
 These pages solve specific problems with the smallest useful example.
 

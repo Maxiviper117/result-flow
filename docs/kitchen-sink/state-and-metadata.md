@@ -2,7 +2,6 @@
 title: Branch State and Metadata
 ---
 
-# Branch State and Metadata
 
 This group covers branch inspection and metadata operations.
 

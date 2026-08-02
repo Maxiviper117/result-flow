@@ -2,7 +2,6 @@
 title: Transaction Rollback
 ---
 
-# Transaction Rollback
 
 Use `thenUnsafe(...)` when the transaction boundary depends on exceptions bubbling out of the chain.
 
