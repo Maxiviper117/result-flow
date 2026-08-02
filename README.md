@@ -92,6 +92,36 @@ $result = Result::bracket(
 
 All batch callbacks use: `fn ($item, $key) => Result|value`.
 
+## Structured domain errors
+
+For domain-level failures that need a stable API shape and explicit branching, use
+subclasses of `DataTaggedError` and match them by class with `matchError(...)`
+or `catchError(...)`.
+
+```php
+use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
+
+final class UserPersistError extends DataTaggedError
+{
+    public const CODE = 'E_USER_PERSIST';
+}
+
+$result = Result::fail(UserPersistError::from(
+    'Unable to persist user',
+    ['email' => 'dev@example.com'],
+));
+
+$message = $result->matchError(
+    [UserPersistError::class => fn (UserPersistError $e) => $e->code()],
+    onSuccess: fn ($value) => 'ok',
+    onUnhandled: fn ($error) => 'unhandled',
+);
+```
+
+Use `code()` for boundary serialization and external systems. Matching is based on
+the error class, not the string code.
+
 ## Laravel Boost
 
 This package ships Laravel Boost source assets so AI agents in downstream consumer apps can generate ResultFlow-aware code.

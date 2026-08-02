@@ -20,6 +20,7 @@
 - Public docs now live in `docs/` as a VitePress site with `concepts/`, `guides/`, `recipes/`, `reference/`, `kitchen-sink/`, `getting-started.md`, `faq.md`, and `laravel-boost.md`.
 - Static constructor APIs (`ok`, `fail`, `failWithValue`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`) must stay documented in the reference pages and reflected in Boost assets.
 - Internal helpers are organized under `src/Support/Traits/`, `src/Support/Operations/`, and `src/Support/Output/`.
+- Structured error helpers live under `src/Support/Errors/`; keep `DataTaggedError`, `ResultError`, `Cause`, and class-based `matchError()` / `catchError()` behavior aligned with docs, examples, and Boost assets.
 - `src/Support/Traits/` contains focused `Result` behavior traits (e.g., transform, unwrap, matching, taps, metadata ops).
 - `src/Support/Operations/` contains operation-style services/builders (e.g., retry, pipeline, batch mapping).
 - `src/Support/Output/` contains debug and serialization output helpers.
@@ -40,6 +41,7 @@
 - Format check only (dry-run): `composer pint-test`
 - Static analysis: `composer analyse` (or `composer phpstan`)
 - Refactoring check: `composer rector-dry` (apply fixes with `composer rector`)
+- Preserve public named constructor arguments when Rector suggests constructor promotion.
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
 
 ## Python usage

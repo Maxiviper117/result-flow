@@ -20,6 +20,37 @@ Creates a failure result.
 $result = Result::fail('Invalid state', ['step' => 'validate']);
 ```
 
+You can also pass a structured error object such as a `DataTaggedError` subclass
+when you want stable boundary serialization and class-based matching later.
+
+## `Result::failTagged(string $code, string $message, mixed $payload = null, array $meta = [], ?Cause $cause = null): Result`
+
+Creates a failure result containing a `DataTaggedError`.
+
+- useful for quick structured failures
+- good when you want predictable JSON/debug output
+- for named domain errors, prefer a subclass of `DataTaggedError` and construct it via `::from(...)`
+
+```php
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::failTagged('E_USER_PERSIST', 'Unable to save user', ['email' => 'dev@example.com']);
+```
+
+### Named structured errors
+
+```php
+use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
+
+final class UserPersistError extends DataTaggedError
+{
+	public const CODE = 'E_USER_PERSIST';
+}
+
+$result = Result::fail(UserPersistError::from('Unable to save user', ['email' => 'dev@example.com']));
+```
+
 ## `Result::failWithValue(mixed $error, mixed $failedValue, array $meta = []): Result`
 
 Creates a failure result and stores the value that caused it in metadata under `failed_value`.

@@ -24,8 +24,8 @@
     "require-dev": {
         "laravel/pint": "^1.14",
         "pestphp/pest": "^3.0",
-        "rector/rector": "^2.3",
-        "phpstan/phpstan": "^2.0",
+        "rector/rector": "2.3.5",
+        "phpstan/phpstan": "2.1.37",
         "phpstan/extension-installer": "^1.4"
     },
     "autoload": {
