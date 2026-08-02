@@ -2,7 +2,6 @@
 title: Chaining and Recovery
 ---
 
-# Chaining and Recovery
 
 This group covers the functions that transform the success or failure branch, then move the flow forward.
 

@@ -2,7 +2,6 @@
 title: API Boundary Mapping
 ---
 
-# API Boundary Mapping
 
 Goal: finish a `Result` at an HTTP boundary without leaking internal control flow into the response layer.
 

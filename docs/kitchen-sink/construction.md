@@ -2,7 +2,6 @@
 title: Construction and Entry Points
 ---
 
-# Construction and Entry Points
 
 This group covers the functions that create a result, retry work, or guard a resource lifecycle.
 

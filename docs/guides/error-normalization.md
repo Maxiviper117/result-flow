@@ -2,7 +2,6 @@
 title: Error Normalization
 ---
 
-# Error Normalization
 
 Normalize errors where they enter the flow, not after they have already spread into the chain.
 

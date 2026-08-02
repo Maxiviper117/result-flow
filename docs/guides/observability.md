@@ -2,7 +2,6 @@
 title: Observability
 ---
 
-# Observability
 
 Metadata and taps let you inspect a flow without changing it.
 

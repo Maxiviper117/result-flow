@@ -2,7 +2,6 @@
 title: Finalization and Output
 ---
 
-# Finalization and Output
 
 This group covers the functions that close a flow or turn it into transport-safe output.
 

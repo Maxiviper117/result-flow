@@ -2,7 +2,6 @@
 title: Laravel Boost
 ---
 
-# Laravel Boost
 
 Result Flow ships Boost assets for downstream Laravel applications that use AI-assisted code generation.
 

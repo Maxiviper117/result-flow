@@ -2,7 +2,6 @@
 title: Transient Retries
 ---
 
-# Transient Retries
 
 Goal: retry a transient operation without turning retry policy into business logic.
 

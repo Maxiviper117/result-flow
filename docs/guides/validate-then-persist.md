@@ -2,7 +2,6 @@
 title: Validate Then Persist
 ---
 
-# Validate Then Persist
 
 Use `ensure(...)` for cheap validation and `then(...)` for the work that should only run after the input is valid.
 

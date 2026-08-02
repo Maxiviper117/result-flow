@@ -2,7 +2,6 @@
 title: Getting Started
 ---
 
-# Getting Started
 
 Install the package:
 

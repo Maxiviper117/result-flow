@@ -2,7 +2,6 @@
 title: FAQ
 ---
 
-# FAQ
 
 ## Why use Result Flow instead of throwing everywhere?
 

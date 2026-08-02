@@ -2,7 +2,6 @@
 title: Collections
 ---
 
-# Collections
 
 This group covers item mapping and aggregation.
 

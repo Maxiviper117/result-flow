@@ -2,7 +2,6 @@
 title: Collecting Batch Errors
 ---
 
-# Collecting Batch Errors
 
 Goal: validate every item and return all failures keyed by item.
 

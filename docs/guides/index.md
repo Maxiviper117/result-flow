@@ -2,7 +2,6 @@
 title: Guides
 ---
 
-# Guides
 
 These pages show how multiple parts of Result Flow fit together in real flows.
 

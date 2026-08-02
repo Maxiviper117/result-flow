@@ -2,7 +2,6 @@
 title: Batch Strategy
 ---
 
-# Batch Strategy
 
 Choose the batch primitive based on the shape of the problem, not on convenience.
 

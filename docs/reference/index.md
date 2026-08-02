@@ -2,7 +2,6 @@
 title: Reference
 ---
 
-# Reference
 
 This section is for exact lookup.
 

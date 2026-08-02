@@ -2,7 +2,6 @@
 title: Resource Cleanup
 ---
 
-# Resource Cleanup
 
 Goal: acquire a resource, use it, and release it even when the use step fails.
 
