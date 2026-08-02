@@ -9,8 +9,42 @@ Suggested order if you are new:
 4. `examples\retry\retry-defer-test.php`
 5. `examples\defer\bracket-test.php`
 6. `examples\batch\batch-map-demo.php`
-7. `examples\debug\debug-sanitization-demo.php`
-8. `examples\tagged-error-demo.php`
+7. `examples\flow\basic-flow.php`
+8. `examples\flow\metadata-and-cleanup.php`
+9. `examples\flow\try-flow-and-bind.php`
+10. `examples\debug\debug-sanitization-demo.php`
+11. `examples\tagged-error-demo.php`
+
+## Generator flow examples
+
+### `php examples\flow\basic-flow.php`
+
+Purpose:
+- Compose dependent Result operations with generator syntax.
+
+Concept:
+- Sends successful values back into the generator.
+- Stops at the first failure.
+- Accumulates metadata from successful steps.
+
+### `php examples\flow\metadata-and-cleanup.php`
+
+Purpose:
+- Inspect metadata precedence and generator cleanup after a failed yield.
+
+Concept:
+- Failure metadata overwrites duplicate metadata keys.
+- The generator `finally` block runs after short-circuiting.
+
+### `php examples\flow\try-flow-and-bind.php`
+
+Purpose:
+- Show typed nested composition with `bind()`.
+- Show explicit exception capture with `tryFlow()`.
+
+Concept:
+- `Result::bind(...)` supports typed `yield from` composition.
+- `Result::tryFlow(...)` converts an unexpected exception into a failure result.
 
 ## Structured error examples
 
