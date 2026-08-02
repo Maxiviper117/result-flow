@@ -45,6 +45,8 @@
 - Preserve public named constructor arguments when Rector suggests constructor promotion.
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
 - Benchmarks: `composer bench` (phpbench callback dispatch benchmarks)
+- Documentation dependencies: keep the pinned VitePress toolchain current with security fixes.
+- Documentation checks: run `pnpm install --frozen-lockfile` and `pnpm docs:build` after dependency updates.
 
 ## Python usage
 - Do not use Python to check files, verify contents, or perform any file validation tasks.
