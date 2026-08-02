@@ -30,6 +30,11 @@ fails, it returns only the collected failures and no success values.
 - Keep `Result::flow(...)` callbacks as generator closures that yield `Result` values.
 - Use `DataTaggedError` subclasses when you want distinct named domain error types that can be matched with
 `matchError()` / `catchError()` by class.
+- Use `Result::flow(...)` for synchronous multi-step workflows that need several earlier success values.
+- Use `Result::tryFlow(...)` only when the complete workflow should capture unexpected exceptions.
+- Use `yield from Result::bind(...)` when a workflow needs stronger yielded-value type inference.
+- Yield only `Result` values from `Result::flow(...)`; the first failure stops later workflow steps.
+- Use fluent `then(...)` or `flatMap(...)` for short chains and simple transformations.
 
 ## Canonical flow shape
 
@@ -87,6 +92,7 @@ strings.
 - By default, `toDebugArray()` sanitizes arrays and strings.
 - Object internals are traversed only when `result-flow.debug.sanitize_objects` is enabled.
 - The sanitizer applies the configured object depth guard.
+- Use `Result::bracket(...)` for critical resources inside or beside a generator workflow.
 
 ## Error payload conventions
 
@@ -112,3 +118,5 @@ class, with the first matching `matchError(...)` / `catchError(...)` handler win
 - Do not drop metadata when converting one failure shape to another.
 - Do not leave a flow without explicit branch completion (`match`, `toResponse`, `unwrap*`, etc.) at the app
 boundary.
+- Do not yield plain values, callables, promises, or futures from `Result::flow(...)`.
+- Do not expect `Result::flow(...)` to capture unexpected exceptions.

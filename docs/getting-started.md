@@ -46,6 +46,7 @@ $result = Result::ok(['total' => 42], ['request_id' => 'r-1'])
 - `of(...)` is for callbacks that return a plain value on success and throw on failure.
 - `defer(...)` is for callbacks that may return a plain value, return a `Result`, or throw.
 - `of(...)` wraps a returned `Result` as a success value; `defer(...)` preserves a returned `Result` as the active branch.
+- `flow(...)` is for synchronous multi-step workflows that need several earlier success values.
 
 ## Read this next
 
@@ -54,6 +55,8 @@ $result = Result::ok(['total' => 42], ['request_id' => 'r-1'])
 3. [Chaining](/concepts/chaining)
 4. [Failure handling](/concepts/failure-handling)
 5. [Finalization boundaries](/concepts/finalization-boundaries)
+
+For multi-step generator workflows, read [Generator composition](/guides/generator-composition).
 
 ## Reference pages
 

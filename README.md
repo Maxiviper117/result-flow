@@ -59,6 +59,30 @@ $result = Result::defer(fn () => loadUserById($id))
     ->then(fn (array $user) => Result::ok(normalizeUser($user)));
 ```
 
+## Generator workflows
+
+Use `Result::flow()` when later operations need several earlier successful values.
+
+```php
+use Generator;
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::flow(function (): Generator {
+    $user = yield findUser($id);
+    $account = yield findAccount($user->accountId);
+
+    return createInvoice($user, $account);
+});
+```
+
+The flow accepts only yielded `Result` values. The first failure stops later steps, and unexpected exceptions escape.
+
+See the [generator composition guide](https://maxiviper117.github.io/result-flow/guides/generator-composition.html).
+
+Use `Result::tryFlow()` when the workflow should convert unexpected exceptions into failures.
+
+Use `yield from Result::bind(...)` when PHPStan needs stronger type inference for a yielded value.
+
 ## Retry deferred operations
 
 ```php

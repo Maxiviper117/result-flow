@@ -98,6 +98,36 @@ Runs an acquire/use/release flow.
 - if use fails and release throws, use failure stays and the release exception is written to `meta['bracket.release_exception']`
 - if use succeeds and release throws, the result becomes failure
 
+## `Result::flow(callable $workflow): Result`
+
+Runs a synchronous generator-based workflow.
+
+Each yielded value must be a `Result`. Success values return to the generator, and the first failure stops the workflow.
+
+Plain final values become success results. Final returned results keep their branch and override accumulated metadata.
+
+Unexpected exceptions escape. The callback must return a `Generator`.
+
+See [Generator composition](/guides/generator-composition) for usage guidance and limits.
+
+## `Result::tryFlow(callable $workflow): Result`
+
+Runs a generator workflow and converts unexpected exceptions into failure values.
+
+The failure contains the original `Throwable` instance.
+
+Use `flow(...)` when programming errors must escape. Use `tryFlow(...)` only when the workflow boundary needs exception capture.
+
+## `Result::bind(Result $result): Generator`
+
+Adapts one `Result` for typed `yield from` composition.
+
+```php
+$user = yield from Result::bind(findUser($userId));
+```
+
+Use `bind(...)` when PHPStan or an IDE needs a typed value from a yielded result.
+
 ## Related pages
 
 - [Construction concepts](/concepts/constructing)
