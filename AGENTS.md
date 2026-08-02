@@ -43,6 +43,7 @@
 - Static analysis: `composer analyse` (or `composer phpstan`)
 - Refactoring check: `composer rector-dry` (apply fixes with `composer rector`)
 - Rector keeps generator closures explicit because arrow functions cannot preserve generator return bindings.
+- Keep the Rector skip list limited to rules that the locked Rector version provides.
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
 - Benchmarks: `composer bench` (phpbench callback dispatch benchmarks)
 - Documentation dependencies: keep the pinned VitePress toolchain current with security fixes.

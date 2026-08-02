@@ -4,7 +4,7 @@ Use this list to ensure generated code sticks to documented public `Result` APIs
 
 ## Static constructors/utilities
 
-- `ok`, `fail`, `failWithValue`, `failTagged`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`
+- `ok`, `fail`, `failWithValue`, `failTagged`, `of`, `defer`, `flow`, `tryFlow`, `bind`, `retry`, `retryDefer`, `retrier`, `bracket`
 - `combine`, `combineAll`
 - `mapItems`, `mapAll`, `mapCollectErrors`
 
