@@ -5,7 +5,22 @@ parameters:
     level: 10
     paths:
         - src
+        - tests/PHPStan/valid-flow.php
+        - tests/PHPStan/failure-union.php
+        - tests/PHPStan/final-result.php
+        - tests/PHPStan/try-flow.php
+        - tests/PHPStan/bind.php
     tmpDir: build/phpstan
     stubFiles:
         - phpstan-stubs/laravel-contracts.stub
         - phpstan-stubs/laravel-helpers.stub
+
+services:
+    -
+        class: Maxiviper117\ResultFlow\PHPStan\Rules\FlowYieldRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: Maxiviper117\ResultFlow\PHPStan\Type\FlowReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicStaticMethodReturnTypeExtension
