@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/Maxiviper117/result-flow/compare/v1.12.0...v1.12.1) (2026-08-02)
+
+
+### Bug Fixes
+
+* update documentation dependencies ([#102](https://github.com/Maxiviper117/result-flow/issues/102)) ([fd21f13](https://github.com/Maxiviper117/result-flow/commit/fd21f13ed5160ed0f2d8bf829d44156da60ca85c))
+
 ## [1.12.0](https://github.com/Maxiviper117/result-flow/compare/v1.11.6...v1.12.0) (2026-08-02)
 
 
