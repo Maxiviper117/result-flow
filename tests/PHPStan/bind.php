@@ -7,7 +7,7 @@ use Maxiviper117\ResultFlow\Result;
 /** @param Result<int, never> $result */
 function acceptsBoundFlow(Result $result): void {}
 
-$result = Result::flow(function (): \Generator {
+$result = Result::flow(function (): Generator {
     return yield from Result::bind(Result::ok(42));
 });
 

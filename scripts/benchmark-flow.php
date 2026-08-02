@@ -25,7 +25,7 @@ function benchmarkFlowOperation(callable $operation, int $iterations): float
  */
 function runFlowBenchmark(int $steps, bool $withMetadata): Result
 {
-    return Result::flow(function () use ($steps, $withMetadata): \Generator {
+    return Result::flow(function () use ($steps, $withMetadata): Generator {
         $value = 0;
 
         for ($step = 0; $step < $steps; $step++) {
