@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.12.2](https://github.com/Maxiviper117/result-flow/compare/v1.12.1...v1.12.2) (2026-08-02)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump actions/deploy-pages from 4 to 5 ([#89](https://github.com/Maxiviper117/result-flow/issues/89)) ([d1c7af2](https://github.com/Maxiviper117/result-flow/commit/d1c7af2acba020f111a2c825df0925531e9c4bb8))
+* **deps:** bump actions/upload-pages-artifact from 3 to 5 ([#92](https://github.com/Maxiviper117/result-flow/issues/92)) ([cab4881](https://github.com/Maxiviper117/result-flow/commit/cab48816e3cb73c38657fc5535938350f985a94d))
+* **deps:** bump dependabot/fetch-metadata from 2.5.0 to 3.1.0 ([#93](https://github.com/Maxiviper117/result-flow/issues/93)) ([b03c370](https://github.com/Maxiviper117/result-flow/commit/b03c370e40ebb3b9d2cfec71819df5c3f3d2d938))
+* **deps:** bump pnpm/action-setup from 4 to 6 ([#91](https://github.com/Maxiviper117/result-flow/issues/91)) ([196b738](https://github.com/Maxiviper117/result-flow/commit/196b73875686b8af78ac886de3f3bc23c3093152))
+
 ## [1.12.1](https://github.com/Maxiviper117/result-flow/compare/v1.12.0...v1.12.1) (2026-08-02)
 
 
