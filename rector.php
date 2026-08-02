@@ -9,7 +9,7 @@ use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPublicMethodParameterRector;
 use Rector\DeadCode\Rector\Node\RemoveNonExistingVarAnnotationRector;
 use Rector\Php74\Rector\Assign\NullCoalescingOperatorRector;
-use Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector;
+use Rector\Php74\Rector\Closure\ClosureToArrowFunctionRector;
 use Rector\Php80\Rector\FuncCall\ClassOnObjectRector;
 use Rector\Php81\Rector\Array_\ArrayToFirstClassCallableRector;
 use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
@@ -53,6 +53,7 @@ return RectorConfig::configure()
         ArrayToFirstClassCallableRector::class,
         ClassPropertyAssignToConstructorPromotionRector::class,
         ClassOnObjectRector::class,
+        ClosureToArrowFunctionRector::class,
         ClosureReturnTypeRector::class,
         NullCoalescingOperatorRector::class,
         NullToStrictStringFuncCallArgRector::class,

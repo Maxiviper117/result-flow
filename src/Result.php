@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Maxiviper117\ResultFlow;
 
+use Generator;
 use Maxiviper117\ResultFlow\Laravel\ResultResponse;
 use Maxiviper117\ResultFlow\Support\Errors\Cause;
 use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
 use Maxiviper117\ResultFlow\Support\Operations\Batch;
+use Maxiviper117\ResultFlow\Support\Operations\Flow;
 use Maxiviper117\ResultFlow\Support\Operations\Pipeline;
 use Maxiviper117\ResultFlow\Support\Operations\Retry;
 use Maxiviper117\ResultFlow\Support\Output\Debug;
@@ -263,6 +265,68 @@ final class Result
         }
 
         return $used;
+    }
+
+    /**
+     * Execute a synchronous generator-based Result workflow.
+     *
+     * Each yielded value must be a Result. Successful values are sent back
+     * into the generator, and the first failure stops the workflow.
+     * Unexpected exceptions escape without conversion.
+     *
+     * @template TFlowSuccess
+     * @template TFlowFailure
+     *
+     * @param  callable(): Generator<mixed, Result<covariant mixed, TFlowFailure>, mixed, TFlowSuccess|Result<TFlowSuccess, TFlowFailure>>  $workflow
+     * @return Result<TFlowSuccess, TFlowFailure>
+     */
+    public static function flow(callable $workflow): self
+    {
+        /** @var Result<TFlowSuccess, TFlowFailure> $result */
+        $result = Flow::run($workflow);
+
+        return $result;
+    }
+
+    /**
+     * Execute a generator-based workflow and convert unexpected exceptions to failures.
+     *
+     * @template TFlowSuccess
+     * @template TFlowFailure
+     *
+     * @param  callable(): Generator<mixed, Result<covariant mixed, TFlowFailure>, mixed, TFlowSuccess|Result<TFlowSuccess, TFlowFailure>>  $workflow
+     * @return Result<TFlowSuccess, TFlowFailure|Throwable>
+     */
+    public static function tryFlow(callable $workflow): self
+    {
+        try {
+            /** @var Result<TFlowSuccess, TFlowFailure|Throwable> $result */
+            $result = self::flow($workflow);
+
+            return $result;
+        } catch (Throwable $exception) {
+            /** @var Result<TFlowSuccess, TFlowFailure|Throwable> $failed */
+            $failed = self::fail($exception);
+
+            return $failed;
+        }
+    }
+
+    /**
+     * Bind one Result value for use with `yield from` inside a flow.
+     *
+     * @template TBindSuccess
+     * @template TBindFailure
+     *
+     * @param  Result<TBindSuccess, TBindFailure>  $result
+     * @return Generator<int, Result<TBindSuccess, TBindFailure>, TBindSuccess, TBindSuccess>
+     */
+    public static function bind(self $result): Generator
+    {
+        /** @var TBindSuccess $value */
+        $value = yield $result;
+
+        return $value;
     }
 
     /**

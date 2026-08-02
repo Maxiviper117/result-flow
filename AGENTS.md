@@ -19,7 +19,7 @@
 ## Where to change things
 - Core behavior lives in `src/` (primary class: `src/Result.php`).
 - Public docs now live in `docs/` as a VitePress site with `concepts/`, `guides/`, `recipes/`, `reference/`, `kitchen-sink/`, `getting-started.md`, `faq.md`, and `laravel-boost.md`.
-- Static constructor APIs (`ok`, `fail`, `failWithValue`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`) must stay documented in the reference pages and reflected in Boost assets.
+- Static constructor APIs (`ok`, `fail`, `failWithValue`, `of`, `defer`, `flow`, `tryFlow`, `bind`, `retry`, `retryDefer`, `retrier`, `bracket`) must stay documented in the reference pages and reflected in Boost assets.
 - Internal helpers are organized under `src/Support/Traits/`, `src/Support/Operations/`, and `src/Support/Output/`.
 - Structured error helpers live under `src/Support/Errors/`; keep `DataTaggedError`, `ResultError`, `Cause`, and class-based `matchError()` / `catchError()` behavior aligned with docs, examples, and Boost assets.
 - `src/Support/Traits/` contains focused `Result` behavior traits (e.g., transform, unwrap, matching, taps, metadata ops).
@@ -42,11 +42,12 @@
 - Format check only (dry-run): `composer pint-test`
 - Static analysis: `composer analyse` (or `composer phpstan`)
 - Refactoring check: `composer rector-dry` (apply fixes with `composer rector`)
-- Preserve public named constructor arguments when Rector suggests constructor promotion.
+- Rector keeps generator closures explicit because arrow functions cannot preserve generator return bindings.
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
 - Benchmarks: `composer bench` (phpbench callback dispatch benchmarks)
 - Documentation dependencies: keep the pinned VitePress toolchain current with security fixes.
 - Documentation checks: run `pnpm install --frozen-lockfile` and `pnpm docs:build` after dependency updates.
+- Benchmark: `composer benchmark:flow`
 
 ## Python usage
 - Do not use Python to check files, verify contents, or perform any file validation tasks.
@@ -63,6 +64,8 @@
 - Ensure the concept, guide, recipe, reference, kitchen-sink, and README pages stay consistent with the public API surface.
 - Kitchen-sink docs should be organized as a section hub plus category pages, with each category covering the relevant methods in a scannable order.
 - Keep boundary serialization docs aligned with implementation details such as fallback response shape and encoding failure behavior.
+- Keep generator composition docs aligned with strict Result yields, fail-fast behavior, metadata precedence, and exception escape behavior.
+- Keep generator type-inference docs aligned with `tryFlow()`, `bind()`, PHPStan rules, and current limitations.
 - Keep XML boundary docs aligned with the actual element-name normalization rules used by `toXml()`.
 - Keep observability docs aligned with emitted metadata keys such as `failed_step`.
 - Keep debug sanitization docs aligned with config keys under `result-flow.debug`, including `sanitize_objects` and `object_max_depth`.
