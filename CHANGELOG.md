@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.0](https://github.com/Maxiviper117/result-flow/compare/v1.11.6...v1.12.0) (2026-08-02)
+
+
+### Features
+
+* implement senior review remediation ([#94](https://github.com/Maxiviper117/result-flow/issues/94)) ([32ad2da](https://github.com/Maxiviper117/result-flow/commit/32ad2da4eab87648e56e2765462d3303dee78348))
+* structured domain errors ([#88](https://github.com/Maxiviper117/result-flow/issues/88)) ([ef30654](https://github.com/Maxiviper117/result-flow/commit/ef306540ac8f17534852e4e8d7af910f32c38eeb))
+
 ## [1.11.6](https://github.com/Maxiviper117/result-flow/compare/v1.11.5...v1.11.6) (2026-03-27)
 
 
