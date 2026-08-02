@@ -26,6 +26,8 @@ callback return value as success.
 business rules.
 - Use `Result::combineAll(...)` when aggregating existing `Result[]` and you need every failure preserved; if any input
 fails, it returns only the collected failures and no success values.
+- Use `Result::flow(...)` for synchronous multi-step workflows with dependent values.
+- Keep `Result::flow(...)` callbacks as generator closures that yield `Result` values.
 - Use `DataTaggedError` subclasses when you want distinct named domain error types that can be matched with
 `matchError()` / `catchError()` by class.
 
