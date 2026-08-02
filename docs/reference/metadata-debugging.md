@@ -90,6 +90,9 @@ Returns debug-safe output.
 - failure includes `error_type` and `error_message`
 - metadata is sanitized
 - built-in sanitization redacts sensitive keys and truncates long strings
+- object-property sanitization is opt-in via `result-flow.debug.sanitize_objects`
+- when object sanitization is enabled, only `JsonSerializable` payloads and public object properties are traversed
+- object traversal uses depth/cycle guards (`result-flow.debug.object_max_depth`)
 - this is the right place to inspect `failed_step` when a chain step throws
 
 ## `toJson(int $options = 0): string`

@@ -33,10 +33,10 @@ final class Result
      * @param  array<string,mixed>  $meta
      */
     private function __construct(
-        private bool $ok,
-        private mixed $value,
-        private mixed $error,
-        private array $meta = [],
+        private readonly bool $ok,
+        private readonly mixed $value,
+        private readonly mixed $error,
+        private readonly array $meta = [],
     ) {}
 
     // =========================================================================
@@ -468,7 +468,7 @@ final class Result
     /**
      * Tap the metadata without changing the result.
      *
-     * @param  callable(array<string,mixed>): void  $tap
+     * @param  (callable(array<string,mixed>): mixed)|(callable(array<string,mixed>, TSuccess|null): mixed)  $tap
      * @return Result<TSuccess, TFailure>
      */
     public function tapMeta(callable $tap): self
@@ -483,7 +483,7 @@ final class Result
      * representing the current value, e.g. `fn (array $meta, mixed $value): array`.
      * For Err results, the callback only receives metadata (as before).
      *
-     * @param  callable(array<string,mixed>): array<string,mixed>  $map
+     * @param  (callable(array<string,mixed>): array<string,mixed>)|(callable(array<string,mixed>, TSuccess|null): array<string,mixed>)  $map
      * @return Result<TSuccess, TFailure>
      */
     public function mapMeta(callable $map): self
@@ -500,7 +500,7 @@ final class Result
      * - On Ok, callback may be `fn (array $meta): array` or `fn (array $meta, mixed $value): array`.
      * - On Err, callback is called with metadata only (existing behavior).
      *
-     * @param  array<string,mixed>|callable  $meta
+     * @param  array<string,mixed>|(callable(array<string,mixed>): array<string,mixed>)|(callable(array<string,mixed>, TSuccess|null): array<string,mixed>)  $meta
      * @return Result<TSuccess, TFailure>
      */
     public function mergeMeta(array|callable $meta): self
@@ -798,9 +798,9 @@ final class Result
      * @template TError of \Maxiviper117\ResultFlow\Support\Errors\ResultError
      * @template R
      *
-     * @param  array<class-string<TError>, callable(TError, array<string,mixed>): R>  $errorHandlers
-     * @param  callable(TSuccess, array<string,mixed>): R  $onSuccess
-     * @param  callable(TFailure, array<string,mixed>): R  $onUnhandled
+     * @param  array<class-string<TError>, callable>  $errorHandlers
+     * @param  callable(): R|callable(TSuccess): R|callable(TSuccess, array<string,mixed>): R  $onSuccess
+     * @param  callable(): R|callable(TFailure): R|callable(TFailure, array<string,mixed>): R  $onUnhandled
      * @return R
      */
     public function matchError(array $errorHandlers, callable $onSuccess, callable $onUnhandled): mixed
@@ -813,8 +813,8 @@ final class Result
      *
      * @template TError of \Maxiviper117\ResultFlow\Support\Errors\ResultError
      *
-     * @param  array<class-string<TError>, callable(TError, array<string,mixed>): (Result<TSuccess, mixed>|TSuccess)>  $handlers
-     * @param  null|callable(TFailure, array<string,mixed>): (Result<TSuccess, mixed>|TSuccess)  $fallback
+     * @param  array<class-string<TError>, callable>  $handlers
+     * @param  (callable(): (Result<TSuccess, mixed>|TSuccess)|callable(TFailure): (Result<TSuccess, mixed>|TSuccess)|callable(TFailure, array<string,mixed>): (Result<TSuccess, mixed>|TSuccess))|null  $fallback
      * @return Result<TSuccess, mixed>
      */
     public function catchError(array $handlers, ?callable $fallback = null): self

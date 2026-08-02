@@ -2,6 +2,7 @@
 
 ## Scope and compatibility
 - Target PHP 8.2+ and keep public APIs under the `Maxiviper117\ResultFlow` namespace in `src/`.
+- CI test coverage includes PHP 8.5, 8.4, 8.3, and 8.2 in the main test matrix.
 - Preserve type-safety and PHPStan-friendly templates when changing generics or method signatures.
 - Keep behavior deterministic: no network access, randomness, or IO in core `Result` flows unless explicitly intended.
 
@@ -43,6 +44,7 @@
 - Refactoring check: `composer rector-dry` (apply fixes with `composer rector`)
 - Preserve public named constructor arguments when Rector suggests constructor promotion.
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
+- Benchmarks: `composer bench` (phpbench callback dispatch benchmarks)
 
 ## Python usage
 - Do not use Python to check files, verify contents, or perform any file validation tasks.
@@ -61,6 +63,7 @@
 - Keep boundary serialization docs aligned with implementation details such as fallback response shape and encoding failure behavior.
 - Keep XML boundary docs aligned with the actual element-name normalization rules used by `toXml()`.
 - Keep observability docs aligned with emitted metadata keys such as `failed_step`.
+- Keep debug sanitization docs aligned with config keys under `result-flow.debug`, including `sanitize_objects` and `object_max_depth`.
 - Keep Boost guidelines and skills (`resources/boost/`) aligned with current project behavior and conventions on every change.
 
 ## Laravel Boost AI asset maintenance

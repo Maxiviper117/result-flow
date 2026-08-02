@@ -3,6 +3,7 @@
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Support\Errors\Cause;
 use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
+use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
 class ReviewTestError extends DataTaggedError
 {
@@ -15,6 +16,11 @@ class AnotherReviewTestError extends DataTaggedError
 }
 
 class MissingCodeReviewError extends DataTaggedError {}
+
+function resultFlowMatchErrorStringHandler(ReviewTestError $e, array $meta): string
+{
+    return 'string:'.$e->code().':'.$meta['request_id'];
+}
 
 describe('DataTaggedError and Cause integration', function () {
     it('serializes DataTaggedError with nested Cause to array and JSON', function () {
@@ -38,6 +44,12 @@ describe('DataTaggedError and Cause integration', function () {
     });
 
     it('provides debug fields including error_code and message', function () {
+        ConfigStub::reset();
+        ConfigStub::set('result-flow.debug', [
+            'max_string_length' => 200,
+            'truncate_strings' => true,
+        ]);
+
         $err = new DataTaggedError('E_X', 'Something broke');
         $result = Result::fail($err);
 
@@ -75,6 +87,49 @@ describe('DataTaggedError and Cause integration', function () {
         expect($out)->toBe('no-arg');
     });
 
+    it('matchError supports array, static, and invokable callables with flexible arity', function () {
+        $result = Result::fail(
+            new ReviewTestError('E_ARITY', 'handler forms'),
+            ['request_id' => 'r-77'],
+        );
+
+        $arrayHandler = new class
+        {
+            public function handle(ReviewTestError $e, array $meta): string
+            {
+                return 'array:'.$e->code().':'.$meta['request_id'];
+            }
+        };
+
+        $invokableHandler = new class
+        {
+            public function __invoke(ReviewTestError $e): string
+            {
+                return 'invoke:'.$e->code();
+            }
+        };
+
+        $arrayOut = $result->matchError(
+            [ReviewTestError::class => [$arrayHandler, 'handle']],
+            onSuccess: fn () => 'ok',
+            onUnhandled: fn () => 'uh',
+        );
+        $stringOut = $result->matchError(
+            [ReviewTestError::class => 'resultFlowMatchErrorStringHandler'],
+            onSuccess: fn () => 'ok',
+            onUnhandled: fn () => 'uh',
+        );
+        $invokableOut = $result->matchError(
+            [ReviewTestError::class => $invokableHandler],
+            onSuccess: fn () => 'ok',
+            onUnhandled: fn () => 'uh',
+        );
+
+        expect($arrayOut)->toBe('array:E_ARITY:r-77');
+        expect($stringOut)->toBe('string:E_ARITY:r-77');
+        expect($invokableOut)->toBe('invoke:E_ARITY');
+    });
+
     it('catchError handlers may be zero-arg and return plain values', function () {
         $result = Result::fail(ReviewTestError::from('Recover me'));
 
@@ -93,6 +148,36 @@ describe('DataTaggedError and Cause integration', function () {
 
         expect($handled->isOk())->toBeTrue();
         expect($handled->value())->toBe('fallback-no-arg');
+    });
+
+    it('catchError supports array callables and invokable fallback', function () {
+        $result = Result::fail(new ReviewTestError('E_ARRAY', 'Array handler'));
+
+        $arrayHandler = new class
+        {
+            public function recover(ReviewTestError $e): string
+            {
+                return 'array-recover:'.$e->code();
+            }
+        };
+
+        $fallback = new class
+        {
+            public function __invoke(string $error): string
+            {
+                return 'fallback:'.$error;
+            }
+        };
+
+        $handled = $result->catchError([
+            ReviewTestError::class => [$arrayHandler, 'recover'],
+        ]);
+        $fallbackHandled = Result::fail('legacy')->catchError([], $fallback);
+
+        expect($handled->isOk())->toBeTrue();
+        expect($handled->value())->toBe('array-recover:E_ARRAY');
+        expect($fallbackHandled->isOk())->toBeTrue();
+        expect($fallbackHandled->value())->toBe('fallback:legacy');
     });
 
     it('throwIfFail throws the DataTaggedError (it is Throwable)', function () {

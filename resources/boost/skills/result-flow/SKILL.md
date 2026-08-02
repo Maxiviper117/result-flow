@@ -8,6 +8,7 @@ description: Central orchestration skill for using ResultFlow in downstream Lara
 ## Mission and scope
 
 Generate and refine ResultFlow-based code in downstream Laravel applications using only the package's public APIs.
+Keep generated examples compatible with PHP 8.2+ unless the host application has clearly adopted a newer runtime.
 
 ## Activation criteria
 

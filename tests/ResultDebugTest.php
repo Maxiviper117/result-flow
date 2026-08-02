@@ -3,6 +3,34 @@
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
+final class DebugTestPublicDto
+{
+    public function __construct(
+        public string $api_key,
+        public string $safe,
+    ) {}
+}
+
+final class DebugTestJsonDto implements JsonSerializable
+{
+    public function __construct(
+        private string $password,
+        private string $note,
+    ) {}
+
+    public function jsonSerialize(): mixed
+    {
+        return ['password' => $this->password, 'note' => $this->note];
+    }
+}
+
+final class DebugTestCycleNode
+{
+    public ?self $next = null;
+
+    public function __construct(public string $token) {}
+}
+
 describe('toDebugArray()', function () {
     it('sanitizes sensitive keys and truncates long strings with defaults', function () {
         ConfigStub::reset();
@@ -76,6 +104,66 @@ describe('toDebugArray()', function () {
 
         expect($debug['error_message'])->toBe('helloworld'); // full length
         expect($debug['meta']['token'])->toBe('abcdefghij'); // not truncated
+    });
+
+    it('keeps object internals untouched when object sanitization is disabled', function () {
+        ConfigStub::reset();
+        ConfigStub::set('result-flow.debug', [
+            'sanitize_objects' => false,
+            'truncate_strings' => true,
+            'max_string_length' => 200,
+        ]);
+
+        $dto = new DebugTestPublicDto('raw-secret', 'visible');
+        $result = Result::fail('oops', ['payload' => $dto]);
+
+        $debug = $result->toDebugArray();
+
+        expect($debug['meta']['payload'])->toBeInstanceOf(DebugTestPublicDto::class);
+        expect($debug['meta']['payload']->api_key)->toBe('raw-secret');
+    });
+
+    it('sanitizes JsonSerializable and public-property objects when enabled', function () {
+        ConfigStub::set('result-flow.debug', [
+            'sanitize_objects' => true,
+            'sensitive_keys' => ['password', 'api_key'],
+            'truncate_strings' => true,
+            'max_string_length' => 5,
+        ]);
+
+        $result = Result::fail('oops', [
+            'dto' => new DebugTestPublicDto('abc123', 'safe-value'),
+            'json' => new DebugTestJsonDto('very-secret', 'abcdef'),
+        ]);
+
+        $debug = $result->toDebugArray();
+
+        expect($debug['meta']['dto']['api_key'])->toBe('***REDACTED***');
+        expect($debug['meta']['dto']['safe'])->toBe('safe-…');
+        expect($debug['meta']['json']['password'])->toBe('***REDACTED***');
+        expect($debug['meta']['json']['note'])->toBe('abcde…');
+    });
+
+    it('applies depth and cycle guards for object traversal when enabled', function () {
+        ConfigStub::set('result-flow.debug', [
+            'sanitize_objects' => true,
+            'object_max_depth' => 3,
+            'sensitive_keys' => ['token'],
+        ]);
+
+        $first = new DebugTestCycleNode('first-secret');
+        $second = new DebugTestCycleNode('second-secret');
+        $third = new DebugTestCycleNode('third-secret');
+        $first->next = $second;
+        $second->next = $third;
+        $third->next = $first;
+
+        $result = Result::fail('oops', ['graph' => $first]);
+        $debug = $result->toDebugArray();
+
+        expect($debug['meta']['graph']['token'])->toBe('***REDACTED***');
+        expect($debug['meta']['graph']['next']['token'])->toBe('***REDACTED***');
+        expect($debug['meta']['graph']['next']['next'])->toBe('[object_depth_exceeded]');
     });
 });
 

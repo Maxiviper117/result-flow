@@ -8,8 +8,8 @@ Use when shaping failure behavior and recovery strategy.
 |---|---|
 | Conditional failure mapping/recovery | `otherwise` |
 | Throwable class-based handling | `catchException` |
-| Structured error matching | `matchError` |
-| Structured error recovery | `catchError` |
+| ResultError class-based finalization | `matchError` |
+| ResultError class-based recovery | `catchError` |
 | Always recover to success | `recover` |
 | Convert failure to exception at boundary | `throwIfFail` |
 
@@ -20,6 +20,9 @@ Use when shaping failure behavior and recovery strategy.
 - Use `matchError` and `catchError` for class-based `ResultError` handling.
 - Match structured errors by class, not by string code.
 - Place `throwIfFail` at boundaries, not deep in domain logic.
+- Expect `TFailure|Throwable` widening from `of`, `defer`, `retryDefer`, and batch helpers until normalized.
+- `matchError` callbacks may be `()`, `($error)`, or `($error, $meta)` depending on what you need.
+- `catchError` handlers/fallback may return plain values (auto-wrapped) or full `Result` instances.
 
 ## Anti-patterns
 

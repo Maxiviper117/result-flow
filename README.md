@@ -122,6 +122,13 @@ $message = $result->matchError(
 Use `code()` for boundary serialization and external systems. Matching is based on
 the error class, not the string code.
 
+Flows created with `of(...)`, `defer(...)`, `retryDefer(...)`, and batch helpers may widen
+failures to `TFailure|Throwable`; normalize early with `catchException(...)` / `otherwise(...)`
+when boundary consumers need one stable error shape.
+
+`toDebugArray()` sanitizes arrays/strings by default. Object internals are only sanitized when
+`result-flow.debug.sanitize_objects` is enabled.
+
 ## Laravel Boost
 
 This package ships Laravel Boost source assets so AI agents in downstream consumer apps can generate ResultFlow-aware code.
@@ -161,6 +168,7 @@ To override a built-in guideline, use the same relative path in `.ai/guidelines`
 - Rector check: `composer rector-dry`
 - Rector apply: `composer rector`
 - Format: `composer format`
+- Benchmarks: `composer bench`
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 

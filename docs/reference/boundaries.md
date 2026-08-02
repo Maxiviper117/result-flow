@@ -19,6 +19,8 @@ Finishes the result by handling both branches explicitly.
 
 Handles Throwable failures by class, otherwise falls back to the unhandled callback.
 
+Tip: flows created with `of(...)`, `defer(...)`, `retryDefer(...)`, and batch helpers can widen the failure channel to `TFailure|Throwable`; normalize early when consumers require one stable boundary shape.
+
 ## `matchError(array $handlers, callable $onSuccess, callable $onUnhandled): mixed`
 
 Handles structured domain errors by class.

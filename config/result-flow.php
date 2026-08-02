@@ -18,5 +18,11 @@ return [
 
         // Whether to truncate strings longer than max_string_length.
         'truncate_strings' => true,
+
+        // Whether to sanitize object internals in debug output (JsonSerializable + public properties).
+        'sanitize_objects' => false,
+
+        // Maximum depth when sanitize_objects is enabled.
+        'object_max_depth' => 3,
     ],
 ];

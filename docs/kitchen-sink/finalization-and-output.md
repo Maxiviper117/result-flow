@@ -351,6 +351,8 @@ toDebugArray(?callable $sanitizer = null): array
 - failure includes `error_type` and `error_message`
 - metadata is sanitized
 - sensitive keys are redacted and long strings are truncated by default
+- object-property sanitization is opt-in (`result-flow.debug.sanitize_objects`)
+- when object sanitization is enabled, `JsonSerializable` payloads and public properties are traversed with depth/cycle guards
 
 Use it for logs, traces, and diagnostics.
 

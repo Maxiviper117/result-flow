@@ -7,6 +7,7 @@
 - These guidelines are for agents generating code in Laravel applications that consume `maxiviper117/result-flow`.
 - Focus on app-level usage of public `Result` APIs.
 - Do not include package-maintainer workflow/tooling guidance in generated app code.
+- Keep examples compatible with PHP 8.2+ unless the host app explicitly targets a newer runtime.
 
 ## When to use ResultFlow
 
@@ -81,6 +82,9 @@ fail on invalid encoding.
 not a lossless mirror of arbitrary array keys.
 - Use `toDebugArray()` for logs and diagnostics instead of `toArray()` when payloads may contain secrets or large
 strings.
+- By default, `toDebugArray()` sanitizes arrays and strings.
+- Object internals are traversed only when `result-flow.debug.sanitize_objects` is enabled.
+- The sanitizer applies the configured object depth guard.
 
 ## Error payload conventions
 
@@ -91,6 +95,8 @@ strings.
 explicit branch handling.
 - Treat `code()` as the stable domain/API identifier for structured errors; matching should be based on the error
 class, with the first matching `matchError(...)` / `catchError(...)` handler winning in array order.
+- For `of(...)`, `defer(...)`, `retryDefer(...)`, and batch helpers, assume failure may widen to
+  `TFailure|Throwable` until you normalize it.
 
 ## Type-safety defaults
 
