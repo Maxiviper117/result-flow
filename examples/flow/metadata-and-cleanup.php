@@ -8,7 +8,7 @@ use Maxiviper117\ResultFlow\Result;
 
 $cleanup = [];
 
-$result = Result::flow(function () use (&$cleanup): \Generator {
+$result = Result::flow(function () use (&$cleanup): Generator {
     try {
         $user = yield Result::ok(
             ['id' => 42],

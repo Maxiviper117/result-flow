@@ -38,7 +38,7 @@ function printExampleResult(string $label, Result $result): void
     echo json_encode($result->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
 }
 
-$success = Result::flow(function (): \Generator {
+$success = Result::flow(function (): Generator {
     $user = yield findExampleUser(42);
     $account = yield findExampleAccount($user['account_id'], $user['id']);
 
@@ -48,7 +48,7 @@ $success = Result::flow(function (): \Generator {
     ];
 });
 
-$failure = Result::flow(function (): \Generator {
+$failure = Result::flow(function (): Generator {
     $user = yield findExampleUser(7);
 
     return $user;
