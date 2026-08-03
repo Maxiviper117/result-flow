@@ -25,7 +25,7 @@
         "laravel/pint": "^1.14",
         "pestphp/pest": "^3.0",
         "rector/rector": "2.3.5",
-        "phpstan/phpstan": "2.1.37",
+        "phpstan/phpstan": "2.2.7",
         "phpstan/extension-installer": "^1.4",
         "phpbench/phpbench": "^1.4"
     },
