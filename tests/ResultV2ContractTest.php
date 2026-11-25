@@ -159,6 +159,7 @@ it('supports callable arrays and invokable actions', function () {
         }
     };
     expect(Result::ok(2)->andThen($action)->andThen([$action, 'double'])->unwrap())->toBe(6);
+    expect(Result::ok(3)->andThen($action->double(...))->unwrap())->toBe(6);
 });
 
 it('unwraps throwables unchanged and preserves eager defaults', function () {

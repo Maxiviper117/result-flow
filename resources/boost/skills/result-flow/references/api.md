@@ -21,3 +21,5 @@ When preserving a legacy HTTP response, remove or allowlist internal metadata fi
 Use documentation matching the installed major version; v1 chaining and exception behavior differs from v2.
 
 Before stable v2 is released, explicitly select a v2 prerelease in Composer rather than assuming an unqualified requirement installs v2.
+
+During prerelease, use the v2 documentation preview; the stable v1 site retains v1 API guidance until the stable major is published.

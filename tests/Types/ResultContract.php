@@ -14,6 +14,15 @@ final class WriteError {}
 final class DomainError {}
 final class Order {}
 
+final class ValidateOrderAction
+{
+    /** @return Result<int, ValidationError> */
+    public function handle(string $input): Result
+    {
+        return $input === '' ? Result::fail(new ValidationError) : Result::ok(strlen($input));
+    }
+}
+
 /** @return Result<int, ValidationError> */
 function validate(string $input): Result
 {
@@ -37,6 +46,9 @@ function recover(ValidationError|WriteError $error): Result
 
 $result = Result::ok('input')->andThen(validate(...))->andThen(save(...));
 assertType('Maxiviper117\\ResultFlow\\Result<Maxiviper117\\ResultFlow\\Tests\\Types\\Order, Maxiviper117\\ResultFlow\\Tests\\Types\\ValidationError|Maxiviper117\\ResultFlow\\Tests\\Types\\WriteError>', $result);
+$action = new ValidateOrderAction;
+$actionResult = Result::ok('input')->andThen($action->handle(...))->andThen(save(...));
+assertType('Maxiviper117\\ResultFlow\\Result<Maxiviper117\\ResultFlow\\Tests\\Types\\Order, Maxiviper117\\ResultFlow\\Tests\\Types\\ValidationError|Maxiviper117\\ResultFlow\\Tests\\Types\\WriteError>', $actionResult);
 $normalized = $result->mapError(fn (ValidationError|WriteError $error): DomainError => new DomainError);
 assertType('Maxiviper117\\ResultFlow\\Result<Maxiviper117\\ResultFlow\\Tests\\Types\\Order, Maxiviper117\\ResultFlow\\Tests\\Types\\DomainError>', $normalized);
 $recovered = $result->orElse(fn (ValidationError|WriteError $error): Result => Result::ok('fallback'));

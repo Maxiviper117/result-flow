@@ -5,15 +5,18 @@ A synchronous, framework-independent Result type for PHP 8.4 and later. It makes
 ```php
 use Maxiviper117\ResultFlow\Result;
 
-$result = Result::ok($input, ['trace_id' => $traceId])
-    ->map($normalizer->normalize(...))
-    ->andThen($validator->validate(...))
-    ->andThen($orders->save(...));
+$validate = fn (int $value): Result => $value > 0
+    ? Result::ok($value)
+    : Result::fail('Must be positive');
 
-return $result->match(
-    onSuccess: fn ($order) => response()->json(['id' => $order->id], 201),
-    onFailure: fn ($error) => $responses->forOrderError($error),
-);
+$message = Result::ok(' 42 ')
+    ->map(fn (string $input): int => (int) trim($input))
+    ->andThen($validate)
+    ->match(
+        onSuccess: fn (int $value): string => "Accepted: $value",
+        onFailure: fn (string $error): string => "Rejected: $error",
+    );
+// Accepted: 42
 ```
 
 After a v2 beta is published, install it with `composer require 'maxiviper117/result-flow:^2.0@beta'`. The unqualified package constraint may still select stable v1 before a stable v2 release. `map` transforms a value; `andThen` requires a Result-returning callback. `mapError` transforms a failure, and `orElse` provides Result-returning recovery. Callbacks receive one payload and thrown exceptions propagate. `Result::attempt($callback, catch: ExpectedException::class)` selectively captures an exception and wraps the callback's return without flattening it.

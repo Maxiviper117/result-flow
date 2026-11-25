@@ -44,3 +44,5 @@ The builder also supports `delay`, `exponential`, `jitter`, `onRetry`, and `atta
 ## Prerelease delivery
 
 V1 remains available through its existing releases and documentation. Pull requests build an unpublished v2 documentation artifact with a separate preview base; they do not deploy the stable site. Maintainers should publish a 2.0 prerelease and its documentation separately before promoting a stable major. Release tags are managed by maintainers.
+
+The stable GitHub Pages workflow is manually dispatched from `main`; merging the v2 implementation does not itself overwrite the v1 site. Publish the preview separately during prerelease, and dispatch the stable deployment only when the stable major is ready.

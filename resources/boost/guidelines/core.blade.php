@@ -30,3 +30,4 @@ This package requires PHP 8.4 or later.
 - Consult the documentation corresponding to the installed major version; v1 and v2 have different chaining and exception contracts.
 - Core Result chains work without Laravel; use framework integration only at the application boundary.
 - Before stable v2 is published, select the v2 prerelease explicitly when installing; an unqualified Composer requirement can resolve to v1.
+- During the v2 prerelease, follow v2-specific documentation rather than assuming the stable v1 site reflects the installed API.
