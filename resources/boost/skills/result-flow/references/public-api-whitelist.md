@@ -35,3 +35,4 @@ Use this list to ensure generated code sticks to documented public `Result` APIs
 
 - `ResultBatch::firstFailure`, `allErrors`, `mapFirstFailure`, `mapAllErrors`
 - `ResourceScope::run`
+- `Retry::config` and its fluent retry policy methods

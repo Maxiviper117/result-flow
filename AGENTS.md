@@ -91,3 +91,4 @@
 - On this branch `map`, `mapError`, and `match` callbacks receive only the active payload; `unwrap()` retains non-Throwable errors in `UnwrapFailure::$failure`.
 - `ResultBatch` provides keyed evaluated-result aggregation and lazy mapped aggregation; metadata merges shallowly in iteration order and all-errors operations omit partial successes.
 - `ResourceScope::run` preserves v1 bracket behavior, including release on use failure and `bracket.release_exception` metadata when both use and release fail.
+- `Retry::config()` is the public v1-compatible retry builder; document its broad exception capture and recommend an explicit `when` predicate for transient failures.

@@ -185,3 +185,5 @@ V2 callbacks for `map`, `mapError`, and `match` receive only the active payload.
 For keyed collections, `ResultBatch::firstFailure()` and `allErrors()` aggregate evaluated Results. `mapFirstFailure()` stops invoking its callback on the first failure; `mapAllErrors()` invokes it for every item. All-errors failures contain errors only, and metadata is merged in iteration order.
 
 `ResourceScope::run($acquire, $use, $release)` provides the v1 bracket cleanup behavior as a separate helper, including capture of exceptions and preservation of a release exception in metadata if use already failed.
+
+`Retry::config()` provides the v1 retry policy as a standalone builder. Its operation captures thrown exceptions; use `when()` to restrict retrying to transient failures.
