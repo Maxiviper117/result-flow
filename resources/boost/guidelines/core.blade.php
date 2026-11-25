@@ -32,3 +32,4 @@ This package requires PHP 8.4 or later.
 - Before stable v2 is published, select the v2 prerelease explicitly when installing; an unqualified Composer requirement can resolve to v1.
 - During the v2 prerelease, follow v2-specific documentation rather than assuming the stable v1 site reflects the installed API.
 - When migrating a v1 chain, select `map` or `andThen` based on the callback return and review exception and metadata behavior for every step.
+- `ResourceScope::run` releases an acquired resource even when the use callback throws; inspect `bracket.release_exception` if cleanup also fails.

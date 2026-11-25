@@ -126,3 +126,40 @@ it('bracket supports plain values and Result returns for acquire and use', funct
     expect($fromResult->isOk())->toBeTrue();
     expect($fromResult->match(fn ($value) => $value, fn ($error) => null))->toBe(11);
 });
+
+it('releases exactly once when use throws and preserves the original exception', function () {
+    $failure = new RuntimeException('use failed');
+    $released = 0;
+    $resource = new stdClass;
+
+    $result = ResourceScope::run(
+        acquire: fn () => $resource,
+        use: fn () => throw $failure,
+        release: function ($received) use (&$released, $resource): void {
+            expect($received)->toBe($resource);
+            $released++;
+        },
+    );
+
+    expect($released)->toBe(1)
+        ->and($result->match(fn ($value) => null, fn ($error) => $error))->toBe($failure);
+});
+
+it('retains both exceptions when use and release throw', function () {
+    $useFailure = new RuntimeException('use failed');
+    $releaseFailure = new RuntimeException('release failed');
+    $released = 0;
+
+    $result = ResourceScope::run(
+        acquire: fn () => 'resource',
+        use: fn () => throw $useFailure,
+        release: function () use (&$released, $releaseFailure): void {
+            $released++;
+            throw $releaseFailure;
+        },
+    );
+
+    expect($released)->toBe(1)
+        ->and($result->match(fn ($value) => null, fn ($error) => $error))->toBe($useFailure)
+        ->and($result->meta()['bracket.release_exception'])->toBe($releaseFailure);
+});
