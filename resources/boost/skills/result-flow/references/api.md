@@ -29,3 +29,5 @@ For v1 migrations, select `map` or `andThen` according to the callback return an
 `ResourceScope::run` calls release once after a successful acquisition even when use throws; if release also throws, the use error remains primary and the release exception is retained in metadata.
 
 `andThen` and `orElse` require actual Result return values; invalid callback returns raise `TypeError`.
+
+A null error remains a tagged failure and short-circuits `andThen`. Unselected exceptions from `attempt` propagate unchanged.

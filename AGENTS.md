@@ -101,3 +101,4 @@
 - The v2 migration guide includes an explicit v1/v2 chain comparison; preserve its warnings about exception capture and metadata collisions.
 - Resource scope tests cover release exactly once when use throws, including preservation of both use and release exception identities.
 - `andThen` and `orElse` enforce a real `Result` return at runtime for untyped callers; invalid returns raise `TypeError`.
+- The standalone smoke script exercises success, null failure short-circuiting, recovery metadata, and propagation of an unselected exception without framework dependencies.
