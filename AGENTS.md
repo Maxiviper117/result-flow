@@ -90,3 +90,4 @@
 - The v2 branch introduces `attempt`, `andThen`, `orElse`, and `withMeta` alongside legacy APIs while migration is in progress. Chaining merges metadata shallowly with the returned result taking precedence.
 - On this branch `map`, `mapError`, and `match` callbacks receive only the active payload; `unwrap()` retains non-Throwable errors in `UnwrapFailure::$failure`.
 - `ResultBatch` provides keyed evaluated-result aggregation and lazy mapped aggregation; metadata merges shallowly in iteration order and all-errors operations omit partial successes.
+- `ResourceScope::run` preserves v1 bracket behavior, including release on use failure and `bracket.release_exception` metadata when both use and release fail.

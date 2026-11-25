@@ -34,3 +34,4 @@ Use this list to ensure generated code sticks to documented public `Result` APIs
 ## V2 batch helper
 
 - `ResultBatch::firstFailure`, `allErrors`, `mapFirstFailure`, `mapAllErrors`
+- `ResourceScope::run`

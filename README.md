@@ -183,3 +183,5 @@ MIT - see `LICENSE.md`.
 V2 callbacks for `map`, `mapError`, and `match` receive only the active payload. `unwrap()` throws `UnwrapFailure` for non-Throwable errors and retains the original value in its `failure` property.
 
 For keyed collections, `ResultBatch::firstFailure()` and `allErrors()` aggregate evaluated Results. `mapFirstFailure()` stops invoking its callback on the first failure; `mapAllErrors()` invokes it for every item. All-errors failures contain errors only, and metadata is merged in iteration order.
+
+`ResourceScope::run($acquire, $use, $release)` provides the v1 bracket cleanup behavior as a separate helper, including capture of exceptions and preservation of a release exception in metadata if use already failed.
