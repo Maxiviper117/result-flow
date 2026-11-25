@@ -119,3 +119,4 @@ boundary.
 - For v2 batch work, use `ResultBatch::firstFailure` or `allErrors` for evaluated results, and `mapFirstFailure` or `mapAllErrors` when callbacks should run as part of aggregation. Keys are preserved; all-errors results contain errors only on failure.
 - Use `ResourceScope::run($acquire, $use, $release)` for v1-compatible resource cleanup; it captures thrown errors and records a release exception in metadata when use already failed.
 - Use `Retry::config()` as the standalone compatibility retry helper and select transient failures with `when`. It captures thrown exceptions as failures.
+- At HTTP boundaries, map success and domain errors explicitly with `match` and allowlist response fields. `Laravel\LegacyResponse::fromResult` and `Output\LegacyOutput` preserve the old shape including metadata and should be used only for compatibility. `Output\DebugOutput` is for diagnostics.

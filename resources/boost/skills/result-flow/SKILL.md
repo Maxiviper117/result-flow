@@ -61,3 +61,5 @@ For v2 keyed batches, use `ResultBatch::firstFailure` / `allErrors` on evaluated
 `ResourceScope::run` provides v1-compatible resource cleanup and captures thrown errors. When use and release both fail, it preserves the use failure and records the release exception in `bracket.release_exception` metadata.
 
 `Retry::config()` is the standalone compatibility retry builder. It captures exceptions; use `when` to limit retries to transient failures.
+
+Use explicit `match` response mappings and allowlist fields. `Laravel\LegacyResponse::fromResult` and `Output\LegacyOutput` preserve the v1 shape including metadata; `Output\DebugOutput` is for diagnostics, not client responses.

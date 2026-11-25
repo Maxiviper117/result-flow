@@ -23,7 +23,7 @@ final class Serialization
      */
     public static function toArray(Result $result): array
     {
-        $error = $result->error();
+        $error = $result->match(fn ($value) => null, fn ($error) => $error);
 
         if ($error instanceof ResultError) {
             $errorOut = $error->toArray();
@@ -33,7 +33,7 @@ final class Serialization
 
         return [
             'ok' => $result->isOk(),
-            'value' => $result->value(),
+            'value' => $result->match(fn ($value) => $value, fn ($error) => null),
             'error' => $errorOut,
             'meta' => $result->meta(),
         ];

@@ -187,3 +187,5 @@ For keyed collections, `ResultBatch::firstFailure()` and `allErrors()` aggregate
 `ResourceScope::run($acquire, $use, $release)` provides the v1 bracket cleanup behavior as a separate helper, including capture of exceptions and preservation of a release exception in metadata if use already failed.
 
 `Retry::config()` provides the v1 retry policy as a standalone builder. Its operation captures thrown exceptions; use `when()` to restrict retrying to transient failures.
+
+For migration, `Output\LegacyOutput` and `Laravel\LegacyResponse` preserve the v1 serialized and HTTP shapes, including metadata. For new endpoints, use `match` to map domain errors and explicitly choose fields to expose. `Output\DebugOutput` produces sanitized diagnostics.

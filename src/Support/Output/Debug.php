@@ -28,7 +28,7 @@ final class Debug
     {
         $sanitizer = $sanitizer ?? [self::class, 'defaultSanitizer'];
         $ok = $result->isOk();
-        $error = $result->error();
+        $error = $result->match(fn ($value) => null, fn ($error) => $error);
 
         $errorCode = null;
         $errorMessage = null;
@@ -46,7 +46,7 @@ final class Debug
 
         return [
             'ok' => $ok,
-            'value_type' => $ok ? get_debug_type($result->value()) : null,
+            'value_type' => $ok ? $result->match(fn ($value) => get_debug_type($value), fn ($error) => null) : null,
             'error_type' => ! $ok ? get_debug_type($error) : null,
             'error_code' => $errorCode,
             'error_message' => $errorMessage,
