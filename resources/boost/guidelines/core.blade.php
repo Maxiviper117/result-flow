@@ -26,3 +26,4 @@ For a runnable validate/save example and explicit boundary mapping, consult the 
 
 This package requires PHP 8.4 or later.
 - Configure debug sanitization explicitly for the application; it is diagnostic output and must not be treated as a public response format.
+- When preserving a legacy response contract, remove or allowlist internal metadata before using `LegacyResponse`; test both the status and exact body for success and failure.

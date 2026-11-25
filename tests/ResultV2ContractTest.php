@@ -180,3 +180,42 @@ it('exposes exactly the v2 public core API', function () {
     sort($expected);
     expect($methods)->toBe($expected);
 });
+
+it('captures selected exception subclasses once and propagates unrelated errors', function () {
+    $calls = 0;
+    $selected = new DomainException('selected subtype');
+    $result = Result::attempt(function () use (&$calls, $selected) {
+        $calls++;
+        throw $selected;
+    }, catch: LogicException::class);
+    expect($calls)->toBe(1)->and($result->match(fn ($value) => null, fn ($error) => $error))->toBe($selected);
+
+    $error = new TypeError('programming error');
+    try {
+        Result::attempt(fn () => throw $error, catch: RuntimeException::class);
+        test()->fail('Expected TypeError to propagate');
+    } catch (TypeError $caught) {
+        expect($caught)->toBe($error);
+    }
+});
+
+it('passes only the active failure to match and preserves transform metadata', function () {
+    $calls = [];
+    $result = Result::fail('bad', ['trace' => 1])->mapError(function (...$args) use (&$calls) {
+        $calls[] = $args;
+
+        return strtoupper($args[0]);
+    });
+    $out = $result->match(fn () => throw new LogicException('inactive'), function (...$args) use (&$calls) {
+        $calls[] = $args;
+
+        return $args[0];
+    });
+    expect($out)->toBe('BAD')->and($calls)->toBe([['bad'], ['BAD']])->and($result->meta())->toBe(['trace' => 1]);
+});
+
+it('does not treat empty returned metadata as a reset for either chain operation', function () {
+    $success = Result::ok('value', ['trace' => 1])->andThen(fn () => Result::ok('next', []));
+    $failure = Result::fail('error', ['trace' => 2])->orElse(fn () => Result::fail('next', []));
+    expect($success->meta())->toBe(['trace' => 1])->and($failure->meta())->toBe(['trace' => 2]);
+});

@@ -52,3 +52,20 @@ it('evaluates all items when collecting errors and propagates exceptions', funct
         expect($caught)->toBe($exception);
     }
 });
+
+it('merges metadata only through the first visited failure', function () {
+    $result = ResultBatch::firstFailure([
+        'first' => Result::ok(1, ['first' => true, 'collision' => 'old']),
+        'failed' => Result::fail('bad', ['collision' => null]),
+        'later' => Result::ok(3, ['later' => true]),
+    ]);
+    expect($result->isFail())->toBeTrue()
+        ->and($result->meta())->toBe(['first' => true, 'collision' => null]);
+});
+
+it('returns an empty success for empty inputs in both batch strategies', function () {
+    expect(ResultBatch::firstFailure([])->unwrap())->toBe([])
+        ->and(ResultBatch::allErrors([])->unwrap())->toBe([])
+        ->and(ResultBatch::mapFirstFailure([], fn () => throw new LogicException)->unwrap())->toBe([])
+        ->and(ResultBatch::mapAllErrors([], fn () => throw new LogicException)->unwrap())->toBe([]);
+});

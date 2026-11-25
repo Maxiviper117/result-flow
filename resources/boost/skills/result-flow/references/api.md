@@ -15,3 +15,5 @@
 For a complete runnable chain and boundary examples, consult the package's v2 quickstart and recipes. Keep the stable v1 and prerelease v2 API contracts distinct.
 
 Debug sanitization is configurable per application; verify its redaction and truncation settings before using diagnostic output.
+
+When preserving a legacy HTTP response, remove or allowlist internal metadata first and compare both status and body against the existing contract.
