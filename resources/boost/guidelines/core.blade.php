@@ -21,3 +21,7 @@ return $result->match(
 At an exception boundary, use `Result::attempt($fn, catch: ExpectedException::class)` to capture only that exception type and its subclasses. It wraps the returned value, even another Result. `unwrap()` rethrows a Throwable failure or throws `UnwrapFailure` containing the original failure in `failure`. Returning a failure from a Laravel transaction does not cause rollback: throw inside the transaction when rollback is required.
 
 `ResultBatch` provides keyed batch operations. `Retry::config()` and `ResourceScope::run()` are compatibility helpers that capture exceptions; configure retry predicates for transient failures. `Output\LegacyOutput` and `Laravel\LegacyResponse` preserve v1 output, including metadata, so use them only when that contract is intentional. `Output\DebugOutput` provides diagnostic serialization.
+
+For a runnable validate/save example and explicit boundary mapping, consult the package's v2 quickstart and recipes.
+
+This package requires PHP 8.4 or later.

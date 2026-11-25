@@ -1,8 +1,8 @@
 # AGENTS.md
 
 ## Scope and compatibility
-- Target PHP 8.2+ and keep public APIs under the `Maxiviper117\ResultFlow` namespace in `src/`.
-- CI test coverage includes PHP 8.5, 8.4, 8.3, and 8.2 in the main test matrix.
+- Target PHP 8.4+ and keep public APIs under the `Maxiviper117\ResultFlow` namespace in `src/`.
+- CI test coverage includes PHP 8.5 and 8.4 in the main test matrix.
 - Preserve type-safety and PHPStan-friendly templates when changing generics or method signatures.
 - Keep behavior deterministic: no network access, randomness, or IO in core `Result` flows unless explicitly intended.
 
@@ -90,3 +90,5 @@
 - `ResourceScope::run` preserves v1 bracket behavior, including release on use failure and `bracket.release_exception` metadata when both use and release fail.
 - `Retry::config()` is the public v1-compatible retry builder; document its broad exception capture and recommend an explicit `when` predicate for transient failures.
 - `Output\LegacyOutput` and `Laravel\LegacyResponse` explicitly preserve v1 wire shapes, including metadata; `Output\DebugOutput` provides sanitized diagnostics. New public responses should map domain errors and allowlist fields explicitly.
+- V2 runnable examples live in `examples/v2/`; the benchmark covers core callback dispatch. The documentation sidebar and migration map describe v2, while stable v1 remains on its existing release line.
+- The supported PHP floor is 8.4. `illuminate/database` is a development-only dependency for real SQLite transaction integration tests; the core runtime still requires only PHP. Composer's lock file is intentionally ignored for this library.

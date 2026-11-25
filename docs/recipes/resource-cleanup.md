@@ -1,27 +1,16 @@
----
-title: Resource Cleanup
----
+# Resource cleanup
 
-# Resource Cleanup
-
-Goal: acquire a resource, use it, and release it even when the use step fails.
+Use the compatibility helper to release an acquired resource even if use fails.
 
 ```php
-use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\ResourceScope;
 
-$result = Result::bracket(
-    acquire: fn () => fopen($path, 'r'),
-    use: fn ($handle) => fread($handle, 100),
-    release: fn ($handle) => fclose($handle),
+$result = ResourceScope::run(
+    acquire: fn () => fopen('php://temp', 'w+'),
+    use: fn ($stream) => fwrite($stream, 'hello'),
+    release: fn ($stream) => fclose($stream),
 );
+// Ok(number of bytes written), or Fail if acquisition/use/release throws.
 ```
 
-## Why this pattern works
-
-- release is attempted after acquisition succeeds
-- use failures are preserved
-- release failures are attached to metadata when use also fails
-
-## Variation
-
-If you only need exception-safe execution, consider `thenUnsafe(...)` inside an exception-aware boundary instead.
+The helper captures thrown exceptions. A failed acquisition skips release; after acquisition, release is called once. If use and release fail, use remains the failure and the release exception is in `bracket.release_exception` metadata. Related: [boundary reference](/reference/boundaries) and [transaction guide](/guides/transaction-rollback).

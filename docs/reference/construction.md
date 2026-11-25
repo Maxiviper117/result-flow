@@ -1,105 +1,37 @@
----
-title: Construction Reference
----
+# Construction
 
-# Construction Reference
+All constructors run immediately. See [the Result model](/concepts/result-model) and [getting started](/getting-started).
 
-## `Result::ok(mixed $value, array $meta = []): Result`
+## `ok(mixed $value, array $meta = []): Result`
 
-Creates a success result.
+Returns `Result<T, never>` with an explicit success tag. Null and falsy values remain success values. Metadata is stored as the initial shallow bag.
 
 ```php
-$result = Result::ok(['id' => 1], ['request_id' => 'r-1']);
+$result = Result::ok(null, ['trace_id' => 't-1']);
+// isOk() is true.
 ```
 
-## `Result::fail(mixed $error, array $meta = []): Result`
+Related: [validate then persist](/guides/validate-then-persist).
 
-Creates a failure result.
+## `fail(mixed $error, array $meta = []): Result`
+
+Returns `Result<never, E>` with an explicit failure tag. Domain errors remain unchanged; they are not wrapped in exceptions. Null is a valid error.
 
 ```php
-$result = Result::fail('Invalid state', ['step' => 'validate']);
+$result = Result::fail('Not found', ['trace_id' => 't-1']);
 ```
 
-You can also pass a structured error object such as a `DataTaggedError` subclass
-when you want stable boundary serialization and class-based matching later.
+Related: [failure handling](/concepts/failure-handling).
 
-## `Result::failTagged(string $code, string $message, mixed $payload = null, array $meta = [], ?Cause $cause = null): Result`
+## `attempt(callable $fn, string $catch): Result`
 
-Creates a failure result containing a `DataTaggedError`.
-
-- useful for quick structured failures
-- good when you want predictable JSON/debug output
-- for named domain errors, prefer a subclass of `DataTaggedError` and construct it via `::from(...)`
+Calls the zero-argument callback once and wraps its return in Ok without flattening; a selected Throwable class or subclass becomes Fail. Other thrown objects implementing Throwable propagate unchanged. The required `catch` argument is a `class-string` of a Throwable type. The initial metadata bag is empty.
 
 ```php
-use Maxiviper117\ResultFlow\Result;
-
-$result = Result::failTagged('E_USER_PERSIST', 'Unable to save user', ['email' => 'dev@example.com']);
+$result = Result::attempt(
+    fn () => json_decode('{"id": 1}', associative: true, flags: JSON_THROW_ON_ERROR),
+    catch: JsonException::class,
+);
 ```
 
-### Named structured errors
-
-```php
-use Maxiviper117\ResultFlow\Result;
-use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
-
-final class UserPersistError extends DataTaggedError
-{
-	public const CODE = 'E_USER_PERSIST';
-}
-
-$result = Result::fail(UserPersistError::from('Unable to save user', ['email' => 'dev@example.com']));
-```
-
-## `Result::failWithValue(mixed $error, mixed $failedValue, array $meta = []): Result`
-
-Creates a failure result and stores the value that caused it in metadata under `failed_value`.
-
-## `Result::of(callable $fn): Result`
-
-Runs a throwing callback and converts thrown exceptions to failure.
-
-- return value -> success
-- returned `Result` -> success containing that `Result` as the value
-- thrown exception -> failure with the exception object
-
-Choose this when the callback's success path returns a plain value and failure is expressed by throwing.
-
-## `Result::defer(callable $fn): Result`
-
-Runs a callback that may return a plain value, return a `Result`, or throw.
-
-- plain value -> success
-- returned `Result` -> returned as-is
-- thrown exception -> failure
-
-Choose this when the callback may already return `Result::ok(...)` or `Result::fail(...)` and you do not want nested `Result` values.
-
-## `Result::retry(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result`
-
-Retries a callback with optional delay and exponential backoff.
-
-## `Result::retryDefer(int $times, callable $fn, int $delay = 0, bool $exponential = false): Result`
-
-Retries a `defer(...)`-style callback.
-
-## `Result::retrier(): Retry`
-
-Returns the fluent retry builder.
-
-## `Result::bracket(callable $acquire, callable $use, callable $release): Result`
-
-Runs an acquire/use/release flow.
-
-### Behavior notes
-
-- release is not called when acquire fails
-- release is always attempted after use when acquire succeeds
-- if use fails and release throws, use failure stays and the release exception is written to `meta['bracket.release_exception']`
-- if use succeeds and release throws, the result becomes failure
-
-## Related pages
-
-- [Construction concepts](/concepts/constructing)
-- [Retries concepts](/concepts/retries)
-- [Resource safety](/concepts/resource-safety)
+For an operation already returning a Result, use typed `try/catch` if a nested Result is unwanted. Related: [failure handling](/concepts/failure-handling).

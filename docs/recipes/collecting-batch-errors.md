@@ -1,31 +1,14 @@
----
-title: Collecting Batch Errors
----
+# Collecting batch errors
 
-# Collecting Batch Errors
-
-Goal: validate every item and return all failures keyed by item.
+Validate every named input and retain each error by key.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\ResultBatch;
 
-$result = Result::mapCollectErrors($rows, function (array $row, string $key) {
-    if (! filter_var($row['email'] ?? null, FILTER_VALIDATE_EMAIL)) {
-        return Result::fail("Invalid email at {$key}");
-    }
-
-    return Result::ok([
-        'email' => strtolower($row['email']),
-    ]);
-});
+$result = ResultBatch::mapAllErrors(['email' => '', 'name' => 'Ada'],
+    fn (string $value): Result => $value === '' ? Result::fail('Required') : Result::ok($value));
+// Fail(['email' => 'Required']); no partial successes are returned.
 ```
 
-## Why this pattern works
-
-- every item is evaluated
-- errors stay keyed
-- partial success is not exposed on the failure branch
-
-## Variation
-
-Use `mapAll(...)` if the first failure should stop processing immediately.
+Related: [batch reference](/reference/batch-processing) and [batch strategy](/guides/batch-strategy).

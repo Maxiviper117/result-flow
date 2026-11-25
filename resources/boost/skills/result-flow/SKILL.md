@@ -10,3 +10,5 @@ Use `Result::ok` and `Result::fail` for expected outcomes. Prefer `map` for plai
 End chains with `match` at boundaries. Only `unwrap` when throwing is intentional; it rethrows Throwable failures and otherwise throws `UnwrapFailure` retaining the original failure. Returning a failure from a Laravel transaction does not roll it back; throw inside the transaction when rollback is needed.
 
 Chaining shallow-merges metadata with child keys winning. `withMeta` replaces the bag. Keep diagnostic metadata out of responses unless explicitly allowlisted. Use the local [API reference](references/api.md) for signatures and helpers.
+
+Use PHP 8.4 or later for this version of the package.

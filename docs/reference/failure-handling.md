@@ -1,74 +1,24 @@
----
-title: Failure Handling Reference
----
+# Failure handling
 
-# Failure Handling Reference
+Failure callbacks receive one error. They are skipped on Ok and do not catch exceptions. See [failure concepts](/concepts/failure-handling).
 
-```php
-$result = Result::fail('timeout')
-    ->otherwise(fn ($error, array $meta) => Result::fail(['code' => 'TIMEOUT', 'message' => $error], $meta));
-```
+## `mapError(callable $map): Result`
 
-## `otherwise(callable|object|array $next): Result`
-
-Runs only on failure.
-
-- plain return value -> recovery to success
-- returned `Result` -> kept as returned
-- success branch -> passed through unchanged
-
-## `catchException(array $handlers, ?callable $fallback = null): Result`
-
-Matches `Throwable` failures by class.
-
-- unmatched Throwable failure -> original result if no fallback is provided
-- non-Throwable failure -> original result if no fallback is provided
-- handlers and fallback may return a plain value or a `Result`
-- use this early to normalize `TFailure|Throwable` into one stable domain shape
-
-## `matchError(array $errorHandlers, callable $onSuccess, callable $onUnhandled): mixed`
-
-Matches structured domain errors by class.
-
-- handlers are keyed by `ResultError` class name (including `DataTaggedError` subclasses)
-- handlers are checked in array iteration order; the first matching class wins
-- matched handlers may accept either `(TError)` or `(TError, array $meta)`
-- `onSuccess` and `onUnhandled` may accept `()`, `(valueOrError)`, or `(valueOrError, array $meta)`
-- if the failure is not a `ResultError`, or no class matches, `$onUnhandled` runs
-- string codes are not used for dispatch
+`(E -> F) -> Result<T, F>`. Transforms a Fail without recovering, preserving metadata; an Ok is unchanged.
 
 ```php
-$message = $result->matchError(
-    [UserPersistError::class => fn (UserPersistError $e) => $e->code()],
-    onSuccess: fn ($value) => 'ok',
-    onUnhandled: fn ($error) => 'unhandled',
-);
+$result = Result::fail('missing')->mapError(fn (string $e): string => strtoupper($e));
+// Fail('MISSING')
 ```
 
-## `catchError(array $handlers, ?callable $fallback = null): Result`
+Related: [API boundary mapping](/recipes/api-boundary-mapping).
 
-Handles structured domain errors by class and keeps the flow inside `Result`.
+## `orElse(callable $fn): Result`
 
-- handlers are keyed by `ResultError` class name (including `DataTaggedError` subclasses)
-- handlers are checked in array iteration order; the first matching class wins
-- handlers and fallback may accept `()`, `(error)`, or `(error, array $meta)`
-- each callback may return either a plain recovered success value or a `Result`
-- if the failure is not a `ResultError`, class handlers are skipped and fallback is used when provided
-- unmatched failures return unchanged when no fallback is provided
-- fallback can handle both unmatched structured errors and legacy non-`ResultError` failures
+`(E -> Result<U, F>) -> Result<T|U, F>`. Lazily replaces a Fail with the returned Result. The original error is discarded unless the callback explicitly retains it. Returned metadata is shallow-merged with child keys winning; an Ok is unchanged.
 
 ```php
-$result = $result->catchError([
-    UserPersistError::class => fn (UserPersistError $e) => 'retry-later',
-]);
+$result = Result::fail('unavailable')->orElse(fn (string $e): Result => Result::ok('cached'));
 ```
 
-## `recover(callable $fn): Result`
-
-Converts any failure into a success result.
-
-## Related pages
-
-- [Failure handling concepts](/concepts/failure-handling)
-- [Finalization boundaries](/concepts/finalization-boundaries)
-- [Error normalization guide](/guides/error-normalization)
+Related: [validate then persist](/guides/validate-then-persist).

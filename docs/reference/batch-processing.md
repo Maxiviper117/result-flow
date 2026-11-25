@@ -1,54 +1,15 @@
----
-title: Batch Processing Reference
----
+# Batch helpers
 
-# Batch Processing Reference
+`ResultBatch` preserves keys and merges visited metadata shallowly in iteration order, later results winning collisions. It does not catch callback exceptions. See the [batch guide](/guides/batch-strategy).
+
+- `firstFailure(array $results): Result` combines already-evaluated Results, stopping its inspection at the first failure. Successful output is the keyed values; failure is the first error.
+- `allErrors(array $results): Result` inspects every already-evaluated Result. If any fail, returns keyed errors only, with no partial successes; otherwise returns keyed values.
+- `mapFirstFailure(array $items, callable $fn): Result` calls `fn($item, $key)` until the first Fail, leaving later callbacks unevaluated.
+- `mapAllErrors(array $items, callable $fn): Result` calls every callback and returns all keyed failures or all keyed successes.
 
 ```php
-$result = Result::mapCollectErrors($rows, fn (array $row, string $key) => validateRow($row, $key));
+$results = ['x' => Result::fail('required'), 'y' => Result::ok(1)];
+$combined = ResultBatch::allErrors($results); // Fail(['x' => 'required'])
 ```
 
-## `combine(array $results): Result`
-
-Combines existing `Result` values.
-
-- success values are collected into an array
-- the first failure stops processing
-- metadata from processed results is merged in order
-
-## `combineAll(array $results): Result`
-
-Combines existing `Result` values, returns no success values when any failure exists, and collects all failures.
-
-- success values are collected into an array
-- failures are collected into an array of errors
-- no success values are returned if any input fails
-- metadata from all processed results is merged in order
-
-## `mapItems(array $items, callable $fn): array`
-
-Maps raw items to individual `Result` values.
-
-- keys are preserved
-- plain return values are wrapped as success
-- thrown exceptions become failure results
-
-## `mapAll(array $items, callable $fn): Result`
-
-Maps raw items and fails fast on the first failure.
-
-- keyed success values are returned on success
-- metadata is merged in order
-
-## `mapCollectErrors(array $items, callable $fn): Result`
-
-Maps raw items and collects all failures by key.
-
-- keyed success values are returned on success
-- failure values stay keyed on the error branch
-- partial success is not exposed when any failure exists
-
-## Related pages
-
-- [Batch processing concepts](/concepts/batch-processing)
-- [Batch strategy guide](/guides/batch-strategy)
+Related: [collecting batch errors](/recipes/collecting-batch-errors).

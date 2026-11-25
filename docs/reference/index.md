@@ -1,29 +1,5 @@
----
-title: Reference
----
+# API reference
 
-# Reference
+The core is synchronous and has 14 public methods. Start with [construction](/reference/construction), [chaining](/reference/chaining), [failure handling](/reference/failure-handling), [boundaries](/reference/boundaries), and [metadata](/reference/metadata-debugging). Specialist operations live in [batch helpers](/reference/batch-processing) and [output adapters](/reference/boundaries).
 
-This section is for exact lookup.
-
-## Method families
-
-- [Construction](/reference/construction)
-- [Chaining](/reference/chaining)
-- [Failure handling](/reference/failure-handling)
-- [Boundaries](/reference/boundaries)
-- [Metadata and debugging](/reference/metadata-debugging)
-- [Batch processing](/reference/batch-processing)
-
-## How to use this section
-
-- open the family page you need
-- scan the signature
-- check the behavior notes and edge cases
-- jump back to the related concept page if you need the mental model
-
-Structured domain errors are documented across:
-
-- [Construction](/reference/construction) for `failTagged(...)` and named error creation
-- [Failure handling](/reference/failure-handling) for `matchError(...)` / `catchError(...)` and flexible `ResultError` callbacks
-- [Boundaries](/reference/boundaries) for serialization and finalization behavior
+PHPStan types in these pages use `T` for the success type, `E` for the failure type, and `U` / `F` for callback results. They are annotations, not PHP generic syntax.

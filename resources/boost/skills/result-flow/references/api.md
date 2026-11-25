@@ -11,3 +11,5 @@
 `ResultBatch::firstFailure` and `allErrors` aggregate evaluated keyed Results; `mapFirstFailure` stops invoking callbacks at the first failure and `mapAllErrors` visits all inputs. Metadata merges in iteration order. All-errors failure results contain errors, not partial successes.
 
 `Retry::config()` provides v1-compatible retries and captures thrown exceptions. Restrict retries with `when`. `ResourceScope::run()` provides v1-compatible acquire/use/release behavior, including release-exception metadata when use already failed. `Output\LegacyOutput` and `Laravel\LegacyResponse` preserve legacy output including metadata; map fields explicitly for new HTTP clients. `Output\DebugOutput` offers diagnostic sanitization.
+
+For a complete runnable chain and boundary examples, consult the package's v2 quickstart and recipes. Keep the stable v1 and prerelease v2 API contracts distinct.

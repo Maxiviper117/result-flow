@@ -1,44 +1,23 @@
----
-title: Chaining Reference
----
+# Chaining
 
-# Chaining Reference
+Callbacks receive one active payload. They run once on the applicable branch, do not catch exceptions, and leave a skipped Result unchanged. See [validate then persist](/guides/validate-then-persist).
 
 ## `map(callable $map): Result`
 
-Transforms the success value.
+`(T -> U) -> Result<U, E>`. On Ok, invokes the callback and wraps its return without flattening. On Fail, skips it. Metadata is preserved.
 
-## `mapError(callable $map): Result`
+```php
+$result = Result::ok(2)->map(fn (int $n): int => $n * 2); // Ok(4)
+```
 
-Transforms the failure value.
+Related: [chaining concepts](/concepts/chaining).
 
-## `ensure(callable $predicate, mixed $error): Result`
+## `andThen(callable $fn): Result`
 
-Keeps a success only when the predicate returns `true`.
+`(T -> Result<U, F>) -> Result<U, E|F>`. On Ok, requires the callback to return a Result; on Fail, skips it. A raw return is a programming error. Metadata is shallow-merged with child keys winning.
 
-If the predicate returns `false`, the result becomes failure. The error may be a value or a factory callback.
+```php
+$result = Result::ok(2)->andThen(fn (int $n): Result => Result::ok($n * 2));
+```
 
-## `then(callable|object|array $next): Result`
-
-Runs the next step only on success.
-
-- step may return a plain value or a `Result`
-- thrown exceptions are converted to failure
-- arrays of steps are treated as a pipeline
-- callable arrays like `[$service, 'handle']` remain one step
-- objects with `__invoke`, `handle`, or `execute` are supported
-
-When a step throws, the result gets `meta['failed_step']` with the best available step name.
-
-## `flatMap(callable $fn): Result`
-
-Alias of `then(...)`.
-
-## `thenUnsafe(callable|object $next): Result`
-
-Same chaining behavior as `then(...)`, but exceptions bubble.
-
-## Related pages
-
-- [Chaining concepts](/concepts/chaining)
-- [Transaction rollback](/guides/transaction-rollback)
+Related: [validate then persist](/guides/validate-then-persist).

@@ -1,6 +1,6 @@
 # Result Flow
 
-A synchronous, framework-independent Result type for PHP 8.2 and later. It makes expected failures explicit and carries diagnostic metadata through a workflow.
+A synchronous, framework-independent Result type for PHP 8.4 and later. It makes expected failures explicit and carries diagnostic metadata through a workflow.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
@@ -23,3 +23,5 @@ Install with `composer require maxiviper117/result-flow`. `map` transforms a val
 For collections, `ResultBatch` offers keyed first-failure and all-errors operations. `Retry` and `ResourceScope` are separate compatibility helpers. `Output\LegacyOutput` and `Laravel\LegacyResponse` preserve v1 output shapes, including metadata; use explicit `match` mappings for new endpoints. `Output\DebugOutput` produces sanitized diagnostics.
 
 The VitePress documentation is in [docs](docs/). Laravel Boost guidance ships in `resources/boost/guidelines/` and `resources/boost/skills/`.
+
+Development tests include a real SQLite-backed Laravel transaction. The Laravel database component is a development dependency only; it is not required to use the core package.

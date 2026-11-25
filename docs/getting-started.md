@@ -1,64 +1,28 @@
----
-title: Getting Started
----
+# Getting started
 
-# Getting Started
+Install on PHP 8.4 or later:
 
-Install the package:
-
-```bash
+```sh
 composer require maxiviper117/result-flow
 ```
 
-Then start with the smallest useful flow:
+An action returns an explicit success or failure. Map a value, chain a fallible action, then handle either outcome:
 
 ```php
 use Maxiviper117\ResultFlow\Result;
 
-$result = Result::ok(['total' => 42], ['request_id' => 'r-1'])
-    ->ensure(fn (array $order) => $order['total'] > 0, 'Total must be positive')
-    ->then(fn (array $order) => Result::ok([
-        'status' => 'queued',
-        'total' => $order['total'],
-    ], ['operation' => 'queue-order']))
-    ->otherwise(fn ($error, array $meta) => Result::fail([
-        'message' => (string) $error,
-        'request_id' => $meta['request_id'] ?? null,
-    ], $meta));
+$validate = fn (int $n): Result => $n > 0
+    ? Result::ok($n)
+    : Result::fail('Must be positive');
+
+$message = Result::ok(' 42 ')
+    ->map(fn (string $input): int => (int) trim($input))
+    ->andThen($validate)
+    ->match(
+        onSuccess: fn (int $value): string => "Accepted: $value",
+        onFailure: fn (string $error): string => "Rejected: $error",
+    );
+// Accepted: 42
 ```
 
-## How to read it
-
-- `ok(...)` starts a success branch.
-- `ensure(...)` keeps success only when the predicate passes.
-- `then(...)` runs the next step only on success.
-- `otherwise(...)` runs only on failure.
-- `match(...)` finishes the flow with an explicit output.
-
-`meta` is part of the result, not an afterthought. Carry request IDs, operation names, and other correlation data from the start.
-
-## Core rules
-
-- Success methods skip failures.
-- Failure methods skip successes.
-- `then(...)` catches thrown exceptions and turns them into failure.
-- `thenUnsafe(...)` lets exceptions bubble.
-- `of(...)` is for callbacks that return a plain value on success and throw on failure.
-- `defer(...)` is for callbacks that may return a plain value, return a `Result`, or throw.
-- `of(...)` wraps a returned `Result` as a success value; `defer(...)` preserves a returned `Result` as the active branch.
-
-## Read this next
-
-1. [Result model](/concepts/result-model)
-2. [Constructing results](/concepts/constructing)
-3. [Chaining](/concepts/chaining)
-4. [Failure handling](/concepts/failure-handling)
-5. [Finalization boundaries](/concepts/finalization-boundaries)
-
-## Reference pages
-
-- [Construction reference](/reference/construction)
-- [Chaining reference](/reference/chaining)
-- [Failure handling reference](/reference/failure-handling)
-- [Metadata and debugging reference](/reference/metadata-debugging)
-- [Batch processing reference](/reference/batch-processing)
+Use `map` when the callback returns a value; use `andThen` when it returns a Result. A failure skips the rest of the success chain. Next, see [validate then persist](/guides/validate-then-persist) and the [API reference](/reference/).
