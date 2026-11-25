@@ -30,3 +30,7 @@ Use this list to ensure generated code sticks to documented public `Result` APIs
 - Do not invent APIs.
 - Do not use internal helper classes directly.
 - Keep boundary completion explicit.
+
+## V2 batch helper
+
+- `ResultBatch::firstFailure`, `allErrors`, `mapFirstFailure`, `mapAllErrors`

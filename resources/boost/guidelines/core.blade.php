@@ -116,3 +116,4 @@ boundary.
 - Use `andThen` for a callback returning a Result and `orElse` for Result-returning recovery. Both merge metadata shallowly with child values taking precedence.
 - Use `attempt($callback, catch: ExpectedException::class)` for selective exception capture and `withMeta($bag)` to replace metadata.
 - `map`, `mapError`, and `match` receive the active payload only; capture any application context explicitly. Unwrapping a non-Throwable failure throws `UnwrapFailure`, which retains the original value in `failure`.
+- For v2 batch work, use `ResultBatch::firstFailure` or `allErrors` for evaluated results, and `mapFirstFailure` or `mapAllErrors` when callbacks should run as part of aggregation. Keys are preserved; all-errors results contain errors only on failure.

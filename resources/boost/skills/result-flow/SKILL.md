@@ -55,3 +55,5 @@ Use this skill when the user asks for ResultFlow workflow design, implementation
 Use `andThen` and `orElse` for Result-returning callbacks; returned metadata overrides matching parent keys. Use `attempt` with an explicit exception class for selective capture, and `withMeta` to replace the metadata bag.
 
 Callbacks passed to `map`, `mapError`, and `match` receive only the active payload. Capture context explicitly. `unwrap` throws `UnwrapFailure` with the original non-Throwable failure in its `failure` property.
+
+For v2 keyed batches, use `ResultBatch::firstFailure` / `allErrors` on evaluated Results or `mapFirstFailure` / `mapAllErrors` on items. Metadata is shallow-merged in iteration order; all-errors failure results omit successes.

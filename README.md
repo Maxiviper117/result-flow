@@ -181,3 +181,5 @@ MIT - see `LICENSE.md`.
 `andThen` chains a Result-returning callback; `orElse` recovers with another Result. Both shallow-merge metadata, with the returned Result taking precedence. `withMeta` replaces the bag. Use `Result::attempt($callback, catch: ExpectedException::class)` to capture only a selected exception type.
 
 V2 callbacks for `map`, `mapError`, and `match` receive only the active payload. `unwrap()` throws `UnwrapFailure` for non-Throwable errors and retains the original value in its `failure` property.
+
+For keyed collections, `ResultBatch::firstFailure()` and `allErrors()` aggregate evaluated Results. `mapFirstFailure()` stops invoking its callback on the first failure; `mapAllErrors()` invokes it for every item. All-errors failures contain errors only, and metadata is merged in iteration order.

@@ -74,7 +74,7 @@ final class Serialization
     /**
      * Recursively write array data to an XML element.
      *
-     * @param  array<mixed, mixed>  $data
+     * @param  array<array-key, mixed>  $data
      */
     private static function arrayToXml(array $data, \SimpleXMLElement $xml): void
     {
