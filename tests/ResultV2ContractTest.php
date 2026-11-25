@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\UnwrapFailure;
 
 it('chains results and merges metadata with child precedence', function () {
     $result = Result::ok(null, ['trace' => 'a', 'replace' => 1])
@@ -42,7 +43,7 @@ it('retains the exact failure payload when unwrapping', function () {
     try {
         Result::fail($failure)->unwrap();
         test()->fail('Expected unwrap to throw');
-    } catch (\Maxiviper117\ResultFlow\UnwrapFailure $exception) {
+    } catch (UnwrapFailure $exception) {
         expect($exception->failure)->toBe($failure);
     }
 });

@@ -434,9 +434,7 @@ describe('edge cases: step invocation patterns', function () {
     it('throws InvalidArgumentException for object without callable method', function () {
         $badStep = new class
         {
-            public function doSomething()
-            {
-            }
+            public function doSomething() {}
         };
 
         $result = Result::ok('value')->then($badStep);
