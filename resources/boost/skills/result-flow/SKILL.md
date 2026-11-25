@@ -53,3 +53,5 @@ Use this skill when the user asks for ResultFlow workflow design, implementation
 ## V2 transition APIs
 
 Use `andThen` and `orElse` for Result-returning callbacks; returned metadata overrides matching parent keys. Use `attempt` with an explicit exception class for selective capture, and `withMeta` to replace the metadata bag.
+
+Callbacks passed to `map`, `mapError`, and `match` receive only the active payload. Capture context explicitly. `unwrap` throws `UnwrapFailure` with the original non-Throwable failure in its `failure` property.

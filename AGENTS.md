@@ -88,3 +88,4 @@
 
 ## V2 transition
 - The v2 branch introduces `attempt`, `andThen`, `orElse`, and `withMeta` alongside legacy APIs while migration is in progress. Chaining merges metadata shallowly with the returned result taking precedence.
+- On this branch `map`, `mapError`, and `match` callbacks receive only the active payload; `unwrap()` retains non-Throwable errors in `UnwrapFailure::$failure`.

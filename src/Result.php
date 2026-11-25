@@ -37,7 +37,8 @@ final class Result
         private readonly mixed $value,
         private readonly mixed $error,
         private readonly array $meta = [],
-    ) {}
+    ) {
+    }
 
     // =========================================================================
     // Static Constructors
@@ -610,12 +611,20 @@ final class Result
      *
      * @template U
      *
-     * @param  callable(TSuccess, array<string,mixed>): U  $map
+     * @param  callable(TSuccess): U  $map
      * @return Result<U, TFailure>
      */
     public function map(callable $map): self
     {
-        return Transform::map($this, $map);
+        if (! $this->ok) {
+            /** @var Result<U, TFailure> $this @phpstan-ignore varTag.nativeType */
+            return $this;
+        }
+
+        /** @var TSuccess $value */
+        $value = $this->value;
+
+        return self::ok($map($value), $this->meta);
     }
 
     /**
@@ -623,12 +632,20 @@ final class Result
      *
      * @template E
      *
-     * @param  callable(TFailure, array<string,mixed>): E  $map
+     * @param  callable(TFailure): E  $map
      * @return Result<TSuccess, E>
      */
     public function mapError(callable $map): self
     {
-        return Transform::mapError($this, $map);
+        if ($this->ok) {
+            /** @var Result<TSuccess, E> $this @phpstan-ignore varTag.nativeType */
+            return $this;
+        }
+
+        /** @var TFailure $error */
+        $error = $this->error;
+
+        return self::fail($map($error), $this->meta);
     }
 
     /**
@@ -927,15 +944,26 @@ final class Result
     /**
      * Pattern match on success or failure - forces handling both cases.
      *
-     * @template T
+     * @template U
+     * @template V
      *
-     * @param  callable(TSuccess, array<string,mixed>): T  $onSuccess
-     * @param  callable(TFailure, array<string,mixed>): T  $onFailure
-     * @return T
+     * @param  callable(TSuccess): U  $onSuccess
+     * @param  callable(TFailure): V  $onFailure
+     * @return U|V
      */
     public function match(callable $onSuccess, callable $onFailure): mixed
     {
-        return Matcher::match($this, $onSuccess, $onFailure);
+        if ($this->ok) {
+            /** @var TSuccess $value */
+            $value = $this->value;
+
+            return $onSuccess($value);
+        }
+
+        /** @var TFailure $error */
+        $error = $this->error;
+
+        return $onFailure($error);
     }
 
     /**
@@ -979,12 +1007,21 @@ final class Result
     /**
      * Provide a default when failed.
      *
-     * @param  TSuccess  $default
-     * @return TSuccess
+     * @template U
+     *
+     * @param  U  $default
+     * @return TSuccess|U
      */
     public function unwrapOr(mixed $default): mixed
     {
-        return Unwrap::unwrapOr($this, $default);
+        if (! $this->ok) {
+            return $default;
+        }
+
+        /** @var TSuccess $value */
+        $value = $this->value;
+
+        return $value;
     }
 
     /**

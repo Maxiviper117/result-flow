@@ -36,3 +36,18 @@ it('captures only the selected exception and does not flatten', function () {
         expect($caught)->toBe($exception);
     }
 });
+
+it('retains the exact failure payload when unwrapping', function () {
+    $failure = (object) ['reason' => 'invalid'];
+    try {
+        Result::fail($failure)->unwrap();
+        test()->fail('Expected unwrap to throw');
+    } catch (\Maxiviper117\ResultFlow\UnwrapFailure $exception) {
+        expect($exception->failure)->toBe($failure);
+    }
+});
+
+it('passes exactly one argument to transformations', function () {
+    expect(Result::ok(1, ['trace' => 1])->map(fn (...$args) => $args)->unwrap())->toBe([1]);
+    expect(Result::fail(null)->mapError(fn (...$args) => $args)->error())->toBe([null]);
+});

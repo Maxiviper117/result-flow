@@ -16,7 +16,7 @@ it('propagates types through map/then and unwrap', function () {
     $r = Result::ok(123);
 
     $r2 = $r
-        ->map(fn (int $n, array $meta) => (string) $n) // should become Result<string, Exception>
+        ->map(fn (int $n) => (string) $n) // should become Result<string, Exception>
         ->then(fn (string $s, array $meta) => strlen($s)); // returns int -> Result<int, Exception>
 
     $val = $r2->unwrap();
@@ -128,7 +128,7 @@ it('then accepts an array of steps and folds sequentially', function () {
 
 it('mapError transforms the error payload', function () {
     $r = Result::fail('err')
-        ->mapError(fn ($e, $m) => new RuntimeException($e));
+        ->mapError(fn ($e) => new RuntimeException($e));
 
     expect($r->error())->toBeInstanceOf(RuntimeException::class);
 });

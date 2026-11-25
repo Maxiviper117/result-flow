@@ -21,22 +21,13 @@ describe('match()', function () {
         expect($result)->toBe('Error: oops');
     });
 
-    it('passes meta to success callback', function () {
+    it('passes only the active payload to handlers', function () {
         $result = Result::ok('value', ['id' => 123])->match(
-            onSuccess: fn ($v, $meta) => $meta['id'],
-            onFailure: fn ($e) => 0,
+            onSuccess: fn (...$args) => $args,
+            onFailure: fn (...$args) => $args,
         );
 
-        expect($result)->toBe(123);
-    });
-
-    it('passes meta to failure callback', function () {
-        $result = Result::fail('error', ['code' => 500])->match(
-            onSuccess: fn ($v) => 0,
-            onFailure: fn ($e, $meta) => $meta['code'],
-        );
-
-        expect($result)->toBe(500);
+        expect($result)->toBe(['value']);
     });
 
     it('can return different types', function () {

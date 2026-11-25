@@ -73,7 +73,7 @@ describe('edge cases: unwrap behavior', function () {
         $result = Result::fail('string error');
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('string error');
+        $this->expectExceptionMessage('Cannot unwrap a failed Result');
 
         $result->unwrap();
     });
@@ -82,7 +82,7 @@ describe('edge cases: unwrap behavior', function () {
         $result = Result::fail(['complex' => 'error']);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Result failed');
+        $this->expectExceptionMessage('Cannot unwrap a failed Result');
 
         $result->unwrap();
     });
@@ -434,7 +434,9 @@ describe('edge cases: step invocation patterns', function () {
     it('throws InvalidArgumentException for object without callable method', function () {
         $badStep = new class
         {
-            public function doSomething() {}
+            public function doSomething()
+            {
+            }
         };
 
         $result = Result::ok('value')->then($badStep);

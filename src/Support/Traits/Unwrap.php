@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow\Support\Traits;
 
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\UnwrapFailure;
 use RuntimeException;
 use Throwable;
 
@@ -37,7 +38,7 @@ final class Unwrap
         if ($err instanceof Throwable) {
             throw $err;
         }
-        throw new RuntimeException(is_string($err) ? $err : 'Result failed');
+        throw new UnwrapFailure($err);
     }
 
     /**

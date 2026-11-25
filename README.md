@@ -179,3 +179,5 @@ MIT - see `LICENSE.md`.
 ### V2 transition
 
 `andThen` chains a Result-returning callback; `orElse` recovers with another Result. Both shallow-merge metadata, with the returned Result taking precedence. `withMeta` replaces the bag. Use `Result::attempt($callback, catch: ExpectedException::class)` to capture only a selected exception type.
+
+V2 callbacks for `map`, `mapError`, and `match` receive only the active payload. `unwrap()` throws `UnwrapFailure` for non-Throwable errors and retains the original value in its `failure` property.
