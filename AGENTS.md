@@ -85,3 +85,6 @@
 ## Release hygiene
 - Releases update `CHANGELOG.md` via GitHub workflows.
 - Avoid changing package version metadata in PRs.
+
+## V2 transition
+- The v2 branch introduces `attempt`, `andThen`, `orElse`, and `withMeta` alongside legacy APIs while migration is in progress. Chaining merges metadata shallowly with the returned result taking precedence.

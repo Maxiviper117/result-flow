@@ -37,7 +37,8 @@ final class Result
         private readonly mixed $value,
         private readonly mixed $error,
         private readonly array $meta = [],
-    ) {}
+    ) {
+    }
 
     // =========================================================================
     // Static Constructors
@@ -71,6 +72,29 @@ final class Result
     {
         /** @var Result<never, E> */
         return new self(false, null, $error, $meta);
+    }
+
+    /**
+     * Execute a value-producing callback, capturing only the selected exception type.
+     *
+     * @template T
+     * @template E of Throwable
+     *
+     * @param  callable(): T  $fn
+     * @param  class-string<E>  $catch
+     * @return Result<T, E>
+     */
+    public static function attempt(callable $fn, string $catch): self
+    {
+        try {
+            return self::ok($fn());
+        } catch (Throwable $error) {
+            if (! $error instanceof $catch) {
+                throw $error;
+            }
+
+            return self::fail($error);
+        }
     }
 
     /**
@@ -441,6 +465,17 @@ final class Result
     }
 
     /**
+     * Replace the metadata bag.
+     *
+     * @param  array<string, mixed>  $meta
+     * @return Result<TSuccess, TFailure>
+     */
+    public function withMeta(array $meta): self
+    {
+        return new self($this->ok, $this->value, $this->error, $meta);
+    }
+
+    /**
      * Convert the Result to an array for debugging / serialization.
      *
      * @return array{ok: bool, value: mixed, error: mixed, meta: array<string,mixed>}
@@ -613,6 +648,54 @@ final class Result
     // =========================================================================
     // Chaining Operations
     // =========================================================================
+
+    /**
+     * @template U
+     * @template E
+     *
+     * @param  callable(TSuccess): Result<U, E>  $fn
+     * @return Result<U, TFailure|E>
+     */
+    public function andThen(callable $fn): self
+    {
+        if (! $this->ok) {
+            /** @var Result<U, TFailure|E> $this @phpstan-ignore varTag.nativeType */
+            return $this;
+        }
+
+        /** @var TSuccess $value */
+        $value = $this->value;
+        $result = $fn($value);
+
+        /** @var Result<U, TFailure|E> $merged */
+        $merged = $result->withMeta(array_merge($this->meta, $result->meta));
+
+        return $merged;
+    }
+
+    /**
+     * @template U
+     * @template E
+     *
+     * @param  callable(TFailure): Result<U, E>  $fn
+     * @return Result<TSuccess|U, E>
+     */
+    public function orElse(callable $fn): self
+    {
+        if ($this->ok) {
+            /** @var Result<TSuccess|U, E> $this @phpstan-ignore varTag.nativeType */
+            return $this;
+        }
+
+        /** @var TFailure $error */
+        $error = $this->error;
+        $result = $fn($error);
+
+        /** @var Result<TSuccess|U, E> $merged */
+        $merged = $result->withMeta(array_merge($this->meta, $result->meta));
+
+        return $merged;
+    }
 
     /**
      * Chain another action if success.

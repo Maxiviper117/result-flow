@@ -110,3 +110,8 @@ class, with the first matching `matchError(...)` / `catchError(...)` handler win
 - Do not drop metadata when converting one failure shape to another.
 - Do not leave a flow without explicit branch completion (`match`, `toResponse`, `unwrap*`, etc.) at the app
 boundary.
+
+## V2 transition APIs
+
+- Use `andThen` for a callback returning a Result and `orElse` for Result-returning recovery. Both merge metadata shallowly with child values taking precedence.
+- Use `attempt($callback, catch: ExpectedException::class)` for selective exception capture and `withMeta($bag)` to replace metadata.

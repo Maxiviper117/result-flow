@@ -49,3 +49,7 @@ Use this skill when the user asks for ResultFlow workflow design, implementation
 - `references/retries.md`
 - `references/debugging-metadata.md`
 - `references/public-api-whitelist.md`
+
+## V2 transition APIs
+
+Use `andThen` and `orElse` for Result-returning callbacks; returned metadata overrides matching parent keys. Use `attempt` with an explicit exception class for selective capture, and `withMeta` to replace the metadata bag.

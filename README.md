@@ -175,3 +175,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 MIT - see `LICENSE.md`.
+
+### V2 transition
+
+`andThen` chains a Result-returning callback; `orElse` recovers with another Result. Both shallow-merge metadata, with the returned Result taking precedence. `withMeta` replaces the bag. Use `Result::attempt($callback, catch: ExpectedException::class)` to capture only a selected exception type.
