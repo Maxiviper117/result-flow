@@ -1,191 +1,25 @@
 # Result Flow
 
-[![run-tests](https://github.com/Maxiviper117/result-flow/actions/workflows/run-tests.yml/badge.svg)](https://github.com/Maxiviper117/result-flow/actions/workflows/run-tests.yml)
-[![PHPStan](https://github.com/Maxiviper117/result-flow/actions/workflows/phpstan.yml/badge.svg)](https://github.com/Maxiviper117/result-flow/actions/workflows/phpstan.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Maxiviper117/result-flow)
-
-Minimal, type-safe Result type for explicit success/failure handling in PHP (PHP 8.2+).
-
-Composer:
-
-```bash
-composer require maxiviper117/result-flow
-```
-
-## Documentation map
-
-- [Home](https://maxiviper117.github.io/result-flow/)
-- [Getting Started](https://maxiviper117.github.io/result-flow/getting-started.html)
-- [Concepts](https://maxiviper117.github.io/result-flow/concepts/)
-- [Guides](https://maxiviper117.github.io/result-flow/guides/)
-- [Recipes](https://maxiviper117.github.io/result-flow/recipes/)
-- [Reference](https://maxiviper117.github.io/result-flow/reference/)
-- [Kitchen sink](https://maxiviper117.github.io/result-flow/kitchen-sink/)
-- [FAQ](https://maxiviper117.github.io/result-flow/faq.html)
-- [Laravel Boost](https://maxiviper117.github.io/result-flow/laravel-boost.html)
-
-## Why Result Flow
-
-- Explicit branches: success and failure are handled intentionally.
-- Metadata propagation: context survives across every chain step.
-- Predictable semantics: fail-fast and collect-all tools are explicit and separate.
-- Type-aware design: PHPStan-friendly templates across public methods.
-
-## Quick example
+A synchronous, framework-independent Result type for PHP 8.2 and later. It makes expected failures explicit and carries diagnostic metadata through a workflow.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
 
-$result = Result::ok(['order_id' => 123, 'total' => 42], ['request_id' => 'r-1'])
-    ->ensure(fn (array $order) => $order['total'] > 0, 'Order total must be positive')
-    ->then(fn (array $order) => Result::ok([
-        'saved' => true,
-        'id' => $order['order_id'],
-    ]));
+$result = Result::ok($input, ['trace_id' => $traceId])
+    ->map($normalizer->normalize(...))
+    ->andThen($validator->validate(...))
+    ->andThen($orders->save(...));
 
-$output = $result->match(
-    onSuccess: fn (array $v) => ['ok' => true, 'data' => $v],
-    onFailure: fn ($e) => ['ok' => false, 'error' => (string) $e],
+return $result->match(
+    onSuccess: fn ($order) => response()->json(['id' => $order->id], 201),
+    onFailure: fn ($error) => $responses->forOrderError($error),
 );
 ```
 
-## Deferred operations
+Install with `composer require maxiviper117/result-flow`. `map` transforms a value; `andThen` requires a Result-returning callback. `mapError` transforms a failure, and `orElse` provides Result-returning recovery. Callbacks receive one payload and thrown exceptions propagate. `Result::attempt($callback, catch: ExpectedException::class)` selectively captures an exception and wraps the callback's return without flattening it.
 
-```php
-use Maxiviper117\ResultFlow\Result;
+`andThen` and `orElse` shallow-merge metadata, with returned Result keys taking precedence. Use `withMeta()` to replace the bag. Diagnostic metadata should not be exposed to clients unless explicitly allowlisted. `unwrap()` throws failed results; non-Throwable failure values are retained by `UnwrapFailure`.
 
-$result = Result::defer(fn () => loadUserById($id))
-    ->then(fn (array $user) => Result::ok(normalizeUser($user)));
-```
+For collections, `ResultBatch` offers keyed first-failure and all-errors operations. `Retry` and `ResourceScope` are separate compatibility helpers. `Output\LegacyOutput` and `Laravel\LegacyResponse` preserve v1 output shapes, including metadata; use explicit `match` mappings for new endpoints. `Output\DebugOutput` produces sanitized diagnostics.
 
-## Retry deferred operations
-
-```php
-use Maxiviper117\ResultFlow\Result;
-
-$result = Result::retryDefer(
-    3,
-    fn () => callExternalApi($payload),
-    delay: 100,
-    exponential: true,
-);
-```
-
-## Resource-safe operations
-
-```php
-use Maxiviper117\ResultFlow\Result;
-
-$result = Result::bracket(
-    acquire: fn () => fopen($path, 'r'),
-    use: fn ($handle) => fread($handle, 100),
-    release: fn ($handle) => fclose($handle),
-);
-```
-
-## Batch workflows
-
-- `Result::mapItems($items, $fn)` for per-item `Result` status.
-- `Result::mapAll($items, $fn)` for fail-fast aggregate processing.
-- `Result::mapCollectErrors($items, $fn)` for collect-all error reporting.
-
-All batch callbacks use: `fn ($item, $key) => Result|value`.
-
-## Structured domain errors
-
-For domain-level failures that need a stable API shape and explicit branching, use
-subclasses of `DataTaggedError` and match them by class with `matchError(...)`
-or `catchError(...)`.
-
-```php
-use Maxiviper117\ResultFlow\Result;
-use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
-
-final class UserPersistError extends DataTaggedError
-{
-    public const CODE = 'E_USER_PERSIST';
-}
-
-$result = Result::fail(UserPersistError::from(
-    'Unable to persist user',
-    ['email' => 'dev@example.com'],
-));
-
-$message = $result->matchError(
-    [UserPersistError::class => fn (UserPersistError $e) => $e->code()],
-    onSuccess: fn ($value) => 'ok',
-    onUnhandled: fn ($error) => 'unhandled',
-);
-```
-
-Use `code()` for boundary serialization and external systems. Matching is based on
-the error class, not the string code.
-
-Flows created with `of(...)`, `defer(...)`, `retryDefer(...)`, and batch helpers may widen
-failures to `TFailure|Throwable`; normalize early with `catchException(...)` / `otherwise(...)`
-when boundary consumers need one stable error shape.
-
-`toDebugArray()` sanitizes arrays/strings by default. Object internals are only sanitized when
-`result-flow.debug.sanitize_objects` is enabled.
-
-## Laravel Boost
-
-This package ships Laravel Boost source assets so AI agents in downstream consumer apps can generate ResultFlow-aware code.
-
-### Package-shipped guideline source
-
-- Source file in this package: `resources/boost/guidelines/core.blade.php`
-- In a Laravel app that uses Boost, run:
-
-```bash
-php artisan boost:install
-```
-
-Boost applies package-shipped guidance within the app AI context.
-
-### Package-shipped central skill source
-
-- Source file in this package:
-  - `resources/boost/skills/result-flow/SKILL.md`
-- The central skill loads only needed concept references from:
-  - `resources/boost/skills/result-flow/references/*.md`
-
-### App-level overrides
-
-App teams can define or override guidelines locally:
-
-- `.ai/guidelines/...`
-
-To override a built-in guideline, use the same relative path in `.ai/guidelines`, for example:
-
-- `.ai/guidelines/inertia-react/2/forms.blade.php`
-
-## Contributing
-
-- Tests: `composer test`
-- Static analysis: `composer analyse`
-- Rector check: `composer rector-dry`
-- Rector apply: `composer rector`
-- Format: `composer format`
-- Benchmarks: `composer bench`
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## License
-
-MIT - see `LICENSE.md`.
-
-### V2 transition
-
-`andThen` chains a Result-returning callback; `orElse` recovers with another Result. Both shallow-merge metadata, with the returned Result taking precedence. `withMeta` replaces the bag. Use `Result::attempt($callback, catch: ExpectedException::class)` to capture only a selected exception type.
-
-V2 callbacks for `map`, `mapError`, and `match` receive only the active payload. `unwrap()` throws `UnwrapFailure` for non-Throwable errors and retains the original value in its `failure` property.
-
-For keyed collections, `ResultBatch::firstFailure()` and `allErrors()` aggregate evaluated Results. `mapFirstFailure()` stops invoking its callback on the first failure; `mapAllErrors()` invokes it for every item. All-errors failures contain errors only, and metadata is merged in iteration order.
-
-`ResourceScope::run($acquire, $use, $release)` provides the v1 bracket cleanup behavior as a separate helper, including capture of exceptions and preservation of a release exception in metadata if use already failed.
-
-`Retry::config()` provides the v1 retry policy as a standalone builder. Its operation captures thrown exceptions; use `when()` to restrict retrying to transient failures.
-
-For migration, `Output\LegacyOutput` and `Laravel\LegacyResponse` preserve the v1 serialized and HTTP shapes, including metadata. For new endpoints, use `match` to map domain errors and explicitly choose fields to expose. `Output\DebugOutput` produces sanitized diagnostics.
+The VitePress documentation is in [docs](docs/). Laravel Boost guidance ships in `resources/boost/guidelines/` and `resources/boost/skills/`.

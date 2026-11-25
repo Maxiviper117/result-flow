@@ -35,3 +35,6 @@ jobs:
 
       - name: Run PHPStan
         run: ./vendor/bin/phpstan --error-format=github
+
+      - name: Check v2 consumer types
+        run: composer analyse:types

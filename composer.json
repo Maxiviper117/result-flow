@@ -51,6 +51,7 @@
     },
     "scripts": {
         "analyse": "vendor/bin/phpstan analyse",
+        "analyse:types": "sh scripts/check-v2-types.sh",
         "test": "vendor/bin/pest --parallel",
         "test-coverage": "php scripts/test-coverage.php",
         "rector": "vendor/bin/rector process",

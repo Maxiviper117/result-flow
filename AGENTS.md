@@ -19,13 +19,10 @@
 ## Where to change things
 - Core behavior lives in `src/` (primary class: `src/Result.php`).
 - Public docs now live in `docs/` as a VitePress site with `concepts/`, `guides/`, `recipes/`, `reference/`, `kitchen-sink/`, `getting-started.md`, `faq.md`, and `laravel-boost.md`.
-- Static constructor APIs (`ok`, `fail`, `failWithValue`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`) must stay documented in the reference pages and reflected in Boost assets.
-- Internal helpers are organized under `src/Support/Traits/`, `src/Support/Operations/`, and `src/Support/Output/`.
-- Structured error helpers live under `src/Support/Errors/`; keep `DataTaggedError`, `ResultError`, `Cause`, and class-based `matchError()` / `catchError()` behavior aligned with docs, examples, and Boost assets.
-- `src/Support/Traits/` contains focused `Result` behavior traits (e.g., transform, unwrap, matching, taps, metadata ops).
-- `src/Support/Operations/` contains operation-style services/builders (e.g., retry, pipeline, batch mapping).
+- The core API is `ok`, `fail`, `attempt`, `map`, `mapError`, `andThen`, `orElse`, `match`, `isOk`, `isFail`, `unwrap`, `unwrapOr`, `meta`, and `withMeta`. Keep docs and Boost assets aligned.
+- Output implementation helpers live under `src/Support/Output/`; public adapters live under `src/Output/` and `src/Laravel/`.
+- Structured error helpers live under `src/Support/Errors/`; use explicit PHP type checks or matching for class-specific handling.
 - `src/Support/Output/` contains debug and serialization output helpers.
-- Keep `src/Support/*` class names concise by capability (`Retry`, `Pipeline`, `Batch`, `Debug`, `Serialization`, etc.); avoid the legacy `Result*` helper naming pattern.
 - Tests live in `tests/` (Pest). Add/update tests for any behavior change.
 - Docs live in `docs/`; update `README.md` for user-facing changes or new public APIs.
 - Laravel config integration uses `config/result-flow.php` and `src/Laravel/`.
@@ -40,7 +37,7 @@
 ## Quality checks
 - Format: `composer format`
 - Format check only (dry-run): `composer pint-test`
-- Static analysis: `composer analyse` (or `composer phpstan`)
+- Static analysis: `composer analyse` (or `composer phpstan`); check consumer type contracts with `composer analyse:types`
 - Refactoring check: `composer rector-dry` (apply fixes with `composer rector`)
 - Preserve public named constructor arguments when Rector suggests constructor promotion.
 - Tests: `composer test` (or `composer test-coverage` when coverage is required)
@@ -64,7 +61,7 @@
 - Kitchen-sink docs should be organized as a section hub plus category pages, with each category covering the relevant methods in a scannable order.
 - Keep boundary serialization docs aligned with implementation details such as fallback response shape and encoding failure behavior.
 - Keep XML boundary docs aligned with the actual element-name normalization rules used by `toXml()`.
-- Keep observability docs aligned with emitted metadata keys such as `failed_step`.
+- Keep metadata and diagnostic documentation aligned with emitted keys.
 - Keep debug sanitization docs aligned with config keys under `result-flow.debug`, including `sanitize_objects` and `object_max_depth`.
 - Keep Boost guidelines and skills (`resources/boost/`) aligned with current project behavior and conventions on every change.
 
@@ -87,7 +84,7 @@
 - Avoid changing package version metadata in PRs.
 
 ## V2 transition
-- The v2 branch introduces `attempt`, `andThen`, `orElse`, and `withMeta` alongside legacy APIs while migration is in progress. Chaining merges metadata shallowly with the returned result taking precedence.
+- V2 exposes a 14-method core and standalone helpers. Chaining merges metadata shallowly with the returned result taking precedence.
 - On this branch `map`, `mapError`, and `match` callbacks receive only the active payload; `unwrap()` retains non-Throwable errors in `UnwrapFailure::$failure`.
 - `ResultBatch` provides keyed evaluated-result aggregation and lazy mapped aggregation; metadata merges shallowly in iteration order and all-errors operations omit partial successes.
 - `ResourceScope::run` preserves v1 bracket behavior, including release on use failure and `bracket.release_exception` metadata when both use and release fail.

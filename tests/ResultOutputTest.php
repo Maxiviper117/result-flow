@@ -1,12 +1,14 @@
 <?php
 
+use Maxiviper117\ResultFlow\Laravel\LegacyResponse;
+use Maxiviper117\ResultFlow\Output\LegacyOutput;
 use Maxiviper117\ResultFlow\Result;
 
 describe('Result Output', function () {
 
     it('toJson returns valid JSON string for success result', function () {
         $result = Result::ok(['user_id' => 123], ['timestamp' => 1000]);
-        $json = $result->toJson();
+        $json = LegacyOutput::toJson($result);
 
         $decoded = json_decode($json, true);
         expect($decoded['ok'])->toBeTrue();
@@ -16,7 +18,7 @@ describe('Result Output', function () {
 
     it('toJson returns valid JSON string for failure result', function () {
         $result = Result::fail('Something went wrong', ['code' => 500]);
-        $json = $result->toJson();
+        $json = LegacyOutput::toJson($result);
 
         $decoded = json_decode($json, true);
         expect($decoded['ok'])->toBeFalse();
@@ -27,14 +29,14 @@ describe('Result Output', function () {
     it('toJson accepts encoding options', function () {
         $result = Result::ok(['html' => '<p>test</p>']);
         // JSON_HEX_TAG converts < > to \u003C \u003E
-        $json = $result->toJson(JSON_HEX_TAG);
+        $json = LegacyOutput::toJson($result, JSON_HEX_TAG);
 
         expect($json)->toContain('\u003C');
     });
 
     it('toXml returns valid XML string for success result', function () {
         $result = Result::ok(['id' => 123, 'name' => 'Test'], ['version' => 1]);
-        $xmlString = $result->toXml();
+        $xmlString = LegacyOutput::toXml($result);
 
         $xml = new SimpleXMLElement($xmlString);
         expect((string) $xml->ok)->toBe('1');
@@ -44,7 +46,7 @@ describe('Result Output', function () {
 
     it('toXml handles numeric keys by prefixing with item', function () {
         $result = Result::ok(['a', 'b']);
-        $xmlString = $result->toXml();
+        $xmlString = LegacyOutput::toXml($result);
 
         $xml = new SimpleXMLElement($xmlString);
         expect((string) $xml->value->item0)->toBe('a');
@@ -53,7 +55,7 @@ describe('Result Output', function () {
 
     it('toXml allows custom root element', function () {
         $result = Result::ok('val');
-        $xmlString = $result->toXml('api-response');
+        $xmlString = LegacyOutput::toXml($result, 'api-response');
 
         expect($xmlString)->toContain('<api-response>');
     });
@@ -66,7 +68,7 @@ describe('Result Output', function () {
             'meta.value' => 'punctuation',
         ]);
 
-        $xml = new SimpleXMLElement($result->toXml());
+        $xml = new SimpleXMLElement(LegacyOutput::toXml($result));
 
         expect((string) $xml->value->bad_key)->toBe('space');
         expect((string) $xml->value->item_123name)->toBe('leading-digit');
@@ -76,7 +78,7 @@ describe('Result Output', function () {
 
     it('toXml normalizes invalid custom root element names', function () {
         $result = Result::ok('val');
-        $xml = new SimpleXMLElement($result->toXml('bad root'));
+        $xml = new SimpleXMLElement(LegacyOutput::toXml($result, 'bad root'));
 
         expect($xml->getName())->toBe('bad_root');
         expect((string) $xml->value)->toBe('val');
@@ -88,7 +90,7 @@ describe('Result Output', function () {
         // In our Pest.php we only saw config() helper.
 
         $result = Result::ok(['data' => 'ok']);
-        $response = $result->toResponse();
+        $response = LegacyResponse::fromResult($result);
 
         expect($response)->toBeArray();
         expect($response['status'])->toBe(200);
@@ -100,7 +102,7 @@ describe('Result Output', function () {
 
     it('toResponse returns status 400 for failure by default', function () {
         $result = Result::fail('error');
-        $response = $result->toResponse();
+        $response = LegacyResponse::fromResult($result);
 
         expect($response['status'])->toBe(400);
 
@@ -114,7 +116,7 @@ describe('Result Output', function () {
         try {
             $this->expectException(JsonException::class);
 
-            Result::ok($resource)->toResponse();
+            LegacyResponse::fromResult(Result::ok($resource));
         } finally {
             fclose($resource);
         }

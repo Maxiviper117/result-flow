@@ -15,7 +15,7 @@ it('bracket returns acquire failure and does not call release', function () {
     );
 
     expect($result->isFail())->toBeTrue();
-    expect($result->error())->toBe('acquire failed');
+    expect($result->match(fn ($value) => null, fn ($error) => $error))->toBe('acquire failed');
     expect($result->meta())->toBe(['from' => 'acquire']);
     expect($released)->toBeFalse();
 });
@@ -34,7 +34,7 @@ it('bracket converts acquire exception to failure and does not call release', fu
     );
 
     expect($result->isFail())->toBeTrue();
-    expect($result->error())->toBeInstanceOf(RuntimeException::class);
+    expect($result->match(fn ($value) => null, fn ($error) => $error))->toBeInstanceOf(RuntimeException::class);
     expect($released)->toBeFalse();
 });
 
@@ -56,7 +56,7 @@ it('bracket succeeds when use and release succeed', function () {
     );
 
     expect($result->isOk())->toBeTrue();
-    expect($result->value())->toBe('hello');
+    expect($result->match(fn ($value) => $value, fn ($error) => null))->toBe('hello');
     expect($releasedResource)->not->toBeNull();
 });
 
@@ -72,7 +72,7 @@ it('bracket keeps use failure when release succeeds', function () {
     );
 
     expect($result->isFail())->toBeTrue();
-    expect($result->error())->toBe('use failed');
+    expect($result->match(fn ($value) => null, fn ($error) => $error))->toBe('use failed');
     expect($result->meta())->toBe(['phase' => 'use']);
     expect($released)->toBeTrue();
 });
@@ -87,7 +87,7 @@ it('bracket keeps use failure and stores release exception metadata', function (
     );
 
     expect($result->isFail())->toBeTrue();
-    expect($result->error())->toBe('use failed');
+    expect($result->match(fn ($value) => null, fn ($error) => $error))->toBe('use failed');
     expect($result->meta())->toHaveKey('phase');
     expect($result->meta())->toHaveKey('bracket.release_exception');
     expect($result->meta()['bracket.release_exception'])->toBeInstanceOf(RuntimeException::class);
@@ -103,8 +103,8 @@ it('bracket fails with release exception when use succeeds', function () {
     );
 
     expect($result->isFail())->toBeTrue();
-    expect($result->error())->toBeInstanceOf(RuntimeException::class);
-    expect($result->error()->getMessage())->toBe('release failed');
+    expect($result->match(fn ($value) => null, fn ($error) => $error))->toBeInstanceOf(RuntimeException::class);
+    expect($result->match(fn ($value) => null, fn ($error) => $error)->getMessage())->toBe('release failed');
     expect($result->meta())->toBe(['phase' => 'use']);
 });
 
@@ -122,7 +122,7 @@ it('bracket supports plain values and Result returns for acquire and use', funct
     );
 
     expect($fromPlain->isOk())->toBeTrue();
-    expect($fromPlain->value())->toBe(10);
+    expect($fromPlain->match(fn ($value) => $value, fn ($error) => null))->toBe(10);
     expect($fromResult->isOk())->toBeTrue();
-    expect($fromResult->value())->toBe(11);
+    expect($fromResult->match(fn ($value) => $value, fn ($error) => null))->toBe(11);
 });
