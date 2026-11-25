@@ -102,5 +102,5 @@
 - Resource scope tests cover release exactly once when use throws, including preservation of both use and release exception identities.
 - `andThen` and `orElse` enforce a real `Result` return at runtime for untyped callers; invalid returns raise `TypeError`.
 - The standalone smoke script exercises success, null failure short-circuiting, recovery metadata, and propagation of an unselected exception without framework dependencies.
-- Development tooling uses Pest 5, PHPStan 2.3.7, Rector 2.9.2, Laravel database 12 or 13, and the pinned VitePress 2 alpha with pnpm 12; verify both lowest and stable dependency resolution on supported PHP versions.
+- Development tooling uses Pest 5, PHPStan 2.3.7, Rector 2.9.2, Laravel database 12 or 13, and the pinned VitePress 2.0.0-alpha.21 with pnpm 12; verify both lowest and stable dependency resolution on supported PHP versions.
 - PHPBench 1.7 currently requires the abandoned development-only `doctrine/annotations` package; Composer audit reports this separately from security advisories.
