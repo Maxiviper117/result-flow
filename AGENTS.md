@@ -87,26 +87,21 @@
 - V2 exposes a 14-method core and standalone helpers. Chaining merges metadata shallowly with the returned result taking precedence.
 - On this branch `map`, `mapError`, and `match` callbacks receive only the active payload; `unwrap()` retains non-Throwable errors in `UnwrapFailure::$failure`.
 - `ResultBatch` provides keyed evaluated-result aggregation and lazy mapped aggregation; metadata merges shallowly in iteration order and all-errors operations omit partial successes.
-- `ResourceScope::run` preserves v1 bracket behavior, including release on use failure and `bracket.release_exception` metadata when both use and release fail.
-- `Retry::config()` is the public v1-compatible retry builder; document its broad exception capture and recommend an explicit `when` predicate for transient failures.
-- `Output\LegacyOutput` and `Laravel\LegacyResponse` explicitly preserve v1 wire shapes, including metadata; `Output\DebugOutput` provides sanitized diagnostics. New public responses should map domain errors and allowlist fields explicitly.
-- V2 runnable examples live in `examples/v2/`; the benchmark covers core callback dispatch. The documentation sidebar and migration map describe v2, while stable v1 remains on its existing release line.
 - The supported PHP floor is 8.4. `illuminate/database` is a development-only dependency for real SQLite transaction integration tests; the core runtime still requires only PHP. Composer's lock file is intentionally ignored for this library.
 - The shared Pest setup resets the debug config stub before every test, including serial randomized CI runs; preserve that isolation when adding tests.
-- `examples/v2/order-endpoint.php` demonstrates a migrated legacy response; its request handler and regression tests keep internal trace metadata out of the public response while preserving the prior JSON shape and status.
-- Pull requests build an unpublished v2 documentation artifact with the `/result-flow/v2-preview/` base; the stable site deployment remains a separate workflow. Maintainers own prerelease tags and publication.
 - CI runs consumer PHPStan fixtures and a `--no-dev` standalone smoke test on both supported PHP versions; `scripts/standalone-smoke.php` must remain framework-independent.
-- Until stable v2 is released, the quickstart uses an explicit v2 beta Composer constraint so installation does not silently select v1.
-- Stable GitHub Pages deployment is manually dispatched from `main`, so merging v2 work does not automatically overwrite the v1 site before the major release.
-- The v2 migration guide includes an explicit v1/v2 chain comparison; preserve its warnings about exception capture and metadata collisions.
 - Resource scope tests cover release exactly once when use throws, including preservation of both use and release exception identities.
 - `andThen` and `orElse` enforce a real `Result` return at runtime for untyped callers; invalid returns raise `TypeError`.
 - The standalone smoke script exercises success, null failure short-circuiting, recovery metadata, and propagation of an unselected exception without framework dependencies.
 - Development tooling uses Pest 5, PHPStan 2.3.7, Rector 2.9.2, Laravel database 12 or 13, and the pinned VitePress 2.0.0-alpha.21 with pnpm 12; verify both lowest and stable dependency resolution on supported PHP versions.
 - PHPBench 1.7 currently requires the abandoned development-only `doctrine/annotations` package; Composer audit reports this separately from security advisories.
-- The built-in debug sanitizer detects recursive array references and limits nested arrays independently with `array_max_depth` (default 32, clamped 1–128); disabled/custom sanitizers bypass the built-in limit. Legacy XML requires SimpleXML and rejects invalid UTF-8 or XML 1.0 text.
-- Retry preserves its v1 retry-all default; document transient predicates, blocking delays and idempotency, and test thrown retry policy callbacks.
+- The built-in debug sanitizer detects recursive array references and limits nested arrays independently with `array_max_depth` (default 32, clamped 1–128); disabled/custom sanitizers bypass the built-in limit. XML requires SimpleXML and rejects invalid UTF-8 or XML 1.0 text.
+- Retry uses a retry-all default; document transient predicates, blocking delays and idempotency, and test thrown retry policy callbacks.
 - `phpstan-result-flow.neon` enables the optional discarded-Result rule; `composer analyse:types` checks positive, negative, and explicit-suppression fixtures. The rule is static analysis only and is not a runtime dependency.
 - `ResultBatch::firstSuccess` rejects empty input and preserves metadata from visited results; `zip` combines two already-evaluated Results. Field-level validation can aggregate arrays of messages with `mapAllErrors`.
 - Debug output exposes structured error causes under `error_cause`, passed through the configured sanitizer; preserve redaction and truncation tests for nested cause metadata.
 - `Output\ProblemDetails::response` creates an explicit RFC 9457 JSON response without automatically exposing Result payloads or metadata; test status, reserved-field collisions, encoding errors, and diagnostic privacy.
+
+- `ResourceScope::run` releases resources after use, including on failure. `Retry::config()` captures exceptions and defaults to retrying all failures.
+- `Output\Serialization` includes metadata; map public HTTP responses explicitly. Runnable examples live in `examples/v2/`.
+- The documentation preview uses the normal site base; maintainers control releases and tags.

@@ -6,3 +6,5 @@
 - [Detecting discarded Results](/guides/unused-results)
 
 See also the [API reference](/reference/) and [recipes](/recipes/).
+
+- [Retrying operations](/guides/retries)

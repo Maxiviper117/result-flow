@@ -1,4 +1,4 @@
-name: Build v2 documentation preview
+name: Build documentation preview
 
 on:
   pull_request:
@@ -22,13 +22,11 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Build separate v2 preview
+      - name: Build documentation preview
         run: pnpm docs:build
-        env:
-          RESULT_FLOW_DOCS_BASE: /result-flow/v2-preview/
       - uses: actions/upload-artifact@v7
         with:
-          name: result-flow-v2-docs-preview
+          name: result-flow-docs-preview
           path: .vitepress/dist
           if-no-files-found: error
           retention-days: 14

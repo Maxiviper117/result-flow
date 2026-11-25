@@ -10,13 +10,13 @@ namespace Maxiviper117\ResultFlow\Support\Output {
 }
 
 namespace {
-    use Maxiviper117\ResultFlow\Output\LegacyOutput;
+    use Maxiviper117\ResultFlow\Output\Serialization;
     use Maxiviper117\ResultFlow\Result;
 
     require __DIR__.'/../../vendor/autoload.php';
 
     try {
-        LegacyOutput::toXml(Result::ok(1));
+        Serialization::toXml(Result::ok(1));
         exit(1);
     } catch (RuntimeException $error) {
         echo $error->getMessage();

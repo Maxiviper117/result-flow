@@ -1,7 +1,7 @@
 <?php
 
 use Maxiviper117\ResultFlow\Output\DebugOutput;
-use Maxiviper117\ResultFlow\Output\LegacyOutput;
+use Maxiviper117\ResultFlow\Output\Serialization;
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
@@ -219,7 +219,7 @@ describe('toDebugArray()', function () {
 describe('edge cases: toArray and toDebugArray', function () {
     it('toArray includes all fields for success', function () {
         $result = Result::ok('value', ['key' => 'meta']);
-        $arr = LegacyOutput::toArray($result);
+        $arr = Serialization::toArray($result);
 
         expect($arr)->toBe([
             'ok' => true,
@@ -231,7 +231,7 @@ describe('edge cases: toArray and toDebugArray', function () {
 
     it('toArray includes all fields for failure', function () {
         $result = Result::fail('error', ['key' => 'meta']);
-        $arr = LegacyOutput::toArray($result);
+        $arr = Serialization::toArray($result);
 
         expect($arr)->toBe([
             'ok' => false,

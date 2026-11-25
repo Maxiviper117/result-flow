@@ -1,6 +1,6 @@
 # Getting started
 
-After a v2 beta is published, install it on PHP 8.4 or later. The explicit stability flag prevents the quickstart from silently selecting stable v1:
+Requires PHP 8.4 or later. After the v2 beta is published, install it with Composer:
 
 ```sh
 composer require 'maxiviper117/result-flow:^2.0@beta'

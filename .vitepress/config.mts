@@ -10,13 +10,11 @@ export default defineConfig({
       { text: 'Quickstart', link: '/getting-started' },
       { text: 'Guides', link: '/guides/' },
       { text: 'Reference', link: '/reference/' },
-      { text: 'Migration', link: '/migration-v2' },
     ],
     sidebar: [
       { text: 'Start', items: [
         { text: 'Overview', link: '/' },
         { text: 'Getting started', link: '/getting-started' },
-        { text: 'Migrating from v1', link: '/migration-v2' },
         { text: 'FAQ', link: '/faq' },
       ] },
       { text: 'Concepts', items: [
@@ -31,6 +29,7 @@ export default defineConfig({
         { text: 'Validate then persist', link: '/guides/validate-then-persist' },
         { text: 'Transactions', link: '/guides/transaction-rollback' },
         { text: 'Batch strategy', link: '/guides/batch-strategy' },
+        { text: 'Retries', link: '/guides/retries' },
         { text: 'Detecting discarded Results', link: '/guides/unused-results' },
       ] },
       { text: 'Recipes', items: [

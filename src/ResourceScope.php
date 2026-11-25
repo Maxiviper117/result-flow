@@ -6,7 +6,7 @@ namespace Maxiviper117\ResultFlow;
 
 use Throwable;
 
-/** Legacy-compatible acquire/use/release operation. */
+/** Acquire, use, and release a resource. */
 final class ResourceScope
 {
     /**

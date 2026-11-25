@@ -9,8 +9,8 @@ hero:
       text: Get started
       link: /getting-started
     - theme: alt
-      text: Migrating from v1
-      link: /migration-v2
+      text: API reference
+      link: /reference/
 features:
   - title: Clear chains
     details: Separate value transformations from fallible actions.

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow\Output;
 
 use Maxiviper117\ResultFlow\Result;
-use Maxiviper117\ResultFlow\Support\Output\Serialization;
+use Maxiviper117\ResultFlow\Support\Output\Serialization as Serializer;
 
-/** Explicitly opt into the v1 serialization shape, including metadata. */
-final class LegacyOutput
+/** Serialize results, including their metadata. */
+final class Serialization
 {
     /**
      * @param  Result<mixed, mixed>  $result
@@ -16,18 +16,18 @@ final class LegacyOutput
      */
     public static function toArray(Result $result): array
     {
-        return Serialization::toArray($result);
+        return Serializer::toArray($result);
     }
 
     /** @param Result<mixed, mixed> $result */
     public static function toJson(Result $result, int $options = 0): string
     {
-        return Serialization::toJson($result, $options);
+        return Serializer::toJson($result, $options);
     }
 
     /** @param Result<mixed, mixed> $result */
     public static function toXml(Result $result, string $rootElement = 'result'): string
     {
-        return Serialization::toXml($result, $rootElement);
+        return Serializer::toXml($result, $rootElement);
     }
 }

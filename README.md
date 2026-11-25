@@ -19,17 +19,17 @@ $message = Result::ok(' 42 ')
 // Accepted: 42
 ```
 
-After a v2 beta is published, install it with `composer require 'maxiviper117/result-flow:^2.0@beta'`. The unqualified package constraint may still select stable v1 before a stable v2 release. `map` transforms a value; `andThen` requires a Result-returning callback. `mapError` transforms a failure, and `orElse` provides Result-returning recovery. Callbacks receive one payload and thrown exceptions propagate. `Result::attempt($callback, catch: ExpectedException::class)` selectively captures an exception and wraps the callback's return without flattening it.
+After a v2 beta is published, install it with `composer require 'maxiviper117/result-flow:^2.0@beta'`. `map` transforms a value; `andThen` requires a Result-returning callback. `mapError` transforms a failure, and `orElse` provides Result-returning recovery. Callbacks receive one payload and thrown exceptions propagate. `Result::attempt($callback, catch: ExpectedException::class)` selectively captures an exception and wraps the callback's return without flattening it.
 
 `andThen` and `orElse` shallow-merge metadata, with returned Result keys taking precedence. Use `withMeta()` to replace the bag. Diagnostic metadata should not be exposed to clients unless explicitly allowlisted. `unwrap()` throws failed results; non-Throwable failure values are retained by `UnwrapFailure`.
 
-For collections, `ResultBatch` offers keyed first-failure and all-errors operations. `Retry` and `ResourceScope` are separate compatibility helpers. `Output\LegacyOutput` and `Laravel\LegacyResponse` preserve v1 output shapes, including metadata; use explicit `match` mappings for new endpoints. `Output\DebugOutput` produces sanitized diagnostics.
+For collections, `ResultBatch` offers keyed first-failure and all-errors operations. `Retry` and `ResourceScope` provide retry and resource cleanup helpers. `Output\Serialization` includes metadata in its output; map public responses explicitly. `Output\DebugOutput` produces sanitized diagnostics.
 
 The VitePress documentation is in [docs](docs/). Laravel Boost guidance ships in `resources/boost/guidelines/` and `resources/boost/skills/`.
 
 Development tests include a real SQLite-backed Laravel transaction. The Laravel database component is a development dependency only; it is not required to use the core package.
 
-The built-in debug sanitizer bounds nested arrays by default. Legacy XML output requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters. Retry delays block execution; filter permanent failures and use idempotency keys for retried writes.
+The built-in debug sanitizer bounds nested arrays by default. XML output requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters. Retry delays block execution; filter permanent failures and use idempotency keys for retried writes.
 
 Applications using PHPStan can opt into `phpstan-result-flow.neon` to detect discarded Result-returning calls; see the [guide](docs/guides/unused-results.md) for limitations and intentional suppression.
 

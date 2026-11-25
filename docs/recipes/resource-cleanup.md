@@ -1,6 +1,6 @@
 # Resource cleanup
 
-Use the compatibility helper to release an acquired resource even if use fails.
+Use the resource helper to release an acquired resource even if use fails.
 
 ```php
 use Maxiviper117\ResultFlow\ResourceScope;
