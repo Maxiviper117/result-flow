@@ -13,3 +13,5 @@ $combined = ResultBatch::allErrors($results); // Fail(['x' => 'required'])
 ```
 
 Related: [collecting batch errors](/recipes/collecting-batch-errors).
+
+`firstSuccess(array $results)` returns the first success or the last failure, merging metadata from visited Results. Empty input throws `InvalidArgumentException`. `zip($first, $second)` combines two already-evaluated Results into a pair, or returns the first failure; metadata follows ordinary `andThen` semantics.

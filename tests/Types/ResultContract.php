@@ -6,6 +6,7 @@ namespace Maxiviper117\ResultFlow\Tests\Types;
 
 use JsonException;
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\ResultBatch;
 
 use function PHPStan\Testing\assertType;
 
@@ -49,6 +50,8 @@ assertType('Maxiviper117\\ResultFlow\\Result<Maxiviper117\\ResultFlow\\Tests\\Ty
 $action = new ValidateOrderAction;
 $actionResult = Result::ok('input')->andThen($action->handle(...))->andThen(save(...));
 assertType('Maxiviper117\\ResultFlow\\Result<Maxiviper117\\ResultFlow\\Tests\\Types\\Order, Maxiviper117\\ResultFlow\\Tests\\Types\\ValidationError|Maxiviper117\\ResultFlow\\Tests\\Types\\WriteError>', $actionResult);
+$zipped = ResultBatch::zip(validate('input'), save(1));
+assertType('Maxiviper117\\ResultFlow\\Result<array{int, Maxiviper117\\ResultFlow\\Tests\\Types\\Order}, Maxiviper117\\ResultFlow\\Tests\\Types\\ValidationError|Maxiviper117\\ResultFlow\\Tests\\Types\\WriteError>', $zipped);
 $normalized = $result->mapError(fn (ValidationError|WriteError $error): DomainError => new DomainError);
 assertType('Maxiviper117\\ResultFlow\\Result<Maxiviper117\\ResultFlow\\Tests\\Types\\Order, Maxiviper117\\ResultFlow\\Tests\\Types\\DomainError>', $normalized);
 $recovered = $result->orElse(fn (ValidationError|WriteError $error): Result => Result::ok('fallback'));

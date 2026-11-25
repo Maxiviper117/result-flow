@@ -32,3 +32,9 @@ Development tests include a real SQLite-backed Laravel transaction. The Laravel 
 The built-in debug sanitizer bounds nested arrays by default. Legacy XML output requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters. Retry delays block execution; filter permanent failures and use idempotency keys for retried writes.
 
 Applications using PHPStan can opt into `phpstan-result-flow.neon` to detect discarded Result-returning calls; see the [guide](docs/guides/unused-results.md) for limitations and intentional suppression.
+
+`ResultBatch::firstSuccess()` selects the first success from a non-empty collection, and `zip()` combines two evaluated Results. For field-level validation, `mapAllErrors()` can collect arrays of messages by field.
+
+Structured error causes can be nested with `Cause`; `DebugOutput` exposes them in the sanitized `error_cause` field.
+
+`Output\ProblemDetails::response()` builds an explicit RFC 9457 problem JSON response from fields chosen by the application; it does not automatically expose Result errors or metadata.

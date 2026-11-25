@@ -37,3 +37,9 @@ Laravel is optional for the core API. Verify transaction and response integratio
 Default debug sanitization detects array cycles and bounds array depth independently (`array_max_depth`, default 32, range 1–128); disabled or custom sanitizers bypass that safeguard. Legacy XML requires SimpleXML and rejects invalid UTF-8 and XML 1.0 characters. Retry defaults to all failures; choose transient-only predicates, use idempotency keys for writes, and remember delays block PHP.
 
 An optional PHPStan rule in `phpstan-result-flow.neon` flags discarded standalone Result-returning calls. Intentional discards can use `@phpstan-ignore resultFlow.ignoredResult`; assignment alone does not prove handling.
+
+`ResultBatch::firstSuccess` selects the first success or last failure and rejects empty input; `zip` combines two evaluated Results. Use `mapAllErrors` with arrays of messages for field-level validation.
+
+Structured error causes appear in `DebugOutput::toArray()` under `error_cause`, sanitized with the same configured sanitizer as metadata.
+
+`Output\ProblemDetails::response` builds an explicit RFC 9457 problem JSON response. Map domain errors to safe public fields; metadata is not automatically included.

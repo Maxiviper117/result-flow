@@ -29,3 +29,5 @@ Keys are preserved; callback exceptions propagate. Metadata is shallow-merged in
 ## Related pages
 
 [Batch reference](/reference/batch-processing) and [collect errors recipe](/recipes/collecting-batch-errors).
+
+For field validation, callbacks can return arrays of messages as failures, such as `Result::fail(['required', 'invalid format'])`. `mapAllErrors` then returns an array keyed by field, with every field's messages and no partial successes. No separate validation Result type is required.

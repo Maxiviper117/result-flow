@@ -8,6 +8,49 @@ namespace Maxiviper117\ResultFlow;
 final class ResultBatch
 {
     /**
+     * Return the first success or the last failure; the input must not be empty.
+     * Metadata from visited Results is merged in order.
+     *
+     * @template T
+     * @template E
+     *
+     * @param  array<array-key, Result<T, E>>  $results
+     * @return Result<T, E>
+     */
+    public static function firstSuccess(array $results): Result
+    {
+        if ($results === []) {
+            throw new \InvalidArgumentException('firstSuccess requires at least one Result');
+        }
+        $meta = [];
+        foreach ($results as $result) {
+            $meta = array_merge($meta, $result->meta());
+            if ($result->isOk()) {
+                return $result->withMeta($meta);
+            }
+        }
+
+        return $result->withMeta($meta);
+    }
+
+    /**
+     * Combine two already-evaluated Results, returning the first failure.
+     *
+     * @template T
+     * @template U
+     * @template E
+     * @template F
+     *
+     * @param  Result<T, E>  $first
+     * @param  Result<U, F>  $second
+     * @return Result<array{T, U}, E|F>
+     */
+    public static function zip(Result $first, Result $second): Result
+    {
+        return $first->andThen(fn ($left) => $second->map(fn ($right) => [$left, $right]));
+    }
+
+    /**
      * Combine already-evaluated Results, returning the first failure.
      *
      * @template K of array-key

@@ -39,3 +39,6 @@ This package requires PHP 8.4 or later.
 - The default debug sanitizer detects array cycles and limits array depth (`array_max_depth`, default 32); disabled or custom sanitizers must provide their own safeguards. Legacy XML requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters.
 - Retry defaults to retrying every failure. Filter permanent failures and use idempotency keys for repeated writes; delays block the current PHP process.
 - Applications using PHPStan may opt into `phpstan-result-flow.neon` to flag standalone calls whose inferred return is a Result. Assigning a Result does not itself prove it was handled; use `@phpstan-ignore resultFlow.ignoredResult` for intentional discards.
+- `ResultBatch::firstSuccess` selects the first success (or last failure) from non-empty evaluated results; `zip` combines two evaluated results. For validation, return arrays of messages as keyed failures.
+- Structured `ResultError` causes appear in diagnostic `error_cause` after sanitization; they are not automatically added to client responses.
+- For problem JSON responses, explicitly map domain failures to public fields with `Output\ProblemDetails::response`; it never includes Result metadata automatically.

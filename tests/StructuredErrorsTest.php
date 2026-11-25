@@ -22,3 +22,29 @@ it('preserves structured error and nested cause serialization', function () {
         expect($caught)->toBe($error);
     }
 });
+
+it('includes sanitized nested causes in debug output', function () {
+    $inner = new Cause('DB', str_repeat('x', 201), ['password' => 'secret']);
+    $outer = new Cause('WRITE', 'Write failed', ['token' => 'private'], [$inner]);
+    $error = new DataTaggedError('ORDER', 'Could not save', cause: $outer);
+    $cause = DebugOutput::toArray(Result::fail($error))['error_cause'];
+    expect($cause['code'])->toBe('WRITE')
+        ->and($cause['metadata']['token'])->toBe('***REDACTED***')
+        ->and($cause['causes'][0]['metadata']['password'])->toBe('***REDACTED***')
+        ->and($cause['causes'][0]['message'])->toBe(str_repeat('x', 200).'…');
+});
+
+it('preserves an error cause explicitly when normalizing a failure', function () {
+    $original = new DataTaggedError('DB', 'Database failed', cause: new Cause('SOCKET', 'Connection lost'));
+    $result = Result::fail($original)->mapError(function (DataTaggedError $error): DataTaggedError {
+        $previous = $error->cause();
+
+        return new DataTaggedError(
+            'ORDER_WRITE',
+            'Order could not be saved',
+            cause: new Cause($error->code(), $error->message(), [], $previous instanceof Cause ? [$previous] : []),
+        );
+    });
+    $cause = DebugOutput::toArray($result)['error_cause'];
+    expect($cause['code'])->toBe('DB')->and($cause['causes'][0]['code'])->toBe('SOCKET');
+});

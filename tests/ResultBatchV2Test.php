@@ -69,3 +69,38 @@ it('returns an empty success for empty inputs in both batch strategies', functio
         ->and(ResultBatch::mapFirstFailure([], fn () => throw new LogicException)->unwrap())->toBe([])
         ->and(ResultBatch::mapAllErrors([], fn () => throw new LogicException)->unwrap())->toBe([]);
 });
+
+it('selects the first success or the last failure with visited metadata', function () {
+    $first = ResultBatch::firstSuccess([
+        Result::fail('first', ['trace' => 1]),
+        Result::ok(null, ['child' => 2]),
+        Result::ok('ignored', ['ignored' => true]),
+    ]);
+    expect($first->isOk())->toBeTrue()->and($first->unwrap())->toBeNull()
+        ->and($first->meta())->toBe(['trace' => 1, 'child' => 2]);
+    $last = ResultBatch::firstSuccess([Result::fail('first'), Result::fail(null, ['end' => true])]);
+    expect($last->isFail())->toBeTrue()->and($last->match(fn ($v) => 'wrong', fn ($e) => $e))->toBeNull()
+        ->and($last->meta())->toBe(['end' => true]);
+    expect(fn () => ResultBatch::firstSuccess([]))->toThrow(InvalidArgumentException::class);
+});
+
+it('zips two evaluated results with first-failure and metadata semantics', function () {
+    $success = ResultBatch::zip(Result::ok(1, ['trace' => 1]), Result::ok('x', ['trace' => null]));
+    expect($success->unwrap())->toBe([1, 'x'])->and($success->meta())->toBe(['trace' => null]);
+    $firstFailure = ResultBatch::zip(Result::fail('first', ['a' => 1]), Result::fail('second', ['b' => 2]));
+    expect($firstFailure->match(fn ($v) => $v, fn ($e) => $e))->toBe('first')->and($firstFailure->meta())->toBe(['a' => 1]);
+    $secondFailure = ResultBatch::zip(Result::ok(1, ['a' => 1]), Result::fail('second', ['b' => 2]));
+    expect($secondFailure->match(fn ($v) => $v, fn ($e) => $e))->toBe('second')->and($secondFailure->meta())->toBe(['a' => 1, 'b' => 2]);
+});
+
+it('collects multiple field-level validation errors without partial values', function () {
+    $result = ResultBatch::mapAllErrors(['name' => '', 'email' => 'bad', 'age' => '18'], fn ($value, $field) => match ($field) {
+        'name' => Result::fail(['required']),
+        'email' => Result::fail(['invalid format', 'domain not allowed']),
+        default => Result::ok($value),
+    });
+    expect($result->match(fn ($values) => $values, fn ($errors) => $errors))->toBe([
+        'name' => ['required'],
+        'email' => ['invalid format', 'domain not allowed'],
+    ]);
+});

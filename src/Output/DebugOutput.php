@@ -13,7 +13,7 @@ final class DebugOutput
     /**
      * @param  Result<mixed, mixed>  $result
      * @param  callable(mixed): mixed|null  $sanitizer
-     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_code: string|null, error_message: mixed, meta: mixed}
+     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_code: string|null, error_message: mixed, error_cause: mixed, meta: mixed}
      */
     public static function toArray(Result $result, ?callable $sanitizer = null): array
     {
