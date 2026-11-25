@@ -1,9 +1,9 @@
 # Getting started
 
-Install on PHP 8.4 or later:
+After a v2 beta is published, install it on PHP 8.4 or later. The explicit stability flag prevents the quickstart from silently selecting stable v1:
 
 ```sh
-composer require maxiviper117/result-flow
+composer require 'maxiviper117/result-flow:^2.0@beta'
 ```
 
 An action returns an explicit success or failure. Map a value, chain a fallible action, then handle either outcome:

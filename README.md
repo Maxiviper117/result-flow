@@ -16,7 +16,7 @@ return $result->match(
 );
 ```
 
-Install with `composer require maxiviper117/result-flow`. `map` transforms a value; `andThen` requires a Result-returning callback. `mapError` transforms a failure, and `orElse` provides Result-returning recovery. Callbacks receive one payload and thrown exceptions propagate. `Result::attempt($callback, catch: ExpectedException::class)` selectively captures an exception and wraps the callback's return without flattening it.
+After a v2 beta is published, install it with `composer require 'maxiviper117/result-flow:^2.0@beta'`. The unqualified package constraint may still select stable v1 before a stable v2 release. `map` transforms a value; `andThen` requires a Result-returning callback. `mapError` transforms a failure, and `orElse` provides Result-returning recovery. Callbacks receive one payload and thrown exceptions propagate. `Result::attempt($callback, catch: ExpectedException::class)` selectively captures an exception and wraps the callback's return without flattening it.
 
 `andThen` and `orElse` shallow-merge metadata, with returned Result keys taking precedence. Use `withMeta()` to replace the bag. Diagnostic metadata should not be exposed to clients unless explicitly allowlisted. `unwrap()` throws failed results; non-Throwable failure values are retained by `UnwrapFailure`.
 

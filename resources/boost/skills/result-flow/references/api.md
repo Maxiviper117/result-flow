@@ -19,3 +19,5 @@ Debug sanitization is configurable per application; verify its redaction and tru
 When preserving a legacy HTTP response, remove or allowlist internal metadata first and compare both status and body against the existing contract.
 
 Use documentation matching the installed major version; v1 chaining and exception behavior differs from v2.
+
+Before stable v2 is released, explicitly select a v2 prerelease in Composer rather than assuming an unqualified requirement installs v2.

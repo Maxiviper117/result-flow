@@ -96,3 +96,4 @@
 - `examples/v2/order-endpoint.php` demonstrates a migrated legacy response; its request handler and regression tests keep internal trace metadata out of the public response while preserving the prior JSON shape and status.
 - Pull requests build an unpublished v2 documentation artifact with the `/result-flow/v2-preview/` base; the stable site deployment remains a separate workflow. Maintainers own prerelease tags and publication.
 - CI runs consumer PHPStan fixtures and a `--no-dev` standalone smoke test on both supported PHP versions; `scripts/standalone-smoke.php` must remain framework-independent.
+- Until stable v2 is released, the quickstart uses an explicit v2 beta Composer constraint so installation does not silently select v1.

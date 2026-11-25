@@ -29,3 +29,4 @@ This package requires PHP 8.4 or later.
 - When preserving a legacy response contract, remove or allowlist internal metadata before using `LegacyResponse`; test both the status and exact body for success and failure.
 - Consult the documentation corresponding to the installed major version; v1 and v2 have different chaining and exception contracts.
 - Core Result chains work without Laravel; use framework integration only at the application boundary.
+- Before stable v2 is published, select the v2 prerelease explicitly when installing; an unqualified Composer requirement can resolve to v1.
