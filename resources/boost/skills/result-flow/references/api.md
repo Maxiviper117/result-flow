@@ -31,3 +31,5 @@ For v1 migrations, select `map` or `andThen` according to the callback return an
 `andThen` and `orElse` require actual Result return values; invalid callback returns raise `TypeError`.
 
 A null error remains a tagged failure and short-circuits `andThen`. Unselected exceptions from `attempt` propagate unchanged.
+
+Laravel is optional for the core API. Verify transaction and response integration against the application's installed Laravel version.

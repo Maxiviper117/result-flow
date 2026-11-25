@@ -35,3 +35,4 @@ This package requires PHP 8.4 or later.
 - `ResourceScope::run` releases an acquired resource even when the use callback throws; inspect `bracket.release_exception` if cleanup also fails.
 - Fallible callbacks passed to `andThen` and `orElse` must return an actual `Result`; an invalid return raises `TypeError`.
 - A null failure is still a failure and skips `andThen`; selective `attempt` capture lets unrelated exceptions propagate unchanged.
+- The core remains framework-independent; when using Laravel, follow the integration and transaction behavior of the application's installed Laravel version.
