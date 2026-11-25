@@ -13,3 +13,5 @@
 `Retry::config()` provides v1-compatible retries and captures thrown exceptions. Restrict retries with `when`. `ResourceScope::run()` provides v1-compatible acquire/use/release behavior, including release-exception metadata when use already failed. `Output\LegacyOutput` and `Laravel\LegacyResponse` preserve legacy output including metadata; map fields explicitly for new HTTP clients. `Output\DebugOutput` offers diagnostic sanitization.
 
 For a complete runnable chain and boundary examples, consult the package's v2 quickstart and recipes. Keep the stable v1 and prerelease v2 API contracts distinct.
+
+Debug sanitization is configurable per application; verify its redaction and truncation settings before using diagnostic output.

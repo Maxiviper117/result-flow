@@ -2,7 +2,9 @@
 
 use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
-uses()->in(__DIR__);
+uses()->beforeEach(function () {
+    ConfigStub::reset();
+})->in(__DIR__);
 
 if (! function_exists('config')) {
     /**
@@ -20,7 +22,3 @@ if (! function_exists('config_path')) {
         return '/tmp/'.ltrim($path, '/');
     }
 }
-
-beforeEach(function () {
-    ConfigStub::reset();
-});

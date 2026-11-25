@@ -25,3 +25,4 @@ At an exception boundary, use `Result::attempt($fn, catch: ExpectedException::cl
 For a runnable validate/save example and explicit boundary mapping, consult the package's v2 quickstart and recipes.
 
 This package requires PHP 8.4 or later.
+- Configure debug sanitization explicitly for the application; it is diagnostic output and must not be treated as a public response format.

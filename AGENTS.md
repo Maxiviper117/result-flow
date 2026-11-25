@@ -92,3 +92,4 @@
 - `Output\LegacyOutput` and `Laravel\LegacyResponse` explicitly preserve v1 wire shapes, including metadata; `Output\DebugOutput` provides sanitized diagnostics. New public responses should map domain errors and allowlist fields explicitly.
 - V2 runnable examples live in `examples/v2/`; the benchmark covers core callback dispatch. The documentation sidebar and migration map describe v2, while stable v1 remains on its existing release line.
 - The supported PHP floor is 8.4. `illuminate/database` is a development-only dependency for real SQLite transaction integration tests; the core runtime still requires only PHP. Composer's lock file is intentionally ignored for this library.
+- The shared Pest setup resets the debug config stub before every test, including serial randomized CI runs; preserve that isolation when adding tests.
