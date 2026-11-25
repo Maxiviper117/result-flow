@@ -54,6 +54,6 @@ Related: [Result model](/concepts/result-model).
 
 ## Explicit adapters
 
-`Output\LegacyOutput::toArray`, `toJson`, and `toXml` preserve the v1 shape, including metadata. JSON encoding throws `JsonException` on failure. XML requires SimpleXML; numeric keys become `item` plus digits, invalid characters become underscores, surrounding underscores are trimmed, empty names become `item`, and names starting with a digit or `xml` get an `item_` prefix.
+`Output\LegacyOutput::toArray`, `toJson`, and `toXml` preserve the v1 shape, including metadata. JSON encoding throws `JsonException` on failure. XML requires SimpleXML and throws `RuntimeException` when it is unavailable. Invalid UTF-8 or XML 1.0 characters raise `InvalidArgumentException` rather than silently losing text; numeric keys become `item` plus digits, invalid characters become underscores, surrounding underscores are trimmed, empty names become `item`, and names starting with a digit or `xml` get an `item_` prefix.
 
 `Laravel\LegacyResponse::fromResult($result)` preserves the v1 HTTP status (200 for Ok, 400 for Fail) and shape. With Laravel's response helper it returns a JSON response; otherwise it returns `['status' => ..., 'headers' => ['Content-Type' => 'application/json'], 'body' => $json]`. The fallback can throw `JsonException`. These compatibility adapters include metadata, so review the existing contract and do not use them to expose diagnostics in new endpoints.

@@ -36,3 +36,5 @@ This package requires PHP 8.4 or later.
 - Fallible callbacks passed to `andThen` and `orElse` must return an actual `Result`; an invalid return raises `TypeError`.
 - A null failure is still a failure and skips `andThen`; selective `attempt` capture lets unrelated exceptions propagate unchanged.
 - The core remains framework-independent; when using Laravel, follow the integration and transaction behavior of the application's installed Laravel version.
+- The default debug sanitizer detects array cycles and limits array depth (`array_max_depth`, default 32); disabled or custom sanitizers must provide their own safeguards. Legacy XML requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters.
+- Retry defaults to retrying every failure. Filter permanent failures and use idempotency keys for repeated writes; delays block the current PHP process.

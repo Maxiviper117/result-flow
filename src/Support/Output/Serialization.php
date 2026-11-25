@@ -65,6 +65,9 @@ final class Serialization
      */
     public static function toXml(Result $result, string $rootElement = 'result'): string
     {
+        if (! class_exists(\SimpleXMLElement::class)) {
+            throw new \RuntimeException('XML output requires the SimpleXML extension');
+        }
         $xml = new \SimpleXMLElement('<'.self::normalizeXmlElementName($rootElement).'/>');
         self::arrayToXml(self::toArray($result), $xml);
 
@@ -84,7 +87,11 @@ final class Serialization
                 $subnode = $xml->addChild($key);
                 self::arrayToXml($value, $subnode);
             } else {
-                $xml->addChild($key, htmlspecialchars(self::stringifyValue($value)));
+                $text = self::stringifyValue($value);
+                if (preg_match('/\A[\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]*\z/u', $text) !== 1) {
+                    throw new \InvalidArgumentException('XML output contains invalid UTF-8 or XML 1.0 characters');
+                }
+                $xml->addChild($key, htmlspecialchars($text, ENT_XML1 | ENT_QUOTES, 'UTF-8'));
             }
         }
     }
@@ -112,7 +119,7 @@ final class Serialization
      */
     private static function normalizeXmlElementName(string $name): string
     {
-        if ($name !== '' && ctype_digit($name)) {
+        if (preg_match('/\A[0-9]+\z/', $name) === 1) {
             return 'item'.$name;
         }
 

@@ -28,3 +28,5 @@ For collections, `ResultBatch` offers keyed first-failure and all-errors operati
 The VitePress documentation is in [docs](docs/). Laravel Boost guidance ships in `resources/boost/guidelines/` and `resources/boost/skills/`.
 
 Development tests include a real SQLite-backed Laravel transaction. The Laravel database component is a development dependency only; it is not required to use the core package.
+
+The built-in debug sanitizer bounds nested arrays by default. Legacy XML output requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters. Retry delays block execution; filter permanent failures and use idempotency keys for retried writes.

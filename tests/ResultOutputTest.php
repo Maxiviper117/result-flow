@@ -123,3 +123,19 @@ describe('Result Output', function () {
     });
 
 });
+
+it('rejects invalid XML characters and malformed UTF-8', function () {
+    expect(fn () => LegacyOutput::toXml(Result::ok("A\x01B")))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => LegacyOutput::toXml(Result::ok("\xC3\x28")))->toThrow(InvalidArgumentException::class);
+});
+
+it('preserves valid Unicode and XML-sensitive text', function () {
+    $xml = new SimpleXMLElement(LegacyOutput::toXml(Result::ok('café & <tag>')));
+    expect((string) $xml->value)->toBe('café & <tag>');
+});
+
+it('reports a clear error when SimpleXML is unavailable', function () {
+    $command = escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/Support/XmlWithoutExtension.php');
+    exec($command, $output, $status);
+    expect($status)->toBe(0)->and(implode("\n", $output))->toBe('XML output requires the SimpleXML extension');
+});

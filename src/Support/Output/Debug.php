@@ -59,7 +59,7 @@ final class Debug
      */
     private static function defaultSanitizer(mixed $value): mixed
     {
-        /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int} $debugConfig */
+        /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int, array_max_depth?: int} $debugConfig */
         $debugConfig = self::debugConfig();
         $enabled = ($debugConfig['enabled'] ?? true) === true;
         $redaction = $debugConfig['redaction'] ?? '***REDACTED***';
@@ -90,6 +90,9 @@ final class Debug
         $maxDepth = is_int($debugConfig['object_max_depth'] ?? null)
             ? max(1, $debugConfig['object_max_depth'])
             : 3;
+        $arrayMaxDepth = is_int($debugConfig['array_max_depth'] ?? null)
+            ? min(128, max(1, $debugConfig['array_max_depth']))
+            : 32;
 
         if (! $enabled) {
             return $value;
@@ -97,6 +100,8 @@ final class Debug
 
         /** @var array<int, bool> $seen */
         $seen = [];
+        /** @var array<string, bool> $seenArrayRefs */
+        $seenArrayRefs = [];
 
         return self::sanitizeValue(
             $value,
@@ -107,13 +112,17 @@ final class Debug
             sanitizeObjects: $sanitizeObjects,
             maxDepth: $maxDepth,
             depth: 0,
+            arrayMaxDepth: $arrayMaxDepth,
+            arrayDepth: 0,
             seen: $seen,
+            seenArrayRefs: $seenArrayRefs,
         );
     }
 
     /**
      * @param  array<int, string>  $sensitiveKeys
      * @param  array<int, bool>  $seen
+     * @param  array<string, bool>  $seenArrayRefs
      */
     private static function sanitizeValue(
         mixed $value,
@@ -124,14 +133,30 @@ final class Debug
         bool $sanitizeObjects,
         int $maxDepth,
         int $depth,
+        int $arrayMaxDepth,
+        int $arrayDepth,
         array &$seen,
+        array &$seenArrayRefs,
     ): mixed {
         if (is_array($value)) {
+            if ($arrayDepth >= $arrayMaxDepth) {
+                return '[array_depth_exceeded]';
+            }
             $out = [];
             foreach ($value as $k => $v) {
                 if (is_string($k) && self::matchesSensitiveKey($k, $sensitiveKeys)) {
                     $out[$k] = $redaction;
                 } else {
+                    $reference = is_array($v) ? \ReflectionReference::fromArrayElement($value, $k) : null;
+                    $referenceId = $reference instanceof \ReflectionReference ? bin2hex($reference->getId()) : null;
+                    if ($referenceId !== null && isset($seenArrayRefs[$referenceId])) {
+                        $out[$k] = '[circular_reference]';
+
+                        continue;
+                    }
+                    if ($referenceId !== null) {
+                        $seenArrayRefs[$referenceId] = true;
+                    }
                     $out[$k] = self::sanitizeValue(
                         $v,
                         redaction: $redaction,
@@ -141,8 +166,14 @@ final class Debug
                         sanitizeObjects: $sanitizeObjects,
                         maxDepth: $maxDepth,
                         depth: $depth + 1,
+                        arrayMaxDepth: $arrayMaxDepth,
+                        arrayDepth: $arrayDepth + 1,
                         seen: $seen,
+                        seenArrayRefs: $seenArrayRefs,
                     );
+                    if ($referenceId !== null) {
+                        unset($seenArrayRefs[$referenceId]);
+                    }
                 }
             }
 
@@ -171,7 +202,10 @@ final class Debug
                     sanitizeObjects: $sanitizeObjects,
                     maxDepth: $maxDepth,
                     depth: $depth + 1,
+                    arrayMaxDepth: $arrayMaxDepth,
+                    arrayDepth: $arrayDepth,
                     seen: $seen,
+                    seenArrayRefs: $seenArrayRefs,
                 );
 
                 unset($seen[$objectId]);
@@ -196,7 +230,10 @@ final class Debug
                             sanitizeObjects: $sanitizeObjects,
                             maxDepth: $maxDepth,
                             depth: $depth + 1,
+                            arrayMaxDepth: $arrayMaxDepth,
+                            arrayDepth: $arrayDepth,
                             seen: $seen,
+                            seenArrayRefs: $seenArrayRefs,
                         );
                     }
                 }
@@ -223,16 +260,16 @@ final class Debug
     /**
      * Fetch debug config from Laravel if the helper is available; otherwise return defaults.
      *
-     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int}
+     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int, array_max_depth?: int}
      */
     private static function debugConfig(): array
     {
         if (function_exists('config')) {
-            /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int}|null $config */
+            /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int, array_max_depth?: int}|null $config */
             $config = config('result-flow.debug');
 
             if (is_array($config)) {
-                /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int} $config */
+                /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int, array_max_depth?: int} $config */
                 return $config;
             }
         }

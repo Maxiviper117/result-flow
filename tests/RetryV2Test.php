@@ -31,3 +31,19 @@ it('stops on a non-transient error and retains its identity', function () {
     });
     expect($attempts)->toBe(1)->and($result->match(fn ($v) => $v, fn ($e) => $e))->toBe($error);
 });
+
+it('propagates exceptions thrown by retry predicates and hooks', function () {
+    $predicateError = new LogicException('predicate failed');
+    $hookError = new LogicException('hook failed');
+    foreach ([
+        [Retry::config()->maxAttempts(2)->when(fn () => throw $predicateError), $predicateError],
+        [Retry::config()->maxAttempts(2)->onRetry(fn () => throw $hookError), $hookError],
+    ] as [$retry, $expected]) {
+        try {
+            $retry->attempt(fn () => Result::fail('transient'));
+            test()->fail('Expected retry policy exception');
+        } catch (LogicException $caught) {
+            expect($caught)->toBe($expected);
+        }
+    }
+});

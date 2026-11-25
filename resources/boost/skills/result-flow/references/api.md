@@ -33,3 +33,5 @@ For v1 migrations, select `map` or `andThen` according to the callback return an
 A null error remains a tagged failure and short-circuits `andThen`. Unselected exceptions from `attempt` propagate unchanged.
 
 Laravel is optional for the core API. Verify transaction and response integration against the application's installed Laravel version.
+
+Default debug sanitization detects array cycles and bounds array depth independently (`array_max_depth`, default 32, range 1–128); disabled or custom sanitizers bypass that safeguard. Legacy XML requires SimpleXML and rejects invalid UTF-8 and XML 1.0 characters. Retry defaults to all failures; choose transient-only predicates, use idempotency keys for writes, and remember delays block PHP.

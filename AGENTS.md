@@ -104,3 +104,5 @@
 - The standalone smoke script exercises success, null failure short-circuiting, recovery metadata, and propagation of an unselected exception without framework dependencies.
 - Development tooling uses Pest 5, PHPStan 2.3.7, Rector 2.9.2, Laravel database 12 or 13, and the pinned VitePress 2.0.0-alpha.21 with pnpm 12; verify both lowest and stable dependency resolution on supported PHP versions.
 - PHPBench 1.7 currently requires the abandoned development-only `doctrine/annotations` package; Composer audit reports this separately from security advisories.
+- The built-in debug sanitizer detects recursive array references and limits nested arrays independently with `array_max_depth` (default 32, clamped 1–128); disabled/custom sanitizers bypass the built-in limit. Legacy XML requires SimpleXML and rejects invalid UTF-8 or XML 1.0 text.
+- Retry preserves its v1 retry-all default; document transient predicates, blocking delays and idempotency, and test thrown retry policy callbacks.
