@@ -40,3 +40,7 @@ $result = Retry::config()->maxAttempts(3)
 ```
 
 The builder also supports `delay`, `exponential`, `jitter`, `onRetry`, and `attachAttemptMeta`. Delay and jitter introduce waiting and randomness in the helper; core Result operations do not. Captured throwables and returned Fail values are subject to the retry predicate. `ResourceScope::run` is documented in [resource cleanup](/recipes/resource-cleanup).
+
+## Prerelease delivery
+
+V1 remains available through its existing releases and documentation. Pull requests build an unpublished v2 documentation artifact with a separate preview base; they do not deploy the stable site. Maintainers should publish a 2.0 prerelease and its documentation separately before promoting a stable major. Release tags are managed by maintainers.

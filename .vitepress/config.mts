@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   srcDir: 'docs',
-  base: '/result-flow/',
+  base: process.env.RESULT_FLOW_DOCS_BASE || '/result-flow/',
   title: 'Result Flow v2',
   description: 'Explicit success and failure for PHP actions',
   themeConfig: {

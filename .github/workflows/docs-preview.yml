@@ -1,0 +1,34 @@
+name: Build v2 documentation preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.23.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build separate v2 preview
+        run: pnpm docs:build
+        env:
+          RESULT_FLOW_DOCS_BASE: /result-flow/v2-preview/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: result-flow-v2-docs-preview
+          path: .vitepress/dist
+          if-no-files-found: error
+          retention-days: 14

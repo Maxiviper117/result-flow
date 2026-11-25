@@ -17,3 +17,5 @@ For a complete runnable chain and boundary examples, consult the package's v2 qu
 Debug sanitization is configurable per application; verify its redaction and truncation settings before using diagnostic output.
 
 When preserving a legacy HTTP response, remove or allowlist internal metadata first and compare both status and body against the existing contract.
+
+Use documentation matching the installed major version; v1 chaining and exception behavior differs from v2.
