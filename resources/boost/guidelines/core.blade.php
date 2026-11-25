@@ -38,3 +38,4 @@ This package requires PHP 8.4 or later.
 - The core remains framework-independent; when using Laravel, follow the integration and transaction behavior of the application's installed Laravel version.
 - The default debug sanitizer detects array cycles and limits array depth (`array_max_depth`, default 32); disabled or custom sanitizers must provide their own safeguards. Legacy XML requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters.
 - Retry defaults to retrying every failure. Filter permanent failures and use idempotency keys for repeated writes; delays block the current PHP process.
+- Applications using PHPStan may opt into `phpstan-result-flow.neon` to flag standalone calls whose inferred return is a Result. Assigning a Result does not itself prove it was handled; use `@phpstan-ignore resultFlow.ignoredResult` for intentional discards.

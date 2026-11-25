@@ -31,6 +31,7 @@ export default defineConfig({
         { text: 'Validate then persist', link: '/guides/validate-then-persist' },
         { text: 'Transactions', link: '/guides/transaction-rollback' },
         { text: 'Batch strategy', link: '/guides/batch-strategy' },
+        { text: 'Detecting discarded Results', link: '/guides/unused-results' },
       ] },
       { text: 'Recipes', items: [
         { text: 'Overview', link: '/recipes/' },

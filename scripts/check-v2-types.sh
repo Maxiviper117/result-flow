@@ -12,3 +12,4 @@ printf '%s\n' "$output" | grep -F 'Closure(int): int given.' >/dev/null || {
     exit 1
 }
 printf '%s\n' 'PHPStan rejected the plain-value andThen callback as expected.'
+php scripts/check-unused-result.php

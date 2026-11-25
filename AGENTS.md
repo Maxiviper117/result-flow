@@ -106,3 +106,4 @@
 - PHPBench 1.7 currently requires the abandoned development-only `doctrine/annotations` package; Composer audit reports this separately from security advisories.
 - The built-in debug sanitizer detects recursive array references and limits nested arrays independently with `array_max_depth` (default 32, clamped 1–128); disabled/custom sanitizers bypass the built-in limit. Legacy XML requires SimpleXML and rejects invalid UTF-8 or XML 1.0 text.
 - Retry preserves its v1 retry-all default; document transient predicates, blocking delays and idempotency, and test thrown retry policy callbacks.
+- `phpstan-result-flow.neon` enables the optional discarded-Result rule; `composer analyse:types` checks positive, negative, and explicit-suppression fixtures. The rule is static analysis only and is not a runtime dependency.

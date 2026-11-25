@@ -1,0 +1,5 @@
+services:
+    -
+        class: Maxiviper117\ResultFlow\PHPStan\UnusedResultRule
+        tags:
+            - phpstan.rules.rule
