@@ -20,6 +20,28 @@ V1 chains could replace parent metadata when a callback returned a Result. V2 sh
 
 ## Representative migrations
 
+For example, a v1 chain could accept both plain values and Results, catch exceptions, and replace metadata when a step returned a Result:
+
+```php
+// v1
+$result = Result::ok($input, ['trace_id' => $traceId])
+    ->then([$normalizer, 'normalize'])
+    ->then([$validator, 'validate'])
+    ->then([$orders, 'save']);
+```
+
+Choose each v2 operation according to the callback's return contract:
+
+```php
+// v2: normalize returns a value; validate and save return Results.
+$result = Result::ok($input, ['trace_id' => $traceId])
+    ->map($normalizer->normalize(...))
+    ->andThen($validator->validate(...))
+    ->andThen($orders->save(...));
+```
+
+Review any exception capture and metadata collisions at each step; this is not a safe mechanical rename.
+
 - Validate and save: use a plain `map` normalization followed by `andThen` validation and persistence; see [validate then persist](/guides/validate-then-persist).
 - Transaction: returning Fail normally commits. Throw inside the closure if a prior write must roll back and handle it outside; see [transaction rollback](/guides/transaction-rollback).
 - Validation loop: use `ResultBatch::mapAllErrors` to visit every item and return errors by key; see [collecting errors](/recipes/collecting-batch-errors).

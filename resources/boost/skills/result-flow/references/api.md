@@ -23,3 +23,5 @@ Use documentation matching the installed major version; v1 chaining and exceptio
 Before stable v2 is released, explicitly select a v2 prerelease in Composer rather than assuming an unqualified requirement installs v2.
 
 During prerelease, use the v2 documentation preview; the stable v1 site retains v1 API guidance until the stable major is published.
+
+For v1 migrations, select `map` or `andThen` according to the callback return and review exception capture and metadata collisions at each step.
