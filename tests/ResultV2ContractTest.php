@@ -174,7 +174,7 @@ it('unwraps throwables unchanged and preserves eager defaults', function () {
 });
 
 it('exposes exactly the v2 public core API', function () {
-    $methods = array_map(fn (ReflectionMethod $method) => $method->name, (new ReflectionClass(Result::class))->getMethods(ReflectionMethod::IS_PUBLIC));
+    $methods = array_map(fn (ReflectionMethod $method) => $method->name, new ReflectionClass(Result::class)->getMethods(ReflectionMethod::IS_PUBLIC));
     sort($methods);
     $expected = ['ok', 'fail', 'attempt', 'map', 'mapError', 'andThen', 'orElse', 'match', 'isOk', 'isFail', 'unwrap', 'unwrapOr', 'meta', 'withMeta'];
     sort($expected);

@@ -19,15 +19,16 @@
         }
     ],
     "require": {
-        "php": "^8.2"
+        "php": ">=8.4"
     },
     "require-dev": {
+        "illuminate/database": "^12.0",
         "laravel/pint": "^1.14",
         "pestphp/pest": "^3.0",
-        "rector/rector": "2.3.5",
-        "phpstan/phpstan": "2.1.37",
+        "phpbench/phpbench": "^1.4",
         "phpstan/extension-installer": "^1.4",
-        "phpbench/phpbench": "^1.4"
+        "phpstan/phpstan": "2.1.37",
+        "rector/rector": "2.3.5"
     },
     "autoload": {
         "psr-4": {
