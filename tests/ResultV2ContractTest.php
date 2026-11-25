@@ -220,3 +220,20 @@ it('does not treat empty returned metadata as a reset for either chain operation
     $failure = Result::fail('error', ['trace' => 2])->orElse(fn () => Result::fail('next', []));
     expect($success->meta())->toBe(['trace' => 1])->and($failure->meta())->toBe(['trace' => 2]);
 });
+
+it('rejects objects that imitate a Result in fallible callbacks', function () {
+    $impostor = new class
+    {
+        public array $meta = [];
+
+        public function withMeta(array $meta): Result
+        {
+            return Result::ok('incorrectly accepted', $meta);
+        }
+    };
+
+    expect(fn () => Result::ok(1)->andThen(fn () => $impostor))
+        ->toThrow(TypeError::class, 'The andThen callback must return a Result');
+    expect(fn () => Result::fail('bad')->orElse(fn () => $impostor))
+        ->toThrow(TypeError::class, 'The orElse callback must return a Result');
+});

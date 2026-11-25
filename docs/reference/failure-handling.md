@@ -15,7 +15,7 @@ Related: [API boundary mapping](/recipes/api-boundary-mapping).
 
 ## `orElse(callable $fn): Result`
 
-`(E -> Result<U, F>) -> Result<T|U, F>`. Lazily replaces a Fail with the returned Result. The original error is discarded unless the callback explicitly retains it. Returned metadata is shallow-merged with child keys winning; an Ok is unchanged.
+`(E -> Result<U, F>) -> Result<T|U, F>`. Lazily replaces a Fail with the returned Result; any other return raises `TypeError`. The original error is discarded unless the callback explicitly retains it. Returned metadata is shallow-merged with child keys winning; an Ok is unchanged.
 
 ```php
 $result = Result::fail('unavailable')->orElse(fn (string $e): Result => Result::ok('cached'));

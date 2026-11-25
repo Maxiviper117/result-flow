@@ -174,6 +174,12 @@ final class Result
         $value = $this->value;
         $result = $fn($value);
 
+        // PHPDoc protects typed callers; this guard also protects untyped callers.
+        // @phpstan-ignore instanceof.alwaysTrue
+        if (! $result instanceof self) {
+            throw new \TypeError('The andThen callback must return a Result');
+        }
+
         /** @var Result<U, TFailure|E> $merged */
         $merged = $result->withMeta(array_merge($this->meta, $result->meta));
 
@@ -197,6 +203,12 @@ final class Result
         /** @var TFailure $error */
         $error = $this->error;
         $result = $fn($error);
+
+        // PHPDoc protects typed callers; this guard also protects untyped callers.
+        // @phpstan-ignore instanceof.alwaysTrue
+        if (! $result instanceof self) {
+            throw new \TypeError('The orElse callback must return a Result');
+        }
 
         /** @var Result<TSuccess|U, E> $merged */
         $merged = $result->withMeta(array_merge($this->meta, $result->meta));

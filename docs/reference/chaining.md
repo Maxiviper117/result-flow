@@ -14,7 +14,7 @@ Related: [chaining concepts](/concepts/chaining).
 
 ## `andThen(callable $fn): Result`
 
-`(T -> Result<U, F>) -> Result<U, E|F>`. On Ok, requires the callback to return a Result; on Fail, skips it. A raw return is a programming error. Metadata is shallow-merged with child keys winning.
+`(T -> Result<U, F>) -> Result<U, E|F>`. On Ok, requires the callback to return a Result; on Fail, skips it. Any other return raises `TypeError`. Metadata is shallow-merged with child keys winning.
 
 ```php
 $result = Result::ok(2)->andThen(fn (int $n): Result => Result::ok($n * 2));

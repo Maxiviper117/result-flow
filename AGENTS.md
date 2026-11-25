@@ -100,3 +100,4 @@
 - Stable GitHub Pages deployment is manually dispatched from `main`, so merging v2 work does not automatically overwrite the v1 site before the major release.
 - The v2 migration guide includes an explicit v1/v2 chain comparison; preserve its warnings about exception capture and metadata collisions.
 - Resource scope tests cover release exactly once when use throws, including preservation of both use and release exception identities.
+- `andThen` and `orElse` enforce a real `Result` return at runtime for untyped callers; invalid returns raise `TypeError`.
