@@ -4,19 +4,19 @@ Use this list to ensure generated code sticks to documented public `Result` APIs
 
 ## Static constructors/utilities
 
-- `ok`, `fail`, `failWithValue`, `failTagged`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`
+- `ok`, `fail`, `attempt`, `failWithValue`, `failTagged`, `of`, `defer`, `retry`, `retryDefer`, `retrier`, `bracket`
 - `combine`, `combineAll`
 - `mapItems`, `mapAll`, `mapCollectErrors`
 
 ## Branch and metadata operations
 
-- `isOk`, `isFail`, `value`, `error`, `meta`
+- `isOk`, `isFail`, `value`, `error`, `meta`, `withMeta`
 - `tapMeta`, `mapMeta`, `mergeMeta`
 - `tap`, `onSuccess`, `inspect`, `onFailure`, `inspectError`
 
 ## Transform/chaining
 
-- `map`, `mapError`, `ensure`, `then`, `flatMap`, `thenUnsafe`
+- `map`, `mapError`, `andThen`, `orElse`, `ensure`, `then`, `flatMap`, `thenUnsafe`
 - `otherwise`, `catchException`, `matchError`, `catchError`, `recover`
 
 ## Completion/unwrapping/output
