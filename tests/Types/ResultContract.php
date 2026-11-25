@@ -9,18 +9,10 @@ use Maxiviper117\ResultFlow\Result;
 
 use function PHPStan\Testing\assertType;
 
-final class ValidationError
-{
-}
-final class WriteError
-{
-}
-final class DomainError
-{
-}
-final class Order
-{
-}
+final class ValidationError {}
+final class WriteError {}
+final class DomainError {}
+final class Order {}
 
 /** @return Result<int, ValidationError> */
 function validate(string $input): Result

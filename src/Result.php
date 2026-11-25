@@ -24,8 +24,7 @@ final class Result
         private readonly mixed $value,
         private readonly mixed $error,
         private readonly array $meta = [],
-    ) {
-    }
+    ) {}
 
     /**
      * Create a success result.

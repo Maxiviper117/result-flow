@@ -1,6 +1,7 @@
 <?php
 
 use Maxiviper117\ResultFlow\Output\DebugOutput;
+use Maxiviper117\ResultFlow\Output\LegacyOutput;
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
@@ -9,8 +10,7 @@ final class DebugTestPublicDto
     public function __construct(
         public string $api_key,
         public string $safe,
-    ) {
-    }
+    ) {}
 }
 
 final class DebugTestJsonDto implements JsonSerializable
@@ -18,8 +18,7 @@ final class DebugTestJsonDto implements JsonSerializable
     public function __construct(
         private string $password,
         private string $note,
-    ) {
-    }
+    ) {}
 
     public function jsonSerialize(): mixed
     {
@@ -31,9 +30,7 @@ final class DebugTestCycleNode
 {
     public ?self $next = null;
 
-    public function __construct(public string $token)
-    {
-    }
+    public function __construct(public string $token) {}
 }
 
 describe('toDebugArray()', function () {
@@ -222,7 +219,7 @@ describe('toDebugArray()', function () {
 describe('edge cases: toArray and toDebugArray', function () {
     it('toArray includes all fields for success', function () {
         $result = Result::ok('value', ['key' => 'meta']);
-        $arr = \Maxiviper117\ResultFlow\Output\LegacyOutput::toArray($result);
+        $arr = LegacyOutput::toArray($result);
 
         expect($arr)->toBe([
             'ok' => true,
@@ -234,7 +231,7 @@ describe('edge cases: toArray and toDebugArray', function () {
 
     it('toArray includes all fields for failure', function () {
         $result = Result::fail('error', ['key' => 'meta']);
-        $arr = \Maxiviper117\ResultFlow\Output\LegacyOutput::toArray($result);
+        $arr = LegacyOutput::toArray($result);
 
         expect($arr)->toBe([
             'ok' => false,
