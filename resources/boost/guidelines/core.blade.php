@@ -42,3 +42,4 @@ This package requires PHP 8.4 or later.
 
 - Serialization rejects recursive XML arrays and arrays at 128 nesting levels, and rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. Debug cause expansion stops at 32 levels or 256 nodes before any sanitizer.
 - Structured cause serialization throws `LengthException` when it exceeds 32 levels or 256 nodes; debug output truncates instead. Retry callbacks may return raw values or Results, and captured exceptions are failures.
+- Retry rejects a maximum possible delay including jitter over 2,147,483,647 ms with `OverflowException` before the retry hook. ProblemDetails rejects 1xx, 204, 205, and 304 because it emits a body. ResourceScope accepts raw or Result values from acquisition and use callbacks.

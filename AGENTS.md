@@ -112,3 +112,5 @@
 - XML serialization rejects recursive arrays and arrays at 128 nesting levels; JSON rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. Debug cause expansion is bounded to 32 levels and 256 nodes before any sanitizer. The discarded-Result rule ignores never-returning calls.
 
 - Structured cause serialization shares the debug traversal limits (32 levels, 256 visited nodes) and throws `LengthException` when exceeded; debug truncates before sanitization. Retry callback types preserve raw and Result success values and Result failures, adding `Throwable` for captured exceptions.
+
+- Retry delay arithmetic is integer-only and rejects maximum possible waits including jitter above 2,147,483,647 ms with `OverflowException` before the retry hook; sleep uses whole seconds and a subsecond remainder. ResourceScope preserves typed raw/Result callback unions. ProblemDetails rejects 1xx, 204, 205, and 304 because it always emits a body.

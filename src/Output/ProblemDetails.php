@@ -26,6 +26,9 @@ final class ProblemDetails
         if ($status < 100 || $status > 599) {
             throw new InvalidArgumentException('HTTP status must be between 100 and 599');
         }
+        if ($status < 200 || in_array($status, [204, 205, 304], true)) {
+            throw new InvalidArgumentException('HTTP status does not permit a response body');
+        }
         foreach (['type', 'title', 'status', 'detail', 'instance'] as $reserved) {
             if (array_key_exists($reserved, $extensions)) {
                 throw new InvalidArgumentException('Problem extensions cannot replace standard fields');

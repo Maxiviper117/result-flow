@@ -41,3 +41,5 @@ An empty validation batch succeeds with an empty array. Validate required cardin
 JSON serialization rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. XML rejects recursive arrays and nesting at 128 levels, while allowing shared children. Debug cause expansion stops at 32 levels or 256 nodes before invoking any sanitizer, marking omitted branches with `[cause_limit_exceeded]`.
 
 Structured cause serialization throws `LengthException` beyond 32 levels or 256 visited nodes; debug truncates instead. Retry callbacks may return raw values or Results; their failures include captured `Throwable` values.
+
+Retry throws `OverflowException` before the retry hook if the maximum delay including jitter exceeds 2,147,483,647 ms. ResourceScope accepts raw or Result acquisition and use values and preserves typed failures along with captured exceptions. ProblemDetails rejects bodyless statuses 1xx, 204, 205, and 304.

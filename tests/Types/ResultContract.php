@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maxiviper117\ResultFlow\Tests\Types;
 
 use JsonException;
+use Maxiviper117\ResultFlow\ResourceScope;
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\ResultBatch;
 use Maxiviper117\ResultFlow\Retry;
@@ -80,3 +81,28 @@ function retryMixed(): Result|int
     return random_int(0, 1) ? validate('input')->map(fn (int $value): string => (string) $value) : 42;
 }
 assertType('Maxiviper117\\ResultFlow\\Result<int|string, Maxiviper117\\ResultFlow\\Tests\\Types\\ValidationError|Throwable>', Retry::config()->attempt(retryMixed(...)));
+
+/** @return Result<Order, ValidationError>|Order */
+function acquireMixed(): Result|Order
+{
+    return random_int(0, 1) ? Result::ok(new Order) : new Order;
+}
+/** @return Result<string, WriteError>|int */
+function useMixed(Order $order): Result|int
+{
+    return random_int(0, 1) ? Result::fail(new WriteError) : 42;
+}
+$scope = ResourceScope::run(acquireMixed(...), useMixed(...), function (Order $order): void {});
+assertType('Maxiviper117\\ResultFlow\\Result<int|string, Maxiviper117\\ResultFlow\\Tests\\Types\\ValidationError|Maxiviper117\\ResultFlow\\Tests\\Types\\WriteError|Throwable>', $scope);
+$rawScope = ResourceScope::run(fn (): Order => new Order, fn (Order $order): int => 42, function (Order $order): void {});
+assertType('Maxiviper117\\ResultFlow\\Result<int, Throwable>', $rawScope);
+$typedScope = ResourceScope::run(fn () => validate('input'), fn (int $resource) => save($resource), function (int $resource): void {});
+assertType('Maxiviper117\\ResultFlow\\Result<Maxiviper117\\ResultFlow\\Tests\\Types\\Order, Maxiviper117\\ResultFlow\\Tests\\Types\\ValidationError|Maxiviper117\\ResultFlow\\Tests\\Types\\WriteError|Throwable>', $typedScope);
+
+/** @return Result<int, ValidationError>|float */
+function acquireDisjoint(): Result|float
+{
+    return random_int(0, 1) ? Result::ok(1) : 1.5;
+}
+$disjointScope = ResourceScope::run(acquireDisjoint(...), fn (int|float $resource): Order => new Order, function (int|float $resource): void {});
+assertType('Maxiviper117\ResultFlow\Result<Maxiviper117\ResultFlow\Tests\Types\Order, Maxiviper117\ResultFlow\Tests\Types\ValidationError|Throwable>', $disjointScope);

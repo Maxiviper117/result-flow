@@ -25,3 +25,13 @@ it('rejects invalid statuses, reserved fields and JSON encoding failures', funct
         ->and(fn () => ProblemDetails::response(422, 'Bad', extensions: ['status' => 200]))->toThrow(InvalidArgumentException::class)
         ->and(fn () => ProblemDetails::response(422, 'Bad', extensions: ['value' => INF]))->toThrow(JsonException::class);
 });
+
+it('rejects statuses that prohibit a response body', function () {
+    foreach ([100, 101, 199, 204, 205, 304] as $status) {
+        expect(fn () => ProblemDetails::response($status, 'Problem'))->toThrow(InvalidArgumentException::class);
+    }
+    foreach ([200, 203, 206, 303, 305, 400, 599] as $status) {
+        $response = ProblemDetails::response($status, 'Problem');
+        expect(json_decode($response['body'], true, flags: JSON_THROW_ON_ERROR)['status'])->toBe($status);
+    }
+});

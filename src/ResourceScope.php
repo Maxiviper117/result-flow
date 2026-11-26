@@ -14,33 +14,26 @@ final class ResourceScope
      * Exceptions are captured; a release failure is attached to an existing
      * use failure or becomes the failure when use succeeded.
      *
-     * @template R
-     * @template T
-     * @template E
-     * @template F
+     * @template TAcquire
+     * @template TUse
      *
-     * @param  callable(): (Result<R, F>|R)  $acquire
-     * @param  callable(R): (Result<T, E>|T)  $use
-     * @param  callable(R): void  $release
-     * @return Result<T, E|F|Throwable>
+     * @param  callable(): TAcquire  $acquire
+     * @param  callable((TAcquire is Result<mixed, mixed> ? template-type<TAcquire, Result, 'TSuccess'> : TAcquire)): TUse  $use
+     * @param  callable((TAcquire is Result<mixed, mixed> ? template-type<TAcquire, Result, 'TSuccess'> : TAcquire)): void  $release
+     * @return Result<(TUse is Result<mixed, mixed> ? template-type<TUse, Result, 'TSuccess'> : TUse), (TUse is Result<mixed, mixed> ? template-type<TUse, Result, 'TFailure'> : never)|(TAcquire is Result<mixed, mixed> ? template-type<TAcquire, Result, 'TFailure'> : never)|Throwable>
      */
     public static function run(callable $acquire, callable $use, callable $release): Result
     {
         try {
             $acquired = $acquire();
         } catch (Throwable $error) {
-            /** @var Result<T, E|F|Throwable> */
             return Result::fail($error);
         }
 
         if ($acquired instanceof Result) {
             if ($acquired->isFail()) {
-                /** @var Result<T, E|F|Throwable> $failed */
-                $failed = $acquired;
-
-                return $failed;
+                return $acquired;
             }
-            /** @var R $resource */
             $resource = $acquired->unwrap();
         } else {
             $resource = $acquired;
@@ -48,10 +41,8 @@ final class ResourceScope
 
         try {
             $out = $use($resource);
-            /** @var Result<T, E|F|Throwable> $used */
             $used = $out instanceof Result ? $out : Result::ok($out);
         } catch (Throwable $error) {
-            /** @var Result<T, E|F|Throwable> $used */
             $used = Result::fail($error);
         }
 
@@ -62,7 +53,6 @@ final class ResourceScope
                 return $used->withMeta(array_merge($used->meta(), ['bracket.release_exception' => $error]));
             }
 
-            /** @var Result<T, E|F|Throwable> */
             return Result::fail($error, $used->meta());
         }
 

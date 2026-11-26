@@ -29,7 +29,9 @@ echo $result->unwrap(); // available
 echo $result->meta()['retry']['attempts']; // 2
 ```
 
-By default all failures are eligible for retry, up to `maxAttempts` (one attempt by default). `attempt` accepts callbacks returning a raw value or a Result, preserves the success and failure types, and adds `Throwable` to the failure type for captured exceptions; exceptions from `when` and `onRetry` propagate. Delays block the current PHP process. `delay`, `exponential`, and `jitter` control the wait, and `attachAttemptMeta` records the number of attempts.
+By default all failures are eligible for retry, up to `maxAttempts` (one attempt by default). `attempt` preserves the callback's success and failure types and adds `Throwable` to the failure type for captured exceptions. Exceptions from `when` and `onRetry` propagate.
+
+Delays block the current PHP process. The maximum possible delay, including jitter, is 2,147,483,647 milliseconds. A retry that could exceed that bound throws `OverflowException` before the retry hook or sleep. A zero base delay stays zero under exponential backoff, and configured jitter still applies. Use `attachAttemptMeta` to record the number of attempts.
 
 - [Failure handling](/concepts/failure-handling)
 

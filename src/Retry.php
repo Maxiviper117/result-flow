@@ -125,6 +125,8 @@ final class Retry
      *
      * @param  callable(): TReturn  $fn
      * @return Result<(TReturn is Result<mixed, mixed> ? template-type<TReturn, Result, 'TSuccess'> : TReturn), (TReturn is Result<mixed, mixed> ? template-type<TReturn, Result, 'TFailure'> : never)|Throwable>
+     *
+     * @throws \OverflowException When the next wait would exceed the supported range.
      */
     public function attempt(callable $fn): Result
     {
@@ -160,21 +162,51 @@ final class Retry
                 return $this->attachMetaIfNeeded($lastResult, $attempts);
             }
 
-            $wait = $this->delayMs;
-            if ($this->exponential) {
-                $wait = $this->delayMs * (2 ** ($attempts - 1));
-            }
-
-            if ($this->jitterMs > 0) {
-                $wait += random_int(0, $this->jitterMs);
-            }
+            $wait = $this->retryDelay($attempts);
 
             ($this->onRetry)($attempts, $lastError, $wait);
 
             if ($wait > 0) {
-                usleep($wait * 1000);
+                $seconds = intdiv($wait, 1000);
+                if ($seconds > 0) {
+                    sleep($seconds);
+                }
+                $microseconds = ($wait % 1000) * 1000;
+                if ($microseconds > 0) {
+                    usleep($microseconds);
+                }
             }
         }
+    }
+
+    /**
+     * Calculate a delay within the portable millisecond limit.
+     *
+     * @throws \OverflowException When the next wait would exceed the supported range.
+     */
+    private function retryDelay(int $attempts): int
+    {
+        $limit = 2_147_483_647;
+        $wait = $this->delayMs;
+        if ($wait > $limit) {
+            throw new \OverflowException('Retry delay exceeds the supported range');
+        }
+        if ($this->exponential && $wait > 0) {
+            for ($i = 1; $i < $attempts; $i++) {
+                if ($wait > intdiv($limit, 2)) {
+                    throw new \OverflowException('Retry delay exceeds the supported range');
+                }
+                $wait *= 2;
+            }
+        }
+        if ($this->jitterMs > $limit - $wait) {
+            throw new \OverflowException('Retry delay including jitter exceeds the supported range');
+        }
+        if ($this->jitterMs > 0) {
+            $wait += random_int(0, $this->jitterMs);
+        }
+
+        return $wait;
     }
 
     /**

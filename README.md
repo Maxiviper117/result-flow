@@ -31,7 +31,7 @@ The VitePress documentation is in [docs](docs/). Laravel Boost guidance ships in
 
 Development tests include a real SQLite-backed Laravel transaction. The Laravel database component is a development dependency only; it is not required to use the core package.
 
-The built-in debug sanitizer bounds nested arrays by default. XML output requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters. Retry delays block execution; filter permanent failures and use idempotency keys for retried writes.
+The built-in debug sanitizer bounds nested arrays by default. XML output requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters. Retry delays block execution and throw `OverflowException` before the retry hook when the maximum possible delay including jitter exceeds 2,147,483,647 ms; filter permanent failures and use idempotency keys for retried writes.
 
 Applications using PHPStan can opt into `phpstan-result-flow.neon` to detect discarded Result-returning calls; see the [guide](docs/guides/unused-results.md) for limitations and intentional suppression.
 
@@ -41,7 +41,7 @@ Structured error causes can be nested with `Cause`. Serialization throws `Length
 
 `Retry::attempt()` preserves the inferred success and failure types of the operation. Its failure type also includes `Throwable` for captured exceptions.
 
-`Output\ProblemDetails::response()` builds an explicit RFC 9457 problem JSON response from fields chosen by the application; it does not automatically expose Result errors or metadata.
+`Output\ProblemDetails::response()` builds an explicit RFC 9457 problem JSON response from fields chosen by the application; it does not automatically expose Result errors or metadata and rejects bodyless HTTP statuses (1xx, 204, 205, and 304).
 
 Follow the [order tutorial](docs/getting-started.md) to run both a successful save and a rejected input, or see the [Laravel controller example](docs/laravel-boost.md) for HTTP response mapping.
 

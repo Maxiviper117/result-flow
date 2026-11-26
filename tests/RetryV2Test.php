@@ -47,3 +47,28 @@ it('propagates exceptions thrown by retry predicates and hooks', function () {
         }
     }
 });
+
+it('keeps zero exponential delays integer across many retries', function () {
+    $events = [];
+    $result = Retry::config()->maxAttempts(70)->exponential()
+        ->onRetry(function (int $attempt, mixed $error, int $delay) use (&$events): void {
+            $events[] = $delay;
+        })->attempt(fn () => Result::fail('temporary'));
+    expect($result->isFail())->toBeTrue()->and($events)->toHaveCount(69)->and(array_unique($events))->toBe([0]);
+});
+
+it('rejects delays beyond the portable millisecond limit', function () {
+    $calculate = new ReflectionMethod(Retry::class, 'retryDelay');
+    $limit = 2_147_483_647;
+    expect($calculate->invoke(Retry::config()->delay(1)->exponential(), 3))->toBe(4)
+        ->and($calculate->invoke(Retry::config()->delay($limit), 1))->toBe($limit)
+        ->and(fn () => $calculate->invoke(Retry::config()->delay(1)->exponential(), 64))->toThrow(OverflowException::class)
+        ->and(fn () => $calculate->invoke(Retry::config()->delay($limit)->jitter(1), 1))->toThrow(OverflowException::class)
+        ->and(fn () => Retry::config()->maxAttempts(2)->delay($limit)->jitter(1)->onRetry(fn () => throw new LogicException('hook must not run'))->attempt(fn () => Result::fail('temporary')))->toThrow(OverflowException::class);
+});
+
+it('splits long waits into seconds and subsecond microseconds', function () {
+    $command = escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/Support/RetrySleepProbe.php');
+    exec($command, $output, $status);
+    expect($status)->toBe(0)->and($output)->toBe(['seconds:1', 'microseconds:500000']);
+});
