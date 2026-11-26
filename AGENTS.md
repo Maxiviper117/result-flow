@@ -106,3 +106,4 @@
 - `Output\Serialization` includes metadata; map public HTTP responses explicitly. Runnable examples live in `examples/v2/`.
 - The documentation preview uses the normal site base; maintainers control releases and tags.
 - The getting-started tutorial includes the runnable source from `examples/v2/action.php`. Verify the documented command with both a name and whitespace after changing the example.
+- Keep the method finder organized by the caller's starting point. Keep the reference index mapped to the public core methods and helper pages.

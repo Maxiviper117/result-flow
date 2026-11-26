@@ -26,8 +26,13 @@ $result = ResultBatch::mapAllErrors(['a' => '', 'b' => 'Ada'],
 
 Keys are preserved; callback exceptions propagate. Metadata is shallow-merged in iteration order through the results visited. `mapFirstFailure` never invokes later callbacks.
 
+
+For field validation, callbacks can return arrays of messages as failures, such as `Result::fail(['required', 'invalid format'])`. `mapAllErrors` then returns an array keyed by field, with every field's messages and no partial successes. No separate validation Result type is required.
+
+## Keep validation ahead of writes
+
+For a form, run `mapAllErrors` over the submitted fields and put persistence in an `andThen` on the combined Result. The user sees all invalid fields in one response, and a failed field prevents persistence from starting. Performing writes inside the validation callback would allow earlier fields to be saved before a later field fails.
+
 ## Related pages
 
 [Batch reference](/reference/batch-processing) and [collect errors recipe](/recipes/collecting-batch-errors).
-
-For field validation, callbacks can return arrays of messages as failures, such as `Result::fail(['required', 'invalid format'])`. `mapAllErrors` then returns an array keyed by field, with every field's messages and no partial successes. No separate validation Result type is required.

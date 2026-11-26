@@ -32,3 +32,7 @@ An empty string is still a successful value after trimming. The validator makes 
 Once a v2 beta is published, install it with `composer require 'maxiviper117/result-flow:^2.0@beta'`. In your own script, load Composer's `vendor/autoload.php` relative to your project root.
 
 Continue with [validate then persist](/guides/validate-then-persist) to write an action, or [map a result to HTTP](/recipes/api-boundary-mapping) to expose it to clients.
+
+## Try a value PHP treats as falsy
+
+Run `php examples/v2/action.php '0'`. The command prints `Saved 0`. The validator compares the trimmed name with the empty string, so this input satisfies its rule. If your own action must reject numeric names, put that decision in validation. The rest of the chain can stay the same.

@@ -38,3 +38,4 @@ This package requires PHP 8.4 or later.
 - Structured `ResultError` causes appear in diagnostic `error_cause` after sanitization; they are not automatically added to client responses.
 - For problem JSON responses, explicitly map domain failures to public fields with `Output\ProblemDetails::response`; it never includes Result metadata automatically.
 - A controller can consume an action with `match`, selecting public fields and a status for each outcome. Publish diagnostic settings in a Laravel app with `php artisan vendor:publish --tag=result-flow-config`.
+- For keyed form validation, aggregate the field checks first and put writes in an `andThen` on the combined Result.

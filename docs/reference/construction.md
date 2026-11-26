@@ -35,3 +35,7 @@ $result = Result::attempt(
 ```
 
 For an operation already returning a Result, use typed `try/catch` if a nested Result is unwanted. Related: [failure handling](/concepts/failure-handling).
+
+## Decode malformed input
+
+With `JSON_THROW_ON_ERROR`, decoding `'{'` throws a `JsonException`. Passing that operation to `attempt` with `catch: JsonException::class` produces a failure carrying the exception object. By comparison, decoding the valid JSON literal `'null'` succeeds and produces `Ok(null)`. Inspect the branch before deciding whether the input was valid.

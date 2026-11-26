@@ -19,3 +19,7 @@ features:
   - title: Diagnostic context
     details: Carry metadata through a predictable shallow merge.
 ---
+
+## Find your starting point
+
+New to Result Flow? [Run the order tutorial](/getting-started) to see why a blank name skips persistence. If you already return Results from actions, [choose a batch strategy](/guides/batch-strategy) to validate several inputs or [map an outcome to HTTP](/recipes/api-boundary-mapping) to finish a request. For a particular method, use the [method finder](/kitchen-sink/).

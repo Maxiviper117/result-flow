@@ -21,3 +21,7 @@ $result = Result::ok(2)->andThen(fn (int $n): Result => Result::ok($n * 2));
 ```
 
 Related: [validate then persist](/guides/validate-then-persist).
+
+## Read the inferred type
+
+If an action returns `Result<int, ValidationError>` and the next callback returns `Result<Order, StorageError>`, chaining with `andThen` gives `Result<Order, ValidationError|StorageError>`. Either action can explain a failure. A later `map(fn (Order $order) => $order->id)` changes only the success type. This is why an error handler after the save must accept both error types.

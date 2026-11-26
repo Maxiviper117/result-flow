@@ -35,3 +35,5 @@ Structured error causes appear in `DebugOutput::toArray()` under `error_cause`, 
 `Output\ProblemDetails::response` builds an explicit RFC 9457 problem JSON response. Map domain errors to safe public fields; metadata is not automatically included.
 
 Use the getting-started order example to compare valid and blank inputs. A failed validator skips the save action and reaches the failure handler directly.
+
+An empty validation batch succeeds with an empty array. Validate required cardinality separately before collecting per-field errors.

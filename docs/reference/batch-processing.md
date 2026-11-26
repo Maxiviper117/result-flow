@@ -46,3 +46,7 @@ $names = ['buyer' => '', 'seller' => ' Ada '];
 ResultBatch::mapFirstFailure($names, $check); // Fail('Missing buyer'), seller skipped
 ResultBatch::mapAllErrors($names, $check);    // Fail(['buyer' => 'Missing buyer']), seller checked
 ```
+
+## Empty inputs
+
+`firstFailure([])` and `allErrors([])` both succeed with an empty array. Their mapped counterparts also succeed with an empty array and never call the mapper. This is useful for an optional list of fields. If a form requires at least one field, validate that requirement before aggregation. `firstSuccess([])` throws because there is neither a success to select nor a last failure to return.

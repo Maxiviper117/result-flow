@@ -36,3 +36,7 @@ php artisan vendor:publish --tag=result-flow-config
 ```
 
 Edit `config/result-flow.php` and include application-specific sensitive keys alongside the defaults. The [debug reference](/reference/metadata-debugging) describes which fields are sanitized and how array and object limits work.
+
+## Use the packaged guidance with Boost
+
+Once Boost is installed in the consuming application, use its package discovery during setup and select Result Flow guidance when offered. The guideline describes conventions for everyday action code. The bundled skill includes callback contracts and detailed API guidance for tasks such as chaining fallible actions or mapping domain errors. Check generated controller code against the two response branches above and verify the database outcome separately for transactional actions.

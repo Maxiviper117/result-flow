@@ -23,6 +23,11 @@ saveOrder(); // Explicit intentional discard.
 
 The rule is an opt-in heuristic, not proof that assigned Results are handled. It does not report forwarding, return statements, arguments, or calls whose inferred type is not definitely a Result (such as `Result|null`). Use scoped PHPStan suppression only when ignoring an outcome is intentional. It has no effect on core execution or runtime dependencies.
 
+
+## Verify it in your project
+
+Run `vendor/bin/phpstan analyse` against a file that calls a known Result-returning action as a standalone statement. The diagnostic identifier is `resultFlow.ignoredResult`. A common fix in a service method is `return $service->save($order);` so its caller receives the failure. In a controller, consume both branches with [HTTP boundary mapping](/recipes/api-boundary-mapping).
+
 ## Related pages
 
 [Failure handling](/reference/failure-handling) and the [validate and persist example](/guides/validate-then-persist).

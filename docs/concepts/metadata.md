@@ -19,3 +19,7 @@ $validated->meta(); // ['trace' => 'req-7', 'step' => ['validate' => true]]
 ```
 
 The trace survives because the save action supplied no replacement for that key. The entire nested `step` array changes because both actions supplied that key. Give independent measurements distinct top-level keys if both must survive.
+
+## Clear context at the handoff
+
+Clear metadata on the completed chain with `$public = $saved->withMeta([])`. Returning `Result::ok($id, [])` from inside a step still lets the parent trace flow through the merge. For HTTP responses, [select the public fields explicitly](/recipes/api-boundary-mapping) so the response format stays independent of logging decisions.

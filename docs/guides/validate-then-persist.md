@@ -32,6 +32,11 @@ $result = Result::ok(' Ada ', ['trace_id' => 't-1'])
 
 Both callbacks receive one argument, and exceptions propagate. `andThen` merges the returned metadata with child keys winning. Use ordinary variables and early returns when they read more clearly.
 
+
+## Handle persistence failure separately
+
+A unique-name constraint can still reject a valid name. Have the save action return a failure such as `Result::fail('name_taken')` for that expected condition. The caller can now distinguish a blank name (validation failed before saving) from a collision (saving was attempted). For a write involving several database statements, follow the [transaction guide](/guides/transaction-rollback).
+
 ## Related pages
 
 [Chaining reference](/reference/chaining) and [API boundary recipe](/recipes/api-boundary-mapping).

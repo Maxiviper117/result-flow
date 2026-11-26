@@ -27,3 +27,7 @@ A callback passed to `map` may produce any value, so a returned Result becomes t
 | Returns a Result | `andThen` runs the next action | `orElse` attempts recovery |
 
 If the lookup throws, the exception escapes both chains. Use [selective exception capture](/reference/construction) at a boundary where you know which exceptions represent expected failures.
+
+## Decide when to start the next action
+
+Pass the work itself to `andThen` when it should run only after validation. For example, `$validated->andThen($save)` lets the branch decide whether saving starts. If you call `$save($input)` first and pass its result through a later closure, the write has already happened, even when validation failed.

@@ -1,5 +1,13 @@
 # API reference
 
-The core is synchronous and has 14 public methods. Start with [construction](/reference/construction), [chaining](/reference/chaining), [failure handling](/reference/failure-handling), [boundaries](/reference/boundaries), and [metadata](/reference/metadata-debugging). Specialist operations live in [batch helpers](/reference/batch-processing) and [output adapters](/reference/boundaries).
+`Maxiviper117\ResultFlow\Result` is synchronous. Its type parameters describe the active payload a caller may receive: `T` for success and `E` for failure. For example, PHPStan reads `Result<int, string>` as an integer on success or a string on failure.
 
-PHPStan types in these pages use `T` for the success type, `E` for the failure type, and `U` / `F` for callback results. They are annotations, not PHP generic syntax.
+| Core methods | Contract |
+| --- | --- |
+| `ok`, `fail`, `attempt` | [Construction and exception capture](/reference/construction) |
+| `map`, `andThen` | [Transforming a success](/reference/chaining) |
+| `mapError`, `orElse` | [Transforming or recovering a failure](/reference/failure-handling) |
+| `isOk`, `isFail`, `match`, `unwrap`, `unwrapOr` | [Inspection and consumption](/reference/boundaries) |
+| `meta`, `withMeta` | [Reading and replacing metadata](/reference/metadata-debugging) |
+
+For collections, see [ResultBatch](/reference/batch-processing). For output, choose between [serialization and HTTP problem details](/reference/boundaries#explicit-adapters) and [sanitized diagnostics](/reference/metadata-debugging#debug-output). [Retries](/guides/retries) and [resource scopes](/recipes/resource-cleanup) own their own callback and exception policies.

@@ -12,3 +12,5 @@
 | Combine two successes into an ordered pair | `zip($left, $right)` |
 
 See [batch strategy](/guides/batch-strategy) for a worked validation example.
+
+For a form, use the field name as the input key so the UI can place each error beside its field. For two successful lookups, `zip` gives you a positional pair: the left value is at index 0 and the right value at index 1. Use [the batch examples](/reference/batch-processing#predict-the-result) to compare the shapes.

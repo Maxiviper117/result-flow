@@ -68,3 +68,7 @@ $response = ProblemDetails::response(409, 'Out of stock', detail: 'Choose a smal
 // $response['headers']['Content-Type'] === 'application/problem+json'
 // Decode $response['body'] to read the title, detail, type, and status.
 ```
+
+## Avoid unnecessary fallback work
+
+PHP evaluates function arguments before calling a method. In `$result->unwrapOr($repository->loadDefault())`, the repository lookup runs even on success. To defer the lookup, use `$result->match(fn ($value) => $value, fn ($error) => $repository->loadDefault())`. The default is then loaded only on failure.

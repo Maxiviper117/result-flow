@@ -12,3 +12,7 @@ $result = ResultBatch::mapAllErrors(['email' => '', 'name' => 'Ada'],
 ```
 
 Related: [batch reference](/reference/batch-processing) and [batch strategy](/guides/batch-strategy).
+
+## Run it and inspect the error bag
+
+From the checkout, run `php examples/v2/batch.php`. It prints `{"email":"Required"}`. The callback visits both fields, but the resulting failure contains only fields with errors. If you supply a valid email, the success payload contains both names and values. To save that valid submission, pass the combined Result to `andThen($save)`.

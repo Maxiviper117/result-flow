@@ -23,3 +23,7 @@ The helper captures thrown exceptions. A failed acquisition skips release; after
 | Release throws after failed use | Use failure plus the release exception in metadata | Once |
 
 A PHP function that signals failure by returning `false` needs an explicit check. For example, wrap a failed `fopen` in `Result::fail('Could not open stream')` before passing control to the use callback. A bare boolean is an ordinary value to the helper.
+
+## Run the stream example
+
+From the checkout, run `php examples/v2/resource.php`. The temporary stream is opened, receives the five ASCII bytes in `hello`, and is closed before the script prints `Wrote 5 bytes`. To exercise the failure path, throw a `RuntimeException` in the use callback. Release still runs and the script prints `Failed`.

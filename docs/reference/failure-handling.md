@@ -41,3 +41,7 @@ $status = $result->match(
 ```
 
 `code()` returns the string domain code. `message()`, `payload()`, and `cause()` expose the other parts. A tagged error is throwable, so calling `unwrap()` on this failure throws the same error object.
+
+## Preserve a cause when translating errors
+
+A boundary can give a failure a public code while retaining its internal reason for diagnostics. For example, construct a `Cause` with code `'stock.empty'` and the original message, then pass it as the named `cause` argument of a new `DataTaggedError`. A caller can inspect `cause()?->code()`; the [debug adapter](/reference/metadata-debugging#debug-output) also exposes the sanitized cause chain.

@@ -31,7 +31,18 @@ echo $result->meta()['retry']['attempts']; // 2
 
 By default all failures are eligible for retry, up to `maxAttempts` (one attempt by default). `attempt` captures exceptions from the operation; exceptions from `when` and `onRetry` propagate. Delays block the current PHP process. `delay`, `exponential`, and `jitter` control the wait, and `attachAttemptMeta` records the number of attempts.
 
+- [Failure handling](/concepts/failure-handling)
+
+## Choose an attempt budget
+
+| Setting | Consequence for a continually failing operation |
+| --- | --- |
+| `maxAttempts(1)` | The initial call consumes the budget |
+| `maxAttempts(3)->delay(100)` | At most three calls with two 100 ms waits |
+| Add `exponential()` to that configuration | The waits become 100 ms and 200 ms |
+
+An early success or a false retry predicate ends the sequence sooner. When measuring request latency, allow for both the waits and the time spent inside each operation.
+
 ## Related pages
 
 - [Construction and exception capture](/reference/construction)
-- [Failure handling](/concepts/failure-handling)

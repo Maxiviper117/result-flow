@@ -41,3 +41,13 @@ echo $debug['meta']['api_token']; // ***REDACTED*** with default settings
 ```
 
 Use the sanitized array for diagnosis. For an HTTP response, choose client-visible fields with [explicit boundary mapping](/recipes/api-boundary-mapping).
+
+## Interpret truncation markers
+
+| Returned text | What happened |
+| --- | --- |
+| `[circular_reference]` | The sanitizer encountered an array reference already on its traversal path |
+| `[array_depth_exceeded]` | Nested input reached the configured traversal limit |
+| Configured redaction string | The metadata key matched a sensitive-key rule |
+
+These markers describe the diagnostic copy. The original Result still holds its input metadata.

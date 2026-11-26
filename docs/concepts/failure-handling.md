@@ -17,3 +17,7 @@ $recovered = $lookup->orElse(fn (string $code): Result =>
 ```
 
 The translated lookup is still a failure, with the code `customer.missing`. The recovered lookup succeeds with `Guest`, so subsequent success callbacks run. Only recover when the fallback is a valid answer for the caller. See [failure handling contracts](/reference/failure-handling).
+
+## Choose the exception boundary
+
+For a JSON parser, malformed input may be an expected outcome. Wrap that call with `Result::attempt($parse, catch: JsonException::class)` and the caller can recover from invalid JSON. A programming error such as a `TypeError` still reaches the normal PHP exception handler. Choose the caught class where the application can explain what failure means.

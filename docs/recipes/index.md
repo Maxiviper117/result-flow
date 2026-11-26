@@ -1,3 +1,11 @@
 # Recipes
 
-Explore [HTTP boundary mapping](/recipes/api-boundary-mapping), [batch error collection](/recipes/collecting-batch-errors), and [resource cleanup](/recipes/resource-cleanup). Refer to the [API](/reference/) for exact contracts.
+Each recipe starts with an input and shows what the caller receives. Pick one according to who owns the next decision.
+
+| Task | Input | Outcome |
+| --- | --- | --- |
+| [Map an HTTP response](/recipes/api-boundary-mapping) | A domain success or validation failure | A status and public body with internal trace metadata excluded |
+| [Collect validation errors](/recipes/collecting-batch-errors) | A keyed set of submitted fields | All valid values, or an error bag keyed by invalid field |
+| [Release a resource](/recipes/resource-cleanup) | An acquire callback and work to perform | A Result after the acquired resource has been released |
+
+For operations that can fail after writing to a database, see [transaction rollback](/guides/transaction-rollback).
