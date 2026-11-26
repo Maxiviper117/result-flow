@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/Maxiviper117/result-flow/compare/v1.12.2...v2.0.0) (2026-11-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* introduce the Result Flow v2 API ([#128](https://github.com/Maxiviper117/result-flow/issues/128))
+
+### Features
+
+* introduce the Result Flow v2 API ([#128](https://github.com/Maxiviper117/result-flow/issues/128)) ([eea3e9f](https://github.com/Maxiviper117/result-flow/commit/eea3e9f1af12019d284b5d49da0549f1b49c2354))
+
 ## [1.12.2](https://github.com/Maxiviper117/result-flow/compare/v1.12.1...v1.12.2) (2026-08-02)
 
 
