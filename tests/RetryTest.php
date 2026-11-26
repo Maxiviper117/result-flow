@@ -1,16 +1,16 @@
 <?php
 
 use Maxiviper117\ResultFlow\Result;
-use Maxiviper117\ResultFlow\Support\Operations\Retry;
+use Maxiviper117\ResultFlow\Retry;
 
 it('returns a retrier builder', function () {
-    expect(Result::retrier())->toBeInstanceOf(Retry::class);
+    expect(Retry::config())->toBeInstanceOf(Retry::class);
 });
 
 it('retries until success', function () {
     $attempts = 0;
 
-    $result = Result::retry(3, function () use (&$attempts) {
+    $result = Retry::config()->maxAttempts(3)->attempt(function () use (&$attempts) {
         $attempts++;
         if ($attempts < 3) {
             throw new Exception('fail');
@@ -20,14 +20,14 @@ it('retries until success', function () {
     });
 
     expect($result->isOk())->toBeTrue();
-    expect($result->value())->toBe('success');
+    expect($result->unwrap())->toBe('success');
     expect($attempts)->toBe(3);
 });
 
 it('fails after max attempts', function () {
     $attempts = 0;
 
-    $result = Result::retry(3, function () use (&$attempts) {
+    $result = Retry::config()->maxAttempts(3)->attempt(function () use (&$attempts) {
         $attempts++;
         throw new Exception('fail');
     });
@@ -41,7 +41,7 @@ it('supports exponential backoff', function () {
     // but we can verify the logic runs without error
     $start = microtime(true);
 
-    $result = Result::retrier()
+    $result = Retry::config()
         ->maxAttempts(3)
         ->delay(10) // 10ms
         ->exponential()
@@ -61,7 +61,7 @@ it('supports exponential backoff', function () {
 it('stops retrying if predicate returns false', function () {
     $attempts = 0;
 
-    $result = Result::retrier()
+    $result = Retry::config()
         ->maxAttempts(5)
         ->when(function ($error, $attempt) {
             return $attempt < 2; // Stop after 2nd attempt (1st retry)
@@ -78,7 +78,7 @@ it('stops retrying if predicate returns false', function () {
 it('calls onRetry callback', function () {
     $logs = [];
 
-    Result::retrier()
+    Retry::config()
         ->maxAttempts(3)
         ->delay(5)
         ->onRetry(function ($attempt, $error, $wait) use (&$logs) {
@@ -96,7 +96,7 @@ it('calls onRetry callback', function () {
 it('handles Result::fail inside callable', function () {
     $attempts = 0;
 
-    $result = Result::retry(3, function () use (&$attempts) {
+    $result = Retry::config()->maxAttempts(3)->attempt(function () use (&$attempts) {
         $attempts++;
         if ($attempts < 2) {
             return Result::fail('oops');
@@ -106,14 +106,14 @@ it('handles Result::fail inside callable', function () {
     });
 
     expect($result->isOk())->toBeTrue();
-    expect($result->value())->toBe('done');
+    expect($result->unwrap())->toBe('done');
     expect($attempts)->toBe(2);
 });
 
 it('retryDefer retries until plain value success', function () {
     $attempts = 0;
 
-    $result = Result::retryDefer(3, function () use (&$attempts) {
+    $result = Retry::config()->maxAttempts(3)->attempt(function () use (&$attempts) {
         $attempts++;
         if ($attempts < 3) {
             throw new Exception('fail');
@@ -123,14 +123,14 @@ it('retryDefer retries until plain value success', function () {
     });
 
     expect($result->isOk())->toBeTrue();
-    expect($result->value())->toBe('ok');
+    expect($result->unwrap())->toBe('ok');
     expect($attempts)->toBe(3);
 });
 
 it('retryDefer retries when callback returns fail result', function () {
     $attempts = 0;
 
-    $result = Result::retryDefer(3, function () use (&$attempts) {
+    $result = Retry::config()->maxAttempts(3)->attempt(function () use (&$attempts) {
         $attempts++;
         if ($attempts < 2) {
             return Result::fail('nope');
@@ -140,36 +140,31 @@ it('retryDefer retries when callback returns fail result', function () {
     });
 
     expect($result->isOk())->toBeTrue();
-    expect($result->value())->toBe('done');
+    expect($result->unwrap())->toBe('done');
     expect($attempts)->toBe(2);
 });
 
 it('retryDefer fails after max attempts when callback keeps throwing', function () {
     $attempts = 0;
 
-    $result = Result::retryDefer(3, function () use (&$attempts) {
+    $result = Retry::config()->maxAttempts(3)->attempt(function () use (&$attempts) {
         $attempts++;
         throw new Exception('still failing');
     });
 
     expect($result->isFail())->toBeTrue();
-    expect($result->error())->toBeInstanceOf(Exception::class);
+    expect($result->match(fn ($value) => null, fn ($error) => $error))->toBeInstanceOf(Exception::class);
     expect($attempts)->toBe(3);
 });
 
 it('retryDefer supports delay and exponential options', function () {
     $attempts = 0;
 
-    $result = Result::retryDefer(
-        2,
-        function () use (&$attempts) {
-            $attempts++;
+    $result = Retry::config()->maxAttempts(2)->delay(10)->exponential()->attempt(function () use (&$attempts) {
+        $attempts++;
 
-            return Result::fail('retry');
-        },
-        delay: 10,
-        exponential: true
-    );
+        return Result::fail('retry');
+    });
 
     expect($result->isFail())->toBeTrue();
     expect($attempts)->toBe(2);
@@ -177,7 +172,7 @@ it('retryDefer supports delay and exponential options', function () {
 
 it('handles jitter', function () {
     // Just verify it runs without error
-    $result = Result::retrier()
+    $result = Retry::config()
         ->maxAttempts(2)
         ->jitter(10)
         ->attempt(fn () => Result::fail('error'));

@@ -1,57 +1,13 @@
----
-title: Kitchen Sink
----
+# Method finder
 
-# Kitchen Sink
+Start with what you have in hand, then follow the matching page for a short example.
 
-This section is the full method tour.
+| Starting point | Next step |
+| --- | --- |
+| A value, an expected error, or a callback that throws | [Construct a Result](/kitchen-sink/construction) |
+| A Result and another operation to perform | [Transform, chain, or recover](/kitchen-sink/chaining-and-recovery) |
+| A Result and diagnostic context to inspect | [Read state and metadata](/kitchen-sink/state-and-metadata) |
+| Several independent Results or inputs to validate | [Combine a collection](/kitchen-sink/collections) |
+| A completed workflow and a caller waiting for an answer | [Consume or serialize the outcome](/kitchen-sink/finalization-and-output) |
 
-Use it when you want every public `Result` method and the retry builder covered in one place, grouped by behavior. Start with the quick map, then open the category pages for the full explanation of each function.
-
-```php
-use Maxiviper117\ResultFlow\Result;
-
-$result = Result::ok($input, ['request_id' => 'r-1'])
-    ->ensure(fn (array $input) => isset($input['email']), 'Email is required')
-    ->then(fn (array $input) => Result::ok($input, ['stage' => 'validated']))
-    ->otherwise(fn ($error, array $meta) => Result::fail([
-        'message' => (string) $error,
-        'request_id' => $meta['request_id'] ?? null,
-    ], $meta));
-```
-
-## Quick Map
-
-| Group                            | Page                                                 |
-| -------------------------------- | ---------------------------------------------------- |
-| Constructors and resource safety | [Construction and entry points](./construction)      |
-| Collection operations            | [Collections](./collections)                         |
-| Branch state and metadata        | [Branch state and metadata](./state-and-metadata)    |
-| Chaining and recovery            | [Chaining and recovery](./chaining-and-recovery)     |
-| Finalization and output          | [Finalization and output](./finalization-and-output) |
-| Retry builder                    | [Retry builder](./retry-builder)                     |
-
-## How To Use This Section
-
-1. Open the category that matches the behavior you care about.
-2. Read the short summary first.
-3. Scan the function-by-function subsections.
-4. Jump back to the narrower reference pages if you only need a quick lookup.
-
-## Why This Exists
-
-The reference pages are organized for lookup. This section is organized for comprehension.
-
-The difference is deliberate:
-
-- reference pages keep signatures and exact behavior easy to scan
-- kitchen sink pages explain every public function in a single narrative section, grouped by behavior
-
-## Start Here
-
-- [Construction and entry points](./construction)
-- [Collections](./collections)
-- [Branch state and metadata](./state-and-metadata)
-- [Chaining and recovery](./chaining-and-recovery)
-- [Finalization and output](./finalization-and-output)
-- [Retry builder](./retry-builder)
+For callback types and exception behavior, consult the [API reference](/reference/).

@@ -24,5 +24,8 @@ return [
 
         // Maximum depth when sanitize_objects is enabled.
         'object_max_depth' => 3,
+
+        // Maximum array nesting traversed by the built-in sanitizer (1–128).
+        'array_max_depth' => 32,
     ],
 ];

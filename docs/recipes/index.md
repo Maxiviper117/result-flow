@@ -1,15 +1,11 @@
----
-title: Recipes
----
-
 # Recipes
 
-These pages solve specific problems with the smallest useful example.
+Each recipe starts with an input and shows what the caller receives. Pick one according to who owns the next decision.
 
-## Recipes
+| Task | Input | Outcome |
+| --- | --- | --- |
+| [Map an HTTP response](/recipes/api-boundary-mapping) | A domain success or validation failure | A status and public body with internal trace metadata excluded |
+| [Collect validation errors](/recipes/collecting-batch-errors) | A keyed set of submitted fields | All valid values, or an error bag keyed by invalid field |
+| [Release a resource](/recipes/resource-cleanup) | An acquire callback and work to perform | A Result after the acquired resource has been released |
 
-- [Input validation](/recipes/input-validation)
-- [API boundary mapping](/recipes/api-boundary-mapping)
-- [Transient retries](/recipes/transient-retries)
-- [Collecting batch errors](/recipes/collecting-batch-errors)
-- [Resource cleanup](/recipes/resource-cleanup)
+For operations that can fail after writing to a database, see [transaction rollback](/guides/transaction-rollback).

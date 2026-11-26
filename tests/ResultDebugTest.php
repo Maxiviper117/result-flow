@@ -1,5 +1,7 @@
 <?php
 
+use Maxiviper117\ResultFlow\Output\DebugOutput;
+use Maxiviper117\ResultFlow\Output\Serialization;
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
@@ -32,6 +34,18 @@ final class DebugTestCycleNode
 }
 
 describe('toDebugArray()', function () {
+    it('preserves valid UTF-8 when truncating without mbstring', function () {
+        $command = escapeshellarg(PHP_BINARY).' -d disable_functions=mb_strlen,mb_substr '.escapeshellarg(__DIR__.'/Support/DebugWithoutMbstring.php');
+        exec($command, $output, $status);
+
+        expect($status)->toBe(0);
+        $debug = json_decode(implode("\n", $output), true, flags: JSON_THROW_ON_ERROR);
+        $atLimit = str_repeat('a', 199).'é';
+
+        expect($debug['error_message'])->toBe($atLimit.'…')
+            ->and($debug['meta']['caption'])->toBe($atLimit);
+    });
+
     it('sanitizes sensitive keys and truncates long strings with defaults', function () {
         ConfigStub::reset();
 
@@ -42,7 +56,7 @@ describe('toDebugArray()', function () {
         ];
 
         $result = Result::fail(new RuntimeException('Boom'), $meta);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['error_message'])->toBe('Boom');
         expect($debug['meta']['password'])->toBe('***REDACTED***');
@@ -55,7 +69,7 @@ describe('toDebugArray()', function () {
     it('allows custom sanitizer to override default behavior', function () {
         $result = Result::fail('oops', ['secret' => '123']);
 
-        $debug = $result->toDebugArray(fn () => 'clean');
+        $debug = DebugOutput::toArray($result, fn () => 'clean');
 
         expect($debug['error_message'])->toBe('clean');
         expect($debug['meta'])->toBe('clean');
@@ -70,7 +84,7 @@ describe('toDebugArray()', function () {
         ]);
 
         $result = Result::fail('helloworld', ['secretstuff' => 'token-value', 'note' => 'abcdef']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['error_message'])->toBe('hello…'); // truncated to 5 + ellipsis
         expect($debug['meta']['secretstuff'])->toBe('[redacted]');
@@ -85,7 +99,7 @@ describe('toDebugArray()', function () {
 
         $meta = ['password' => 'secret', 'long' => str_repeat('x', 50)];
         $result = Result::fail('helloworld', $meta);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['password'])->toBe('secret'); // not redacted
         expect($debug['meta']['long'])->toBe(str_repeat('x', 50)); // not truncated
@@ -100,7 +114,7 @@ describe('toDebugArray()', function () {
         ]);
 
         $result = Result::fail('helloworld', ['token' => 'abcdefghij']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['error_message'])->toBe('helloworld'); // full length
         expect($debug['meta']['token'])->toBe('abcdefghij'); // not truncated
@@ -117,7 +131,7 @@ describe('toDebugArray()', function () {
         $dto = new DebugTestPublicDto('raw-secret', 'visible');
         $result = Result::fail('oops', ['payload' => $dto]);
 
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['payload'])->toBeInstanceOf(DebugTestPublicDto::class);
         expect($debug['meta']['payload']->api_key)->toBe('raw-secret');
@@ -136,7 +150,7 @@ describe('toDebugArray()', function () {
             'json' => new DebugTestJsonDto('very-secret', 'abcdef'),
         ]);
 
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['dto']['api_key'])->toBe('***REDACTED***');
         expect($debug['meta']['dto']['safe'])->toBe('safe-…');
@@ -159,7 +173,7 @@ describe('toDebugArray()', function () {
         $third->next = $first;
 
         $result = Result::fail('oops', ['graph' => $first]);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['graph']['token'])->toBe('***REDACTED***');
         expect($debug['meta']['graph']['next']['token'])->toBe('***REDACTED***');
@@ -170,7 +184,7 @@ describe('toDebugArray()', function () {
 describe('toDebugArray()', function () {
     it('returns debug-safe array for success', function () {
         $result = Result::ok(['sensitive' => 'data'], ['request_id' => 'abc']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['ok'])->toBeTrue();
         expect($debug['value_type'])->toBe('array');
@@ -184,7 +198,7 @@ describe('toDebugArray()', function () {
         ConfigStub::set('result-flow.debug', ['max_string_length' => 200]);
 
         $result = Result::fail('Something went wrong');
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['ok'])->toBeFalse();
         expect($debug['value_type'])->toBeNull();
@@ -197,7 +211,7 @@ describe('toDebugArray()', function () {
         ConfigStub::set('result-flow.debug', ['max_string_length' => 200]);
 
         $result = Result::fail(new RuntimeException('Connection failed'));
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['ok'])->toBeFalse();
         expect($debug['error_type'])->toBe('RuntimeException');
@@ -206,7 +220,7 @@ describe('toDebugArray()', function () {
 
     it('returns null error_message for non-string non-throwable errors', function () {
         $result = Result::fail(['code' => 500, 'errors' => ['field' => 'invalid']]);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['ok'])->toBeFalse();
         expect($debug['error_type'])->toBe('array');
@@ -217,7 +231,7 @@ describe('toDebugArray()', function () {
 describe('edge cases: toArray and toDebugArray', function () {
     it('toArray includes all fields for success', function () {
         $result = Result::ok('value', ['key' => 'meta']);
-        $arr = $result->toArray();
+        $arr = Serialization::toArray($result);
 
         expect($arr)->toBe([
             'ok' => true,
@@ -229,7 +243,7 @@ describe('edge cases: toArray and toDebugArray', function () {
 
     it('toArray includes all fields for failure', function () {
         $result = Result::fail('error', ['key' => 'meta']);
-        $arr = $result->toArray();
+        $arr = Serialization::toArray($result);
 
         expect($arr)->toBe([
             'ok' => false,
@@ -242,14 +256,14 @@ describe('edge cases: toArray and toDebugArray', function () {
     it('toDebugArray shows type for objects', function () {
         $obj = new stdClass;
         $result = Result::ok($obj);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['value_type'])->toBe('stdClass');
     });
 
     it('toDebugArray shows int type', function () {
         $result = Result::ok(42);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['value_type'])->toBe('int');
     });

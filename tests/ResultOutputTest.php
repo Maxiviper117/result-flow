@@ -1,12 +1,13 @@
 <?php
 
+use Maxiviper117\ResultFlow\Output\Serialization;
 use Maxiviper117\ResultFlow\Result;
 
 describe('Result Output', function () {
 
     it('toJson returns valid JSON string for success result', function () {
         $result = Result::ok(['user_id' => 123], ['timestamp' => 1000]);
-        $json = $result->toJson();
+        $json = Serialization::toJson($result);
 
         $decoded = json_decode($json, true);
         expect($decoded['ok'])->toBeTrue();
@@ -16,7 +17,7 @@ describe('Result Output', function () {
 
     it('toJson returns valid JSON string for failure result', function () {
         $result = Result::fail('Something went wrong', ['code' => 500]);
-        $json = $result->toJson();
+        $json = Serialization::toJson($result);
 
         $decoded = json_decode($json, true);
         expect($decoded['ok'])->toBeFalse();
@@ -27,14 +28,14 @@ describe('Result Output', function () {
     it('toJson accepts encoding options', function () {
         $result = Result::ok(['html' => '<p>test</p>']);
         // JSON_HEX_TAG converts < > to \u003C \u003E
-        $json = $result->toJson(JSON_HEX_TAG);
+        $json = Serialization::toJson($result, JSON_HEX_TAG);
 
         expect($json)->toContain('\u003C');
     });
 
     it('toXml returns valid XML string for success result', function () {
         $result = Result::ok(['id' => 123, 'name' => 'Test'], ['version' => 1]);
-        $xmlString = $result->toXml();
+        $xmlString = Serialization::toXml($result);
 
         $xml = new SimpleXMLElement($xmlString);
         expect((string) $xml->ok)->toBe('1');
@@ -44,7 +45,7 @@ describe('Result Output', function () {
 
     it('toXml handles numeric keys by prefixing with item', function () {
         $result = Result::ok(['a', 'b']);
-        $xmlString = $result->toXml();
+        $xmlString = Serialization::toXml($result);
 
         $xml = new SimpleXMLElement($xmlString);
         expect((string) $xml->value->item0)->toBe('a');
@@ -53,7 +54,7 @@ describe('Result Output', function () {
 
     it('toXml allows custom root element', function () {
         $result = Result::ok('val');
-        $xmlString = $result->toXml('api-response');
+        $xmlString = Serialization::toXml($result, 'api-response');
 
         expect($xmlString)->toContain('<api-response>');
     });
@@ -66,7 +67,7 @@ describe('Result Output', function () {
             'meta.value' => 'punctuation',
         ]);
 
-        $xml = new SimpleXMLElement($result->toXml());
+        $xml = new SimpleXMLElement(Serialization::toXml($result));
 
         expect((string) $xml->value->bad_key)->toBe('space');
         expect((string) $xml->value->item_123name)->toBe('leading-digit');
@@ -76,48 +77,47 @@ describe('Result Output', function () {
 
     it('toXml normalizes invalid custom root element names', function () {
         $result = Result::ok('val');
-        $xml = new SimpleXMLElement($result->toXml('bad root'));
+        $xml = new SimpleXMLElement(Serialization::toXml($result, 'bad root'));
 
         expect($xml->getName())->toBe('bad_root');
         expect((string) $xml->value)->toBe('val');
     });
 
-    it('toResponse returns array structure by default (without Laravel)', function () {
-        // We assume 'response' helper does not exist in this test environment context normally,
-        // unless defined in Pest.php or similar.
-        // In our Pest.php we only saw config() helper.
+});
 
-        $result = Result::ok(['data' => 'ok']);
-        $response = $result->toResponse();
+it('rejects invalid XML characters and malformed UTF-8', function () {
+    expect(fn () => Serialization::toXml(Result::ok("A\x01B")))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => Serialization::toXml(Result::ok("\xC3\x28")))->toThrow(InvalidArgumentException::class);
+});
 
-        expect($response)->toBeArray();
-        expect($response['status'])->toBe(200);
-        expect($response['headers']['Content-Type'])->toBe('application/json');
+it('preserves valid Unicode and XML-sensitive text', function () {
+    $xml = new SimpleXMLElement(Serialization::toXml(Result::ok('café & <tag>')));
+    expect((string) $xml->value)->toBe('café & <tag>');
+});
 
-        $body = json_decode($response['body'], true);
-        expect($body['ok'])->toBeTrue();
-    });
+it('reports a clear error when SimpleXML is unavailable', function () {
+    $command = escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/Support/XmlWithoutExtension.php');
+    exec($command, $output, $status);
+    expect($status)->toBe(0)->and(implode("\n", $output))->toBe('XML output requires the SimpleXML extension');
+});
 
-    it('toResponse returns status 400 for failure by default', function () {
-        $result = Result::fail('error');
-        $response = $result->toResponse();
+it('rejects partial JSON output even for valid values', function () {
+    expect(fn () => Serialization::toJson(Result::ok(1), JSON_PARTIAL_OUTPUT_ON_ERROR))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => Serialization::toJson(Result::ok(INF), JSON_PARTIAL_OUTPUT_ON_ERROR))->toThrow(InvalidArgumentException::class);
+});
 
-        expect($response['status'])->toBe(400);
-
-        $body = json_decode($response['body'], true);
-        expect($body['ok'])->toBeFalse();
-    });
-
-    it('toResponse throws when fallback JSON encoding fails', function () {
-        $resource = fopen('php://temp', 'r');
-
-        try {
-            $this->expectException(JsonException::class);
-
-            Result::ok($resource)->toResponse();
-        } finally {
-            fclose($resource);
-        }
-    });
-
+it('rejects recursive and excessively deep XML arrays but accepts shared siblings', function () {
+    $recursive = [];
+    $recursive['self'] = &$recursive;
+    $deep = 'end';
+    for ($i = 0; $i < 130; $i++) {
+        $deep = ['child' => $deep];
+    }
+    $shared = ['name' => 'same'];
+    $siblings = ['first' => &$shared, 'second' => &$shared];
+    expect(fn () => Serialization::toXml(Result::ok($recursive)))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => Serialization::toXml(Result::ok($deep)))->toThrow(InvalidArgumentException::class);
+    $xml = new SimpleXMLElement(Serialization::toXml(Result::ok($siblings)));
+    expect((string) $xml->value->first->name)->toBe('same')
+        ->and((string) $xml->value->second->name)->toBe('same');
 });

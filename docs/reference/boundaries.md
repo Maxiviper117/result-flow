@@ -1,95 +1,74 @@
----
-title: Boundaries Reference
----
+# Boundaries and output
 
-# Boundaries Reference
-
-```php
-$payload = $result->match(
-    onSuccess: fn ($value, array $meta) => ['ok' => true, 'data' => $value],
-    onFailure: fn ($error, array $meta) => ['ok' => false, 'error' => $error],
-);
-```
+Use `match` for explicit response mapping. See the [API boundary recipe](/recipes/api-boundary-mapping) and [transaction guide](/guides/transaction-rollback).
 
 ## `match(callable $onSuccess, callable $onFailure): mixed`
 
-Finishes the result by handling both branches explicitly.
+Invokes exactly one handler with the active payload and returns its value. Its inferred return type is the union of the handlers' return types. Exceptions propagate; metadata is not passed implicitly or changed.
 
-## `matchException(array $exceptionHandlers, callable $onSuccess, callable $onUnhandled): mixed`
+```php
+$message = Result::fail('missing')->match(fn ($v) => "Found $v", fn ($e) => "Error: $e");
+```
 
-Handles Throwable failures by class, otherwise falls back to the unhandled callback.
+Related: [API boundary recipe](/recipes/api-boundary-mapping).
 
-Tip: flows created with `of(...)`, `defer(...)`, `retryDefer(...)`, and batch helpers can widen the failure channel to `TFailure|Throwable`; normalize early when consumers require one stable boundary shape.
+## `isOk(): bool`
 
-## `matchError(array $handlers, callable $onSuccess, callable $onUnhandled): mixed`
+Inspects the branch tag without interpreting its payload. It does not mutate metadata or call callbacks.
 
-Handles structured domain errors by class.
+```php
+$isOk = Result::ok(null)->isOk(); // true
+```
 
-- use this for `DataTaggedError` subclasses and other `ResultError` implementations
-- handlers are checked in array iteration order; the first matching class wins
-- matched handlers may accept the error only or the error plus metadata
-- `onSuccess` / `onUnhandled` may accept no arguments, the value/error only, or the value/error plus metadata
-- if the failure is not a `ResultError`, or no handler matches, `onUnhandled` runs
-- unlike `matchException(...)`, matching is based on named error classes, not exception classes from infrastructure
-- `code()` is for serialization/boundaries, not dispatch
+Related: [Result model](/concepts/result-model).
+
+## `isFail(): bool`
+
+Inspects the failure tag without interpreting its payload. It does not mutate metadata or call callbacks.
+
+```php
+$isFail = Result::fail(null)->isFail(); // true
+```
+
+Related: [Result model](/concepts/result-model).
 
 ## `unwrap(): mixed`
 
-Returns the success value or throws the failure.
+Returns the success payload. A Throwable failure is rethrown unchanged; other failures raise `UnwrapFailure` with the original value in `failure`. Metadata is unchanged.
 
-- if the failure is a `Throwable`, it is thrown directly
-- that includes `DataTaggedError`, because it is throwable
-- otherwise a `RuntimeException` is thrown
+```php
+$value = Result::ok(42)->unwrap(); // 42
+```
+
+Related: [transaction rollback](/guides/transaction-rollback).
 
 ## `unwrapOr(mixed $default): mixed`
 
-Returns the success value or the eager default.
-
-## `unwrapOrElse(callable $fn): mixed`
-
-Returns the success value or computes a lazy default from the failure and metadata.
-
-## `getOrThrow(callable $exceptionFactory): mixed`
-
-Throws a custom exception produced from the failure and metadata.
-
-## `throwIfFail(): Result`
-
-Returns the same result on success. Throws on failure.
-
-## `toJson(int $options = 0): string`
-
-Serializes the raw array shape to JSON with `JSON_THROW_ON_ERROR`.
-
-When the failure implements `ResultError`, the error payload is normalized through
-its `toArray()` shape before encoding.
-
-## `toXml(string $rootElement = 'result'): string`
-
-Serializes the raw array shape to XML.
-
-Behavior:
-
-- invalid characters in element names become underscores
-- names that cannot start as XML elements are prefixed with `item_`
-- names starting with `xml` are also prefixed with `item_`
-- numeric keys become `item{n}`
-
-## `toResponse(): mixed`
-
-Returns a Laravel JSON response when the framework response factory exists.
-
-Outside Laravel, returns:
+Returns the success payload or the eager default on failure. Its inferred type is `T|U`. PHP evaluates the default before the call; use `match` for lazy fallback. Metadata is unchanged.
 
 ```php
-[
-    'status' => 200|400,
-    'headers' => ['Content-Type' => 'application/json'],
-    'body' => '...json...',
-]
+$value = Result::fail('missing')->unwrapOr(0); // 0
 ```
 
-## Related pages
+Related: [Result model](/concepts/result-model).
 
-- [Finalization boundaries concept](/concepts/finalization-boundaries)
-- [Failure handling reference](/reference/failure-handling)
+## Explicit adapters
+
+`Output\Serialization::toArray`, `toJson`, and `toXml` serialize the Result including metadata. Structured error causes are limited to 32 levels and 256 visited nodes; `Cause::toArray()` and serialization throw `LengthException` when that limit is exceeded. JSON encoding throws `JsonException` on failure and rejects `JSON_PARTIAL_OUTPUT_ON_ERROR` with `InvalidArgumentException`. XML rejects recursive arrays and arrays at or beyond 128 nesting levels with `InvalidArgumentException`; shared non-recursive children are supported. XML requires SimpleXML and throws `RuntimeException` when it is unavailable. Invalid UTF-8 or XML 1.0 characters raise `InvalidArgumentException` rather than silently losing text; numeric keys become `item` plus digits, invalid characters become underscores, surrounding underscores are trimmed, empty names become `item`, and names starting with a digit or `xml` get an `item_` prefix.
+
+`Output\ProblemDetails::response($status, $title, $type = 'about:blank', $detail = null, $instance = null, $extensions = [])` builds an explicit [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem JSON response with `application/problem+json`. The caller chooses public fields; Result payloads and metadata are never included automatically. Standard fields cannot be overridden by extensions. Statuses 100–199, 204, 205, and 304 cannot carry a body and are rejected. Invalid status codes or extension collisions throw `InvalidArgumentException`; JSON encoding errors throw `JsonException`.
+
+For example, tell a client that an order conflicts with current inventory. The application chooses the public explanation.
+
+```php
+use Maxiviper117\ResultFlow\Output\ProblemDetails;
+
+$response = ProblemDetails::response(409, 'Out of stock', detail: 'Choose a smaller quantity.');
+// $response['status'] === 409
+// $response['headers']['Content-Type'] === 'application/problem+json'
+// Decode $response['body'] to read the title, detail, type, and status.
+```
+
+## Avoid unnecessary fallback work
+
+PHP evaluates function arguments before calling a method. In `$result->unwrapOr($repository->loadDefault())`, the repository lookup runs even on success. To defer the lookup, use `$result->match(fn ($value) => $value, fn ($error) => $repository->loadDefault())`. The default is then loaded only on failure.

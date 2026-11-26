@@ -3,9 +3,10 @@
 declare(strict_types=1);
 
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Retry;
 
 it('does not add retry metadata by default', function () {
-    $result = Result::retrier()
+    $result = Retry::config()
         ->maxAttempts(3)
         ->attempt(fn () => 'plain');
 
@@ -13,13 +14,13 @@ it('does not add retry metadata by default', function () {
 });
 
 it('attaches attempt metadata for plain-success when enabled', function () {
-    $result = Result::retrier()
+    $result = Retry::config()
         ->maxAttempts(3)
         ->attachAttemptMeta()
         ->attempt(fn () => 'value');
 
     expect($result->isOk())->toBeTrue();
-    expect($result->value())->toBe('value');
+    expect($result->unwrap())->toBe('value');
     expect($result->meta())->toHaveKey('retry');
     expect($result->meta()['retry']['attempts'])->toBe(1);
 });
@@ -27,7 +28,7 @@ it('attaches attempt metadata for plain-success when enabled', function () {
 it('merges attempt metadata with successful Result returns', function () {
     $attempts = 0;
 
-    $result = Result::retrier()
+    $result = Retry::config()
         ->maxAttempts(3)
         ->attachAttemptMeta()
         ->attempt(function () use (&$attempts) {
@@ -41,7 +42,7 @@ it('merges attempt metadata with successful Result returns', function () {
         });
 
     expect($result->isOk())->toBeTrue();
-    expect($result->value())->toBe('done');
+    expect($result->unwrap())->toBe('done');
     expect($result->meta())->toHaveKey('stage');
     expect($result->meta())->toHaveKey('retry');
     expect($result->meta()['retry']['attempts'])->toBe(2);
@@ -49,7 +50,7 @@ it('merges attempt metadata with successful Result returns', function () {
 });
 
 it('attaches attempt metadata when retries exhaust and fail', function () {
-    $result = Result::retrier()
+    $result = Retry::config()
         ->maxAttempts(3)
         ->attachAttemptMeta()
         ->attempt(function () use (&$attempts) {

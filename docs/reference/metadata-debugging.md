@@ -1,130 +1,55 @@
----
-title: Metadata and Debugging Reference
----
+# Metadata and debugging
 
-# Metadata and Debugging Reference
-
-```php
-$debug = $result->toDebugArray();
-```
+Metadata is diagnostic, shallow, and separate from active payloads. See [metadata concepts](/concepts/metadata).
 
 ## `meta(): array`
 
-Returns the current metadata map.
-
-## `tapMeta(callable $tap): Result`
-
-Observes metadata without changing the result. On `Ok`, the callback will be invoked with the metadata as the first argument and the success value as an optional second argument; on `Fail` the callback receives metadata only.
-
-Note: If the provided callable accepts two parameters the library will pass the value as the second argument for `Ok` and `null` for `Fail`. To be explicit and friendly to static analyzers prefer an optional/nullable second parameter, e.g. `fn(array $meta, $value = null)` or `fn(array $meta, ?MyType $value = null)`.
-
-## `mapMeta(callable $map): Result`
-
-Replaces metadata with the callback output.
-
-The argument is a callable only.
-
-On `Ok`, the callback receives the current metadata as the first argument and the current value as the second argument.
-
-On `Fail`, the callback receives metadata only. When the callable accepts two arguments, the second argument will be `null` on `Fail`.
+Returns the current string-keyed bag without invoking callbacks or changing the Result.
 
 ```php
-$result = $result->mapMeta(fn (array $meta, $value = null) => [
-    ...$meta,
-    'operation' => 'normalize',
-    'value_type' => get_debug_type($value),
-]);
+$meta = Result::ok(1, ['trace_id' => 't-1'])->meta();
 ```
 
-## `mergeMeta(array|callable $meta): Result`
+Related: [validate then persist](/guides/validate-then-persist).
 
-Adds or overwrites metadata keys.
+## `withMeta(array $meta): Result`
 
-The argument may be either an array or a callable.
-
-On `Ok`, the callable receives the current metadata as the first argument and the current value as the second argument.
-
-On `Fail`, the callable receives metadata only. When the callable accepts two arguments, the second argument will be `null` on `Fail`.
+Returns a new Result with the same tag and payload and the entire bag replaced. It does not invoke callbacks or catch exceptions. Nested objects remain shared.
 
 ```php
-$result = $result->mergeMeta(fn (array $meta, $value = null) => [
-    ...$meta,
-    'operation' => 'normalize',
-    'value_type' => get_debug_type($value),
-]);
+$cleared = Result::ok(1, ['trace_id' => 't-1'])->withMeta([]);
 ```
 
-## `tap(callable $tap): Result`
+Related: [metadata concepts](/concepts/metadata).
 
-Runs a side effect for both branches.
+## Debug output
 
-## `onSuccess(callable $tap): Result`
+`Output\DebugOutput::toArray($result, ?callable $sanitizer = null)` returns types, selected error details, and sanitized metadata. Defaults redact sensitive keys and truncate long strings. Laravel configuration lives under `result-flow.debug`: `enabled`, `redaction`, `sensitive_keys`, `max_string_length`, `truncate_strings`, `sanitize_objects`, `object_max_depth`, and `array_max_depth`. Arrays are bounded independently (default 32, clamped to 1–128) and truncated with `[array_depth_exceeded]`; recursive array references are replaced with `[circular_reference]`. Disabling sanitization or supplying a custom sanitizer bypasses this built-in bound. Object traversal is opt-in; review its configuration before logging. Structured causes are expanded before sanitization with a maximum depth of 32 and a shared budget of 256 cause nodes; omitted branches are marked `[cause_limit_exceeded]`. This limit also applies to custom or disabled sanitizers. Diagnostic output is not a public response contract.
 
-Runs a side effect only on success.
+For a `ResultError` with a `Cause`, `error_cause` contains the nested cause data after the configured sanitizer runs, including redaction of matching metadata keys. It is `null` when no structured cause is present. Custom or disabled sanitization may expose sensitive data.
 
-## `inspect(callable $tap): Result`
+Sensitive key matching is case-insensitive. Plain patterns match substrings, and wildcards can span line breaks in keys. The string limit counts UTF-8 code points for valid UTF-8 text and preserves complete characters even without `mbstring`.
 
-Alias of `onSuccess(...)`.
-
-## `onFailure(callable $tap): Result`
-
-Runs a side effect only on failure.
-
-## `inspectError(callable $tap): Result`
-
-Alias of `onFailure(...)`.
-
-## `toArray(): array`
-
-Returns the raw branch shape:
+### Inspect a sanitized field
 
 ```php
-['ok' => bool, 'value' => mixed, 'error' => mixed, 'meta' => array]
+use Maxiviper117\ResultFlow\Output\DebugOutput;
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::fail('timeout', ['trace_id' => 'r7', 'api_token' => 'private']);
+$debug = DebugOutput::toArray($result);
+echo $debug['meta']['trace_id'];  // r7
+echo $debug['meta']['api_token']; // ***REDACTED*** with default settings
 ```
 
-## `toDebugArray(?callable $sanitizer = null): array`
+Use the sanitized array for diagnosis. For an HTTP response, choose client-visible fields with [explicit boundary mapping](/recipes/api-boundary-mapping).
 
-Returns debug-safe output.
+## Interpret truncation markers
 
-- success includes `value_type`
-- failure includes `error_type` and `error_message`
-- metadata is sanitized
-- built-in sanitization redacts sensitive keys and truncates long strings
-- object-property sanitization is opt-in via `result-flow.debug.sanitize_objects`
-- when object sanitization is enabled, only `JsonSerializable` payloads and public object properties are traversed
-- object traversal uses depth/cycle guards (`result-flow.debug.object_max_depth`)
-- this is the right place to inspect `failed_step` when a chain step throws
+| Returned text | What happened |
+| --- | --- |
+| `[circular_reference]` | The sanitizer encountered an array reference already on its traversal path |
+| `[array_depth_exceeded]` | Nested input reached the configured traversal limit |
+| Configured redaction string | The metadata key matched a sensitive-key rule |
 
-## `toJson(int $options = 0): string`
-
-Serializes the raw array shape to JSON with `JSON_THROW_ON_ERROR`.
-
-## `toXml(string $rootElement = 'result'): string`
-
-Serializes the raw array shape to XML.
-
-Behavior:
-
-- invalid characters in element names become underscores
-- names that cannot start as XML elements are prefixed with `item_`
-- names starting with `xml` are also prefixed with `item_`
-- numeric keys become `item{n}`
-
-## `toResponse(): mixed`
-
-Returns a Laravel JSON response when the framework response factory exists.
-
-Outside Laravel, returns:
-
-```php
-[
-    'status' => 200|400,
-    'headers' => ['Content-Type' => 'application/json'],
-    'body' => '...json...',
-]
-```
-
-## Related pages
-
-- [Observability guide](/guides/observability)
-- [Finalization boundaries](/concepts/finalization-boundaries)
+These markers describe the diagnostic copy. The original Result still holds its input metadata.

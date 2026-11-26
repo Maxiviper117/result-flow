@@ -1,49 +1,33 @@
----
-title: Chaining
----
-
 # Chaining
 
-Chaining keeps the success branch moving until a step fails.
+`map` transforms an Ok payload into any value, including a nested Result. `andThen` expects a Result and flattens that one step. Neither catches exceptions. Fail skips both callbacks. See the [chaining reference](/reference/chaining) and [validate then persist](/guides/validate-then-persist).
+
+## When a callback can reject the input
+
+Suppose a lookup returns a failed Result for a missing customer. Both chains below invoke the same lookup. The choice of method determines what the next step sees.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
 
-$result = Result::ok(['total' => 42])
-    ->ensure(fn (array $order) => $order['total'] > 0, 'Total must be positive')
-    ->map(fn (array $order) => [...$order, 'tax' => 4.2])
-    ->then(fn (array $order) => Result::ok($order, ['stage' => 'validated']));
+$lookup = fn (int $id): Result => Result::fail("Missing customer $id");
+
+$nested = Result::ok(42)->map($lookup);
+$nested->isOk();           // true
+$nested->unwrap()->isFail(); // true
+
+$customer = Result::ok(42)->andThen($lookup);
+$customer->isFail();       // true
 ```
 
-## The basic rule
+A callback passed to `map` may produce any value, so a returned Result becomes the new success payload. With `andThen`, a missing customer becomes the failure of the whole chain. Any later success step, such as sending that customer a receipt, is skipped.
 
-- `map(...)` transforms a success value into another success value.
-- `then(...)` chains a step that may return a plain value or a `Result`.
-- `thenUnsafe(...)` chains the same way, but exceptions bubble.
-- `ensure(...)` turns a false predicate into a failure.
-- `mapError(...)` only runs on failure.
+| Your callback | Continue on success | Continue on failure |
+| --- | --- | --- |
+| Returns an ordinary value | `map` changes the success value | `mapError` changes the error |
+| Returns a Result | `andThen` runs the next action | `orElse` attempts recovery |
 
-## Why `then` captures exceptions
+If the lookup throws, the exception escapes both chains. Use [selective exception capture](/reference/construction) at a boundary where you know which exceptions represent expected failures.
 
-`then(...)` is the default pipeline tool. It makes the chain predictable by converting thrown exceptions into failure values instead of letting them escape unexpectedly.
+## Decide when to start the next action
 
-When you need rollback semantics or intentional exception bubbling, use `thenUnsafe(...)`.
-
-## Small rules that matter
-
-- A failure short-circuits the rest of the chain.
-- Plain return values are wrapped as `Result::ok(...)`.
-- Callable arrays such as `[$service, 'handle']` stay a single step.
-- Objects with `__invoke`, `handle`, or `execute` can be used as steps.
-
-## Common mistakes
-
-- Returning a `Result` from `map(...)`.
-- Using `thenUnsafe(...)` without a clear boundary reason.
-- Running `ensure(...)` after expensive work instead of early.
-
-## Related pages
-
-- [Failure handling](/concepts/failure-handling)
-- [Deferred execution](/concepts/deferred-execution)
-- [Chaining reference](/reference/chaining)
+Pass the work itself to `andThen` when it should run only after validation. For example, `$validated->andThen($save)` lets the branch decide whether saving starts. If you call `$save($input)` first and pass its result through a later closure, the write has already happened, even when validation failed.

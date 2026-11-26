@@ -6,6 +6,8 @@ namespace Maxiviper117\ResultFlow\Support\Output;
 
 use JsonSerializable;
 use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Support\Errors\Cause;
+use Maxiviper117\ResultFlow\Support\Errors\CauseTraversal;
 use Maxiviper117\ResultFlow\Support\Errors\ResultError;
 use Throwable;
 
@@ -22,21 +24,26 @@ final class Debug
      *
      * @param  Result<TSuccess, TFailure>  $result
      * @param  callable(mixed): mixed|null  $sanitizer
-     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_code: string|null, error_message: mixed, meta: mixed}
+     * @return array{ok: bool, value_type: string|null, error_type: string|null, error_code: string|null, error_message: mixed, error_cause: mixed, meta: mixed}
      */
     public static function toDebugArray(Result $result, ?callable $sanitizer = null): array
     {
         $sanitizer = $sanitizer ?? [self::class, 'defaultSanitizer'];
         $ok = $result->isOk();
-        $error = $result->error();
+        $error = $result->match(fn ($value) => null, fn ($error) => $error);
 
         $errorCode = null;
         $errorMessage = null;
+        $errorCause = null;
 
         if (! $ok) {
             if ($error instanceof ResultError) {
                 $errorCode = $error->code();
                 $errorMessage = $sanitizer($error->message());
+                $cause = $error->cause();
+                if ($cause instanceof Cause) {
+                    $errorCause = $sanitizer(CauseTraversal::expand($cause, truncate: true));
+                }
             } elseif ($error instanceof Throwable) {
                 $errorMessage = $sanitizer($error->getMessage());
             } elseif (is_string($error)) {
@@ -46,10 +53,11 @@ final class Debug
 
         return [
             'ok' => $ok,
-            'value_type' => $ok ? get_debug_type($result->value()) : null,
+            'value_type' => $ok ? $result->match(fn ($value) => get_debug_type($value), fn ($error) => null) : null,
             'error_type' => ! $ok ? get_debug_type($error) : null,
             'error_code' => $errorCode,
             'error_message' => $errorMessage,
+            'error_cause' => $errorCause,
             'meta' => $sanitizer($result->meta()),
         ];
     }
@@ -59,7 +67,7 @@ final class Debug
      */
     private static function defaultSanitizer(mixed $value): mixed
     {
-        /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int} $debugConfig */
+        /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int, array_max_depth?: int} $debugConfig */
         $debugConfig = self::debugConfig();
         $enabled = ($debugConfig['enabled'] ?? true) === true;
         $redaction = $debugConfig['redaction'] ?? '***REDACTED***';
@@ -90,6 +98,9 @@ final class Debug
         $maxDepth = is_int($debugConfig['object_max_depth'] ?? null)
             ? max(1, $debugConfig['object_max_depth'])
             : 3;
+        $arrayMaxDepth = is_int($debugConfig['array_max_depth'] ?? null)
+            ? min(128, max(1, $debugConfig['array_max_depth']))
+            : 32;
 
         if (! $enabled) {
             return $value;
@@ -97,6 +108,8 @@ final class Debug
 
         /** @var array<int, bool> $seen */
         $seen = [];
+        /** @var array<string, bool> $seenArrayRefs */
+        $seenArrayRefs = [];
 
         return self::sanitizeValue(
             $value,
@@ -107,13 +120,17 @@ final class Debug
             sanitizeObjects: $sanitizeObjects,
             maxDepth: $maxDepth,
             depth: 0,
+            arrayMaxDepth: $arrayMaxDepth,
+            arrayDepth: 0,
             seen: $seen,
+            seenArrayRefs: $seenArrayRefs,
         );
     }
 
     /**
      * @param  array<int, string>  $sensitiveKeys
      * @param  array<int, bool>  $seen
+     * @param  array<string, bool>  $seenArrayRefs
      */
     private static function sanitizeValue(
         mixed $value,
@@ -124,14 +141,30 @@ final class Debug
         bool $sanitizeObjects,
         int $maxDepth,
         int $depth,
+        int $arrayMaxDepth,
+        int $arrayDepth,
         array &$seen,
+        array &$seenArrayRefs,
     ): mixed {
         if (is_array($value)) {
+            if ($arrayDepth >= $arrayMaxDepth) {
+                return '[array_depth_exceeded]';
+            }
             $out = [];
             foreach ($value as $k => $v) {
                 if (is_string($k) && self::matchesSensitiveKey($k, $sensitiveKeys)) {
                     $out[$k] = $redaction;
                 } else {
+                    $reference = is_array($v) ? \ReflectionReference::fromArrayElement($value, $k) : null;
+                    $referenceId = $reference instanceof \ReflectionReference ? bin2hex($reference->getId()) : null;
+                    if ($referenceId !== null && isset($seenArrayRefs[$referenceId])) {
+                        $out[$k] = '[circular_reference]';
+
+                        continue;
+                    }
+                    if ($referenceId !== null) {
+                        $seenArrayRefs[$referenceId] = true;
+                    }
                     $out[$k] = self::sanitizeValue(
                         $v,
                         redaction: $redaction,
@@ -141,8 +174,14 @@ final class Debug
                         sanitizeObjects: $sanitizeObjects,
                         maxDepth: $maxDepth,
                         depth: $depth + 1,
+                        arrayMaxDepth: $arrayMaxDepth,
+                        arrayDepth: $arrayDepth + 1,
                         seen: $seen,
+                        seenArrayRefs: $seenArrayRefs,
                     );
+                    if ($referenceId !== null) {
+                        unset($seenArrayRefs[$referenceId]);
+                    }
                 }
             }
 
@@ -171,7 +210,10 @@ final class Debug
                     sanitizeObjects: $sanitizeObjects,
                     maxDepth: $maxDepth,
                     depth: $depth + 1,
+                    arrayMaxDepth: $arrayMaxDepth,
+                    arrayDepth: $arrayDepth,
                     seen: $seen,
+                    seenArrayRefs: $seenArrayRefs,
                 );
 
                 unset($seen[$objectId]);
@@ -196,7 +238,10 @@ final class Debug
                             sanitizeObjects: $sanitizeObjects,
                             maxDepth: $maxDepth,
                             depth: $depth + 1,
+                            arrayMaxDepth: $arrayMaxDepth,
+                            arrayDepth: $arrayDepth,
                             seen: $seen,
+                            seenArrayRefs: $seenArrayRefs,
                         );
                     }
                 }
@@ -209,12 +254,8 @@ final class Debug
             unset($seen[$objectId]);
         }
 
-        if (is_string($value)) {
-            if ($truncateStrings && self::stringLength($value) > $maxStringLength) {
-                return self::stringSlice($value, 0, $maxStringLength).'…';
-            }
-
-            return $value;
+        if (is_string($value) && $truncateStrings) {
+            return self::truncateString($value, $maxStringLength);
         }
 
         return $value;
@@ -223,16 +264,16 @@ final class Debug
     /**
      * Fetch debug config from Laravel if the helper is available; otherwise return defaults.
      *
-     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int}
+     * @return array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int, array_max_depth?: int}
      */
     private static function debugConfig(): array
     {
         if (function_exists('config')) {
-            /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int}|null $config */
+            /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int, array_max_depth?: int}|null $config */
             $config = config('result-flow.debug');
 
             if (is_array($config)) {
-                /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int} $config */
+                /** @var array{enabled?: bool, redaction?: string, sensitive_keys?: array<int,string>, max_string_length?: int, truncate_strings?: bool, sanitize_objects?: bool, object_max_depth?: int, array_max_depth?: int} $config */
                 return $config;
             }
         }
@@ -267,7 +308,7 @@ final class Debug
                 $hasGlob = strpbrk($p, '*?') !== false;
                 $pattern = $hasGlob ? $p : '*'.$p.'*';
                 $escaped = preg_quote($pattern, '/');
-                $regex = '/^'.str_replace(['\\*', '\\?'], ['.*', '.'], $escaped).'$/i';
+                $regex = '/\A'.str_replace(['\\*', '\\?'], ['.*', '.'], $escaped).'\z/is';
                 $regexes[] = $regex;
             }
             $cache[$cacheKey] = $regexes;
@@ -286,18 +327,26 @@ final class Debug
     }
 
     /**
-     * Calculate string length with multibyte support when available.
+     * Limit valid UTF-8 by character without relying on optional extensions.
      */
-    private static function stringLength(string $value): int
+    private static function truncateString(string $value, int $limit): string
     {
-        return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
-    }
+        $limit = max(0, $limit);
+        if (strlen($value) <= $limit) {
+            return $value;
+        }
 
-    /**
-     * Slice strings with multibyte support when available.
-     */
-    private static function stringSlice(string $value, int $start, int $length): string
-    {
-        return function_exists('mb_substr') ? mb_substr($value, $start, $length) : substr($value, $start, $length);
+        // The last part holds the remainder whenever the string exceeds the limit.
+        $characters = preg_split('//u', $value, $limit + 1, PREG_SPLIT_NO_EMPTY);
+        if ($characters === false) {
+            return substr($value, 0, $limit).'…';
+        }
+        if (count($characters) <= $limit) {
+            return $value;
+        }
+
+        array_pop($characters);
+
+        return implode('', $characters).'…';
     }
 }

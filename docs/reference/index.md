@@ -1,29 +1,13 @@
----
-title: Reference
----
+# API reference
 
-# Reference
+`Maxiviper117\ResultFlow\Result` is synchronous. Its type parameters describe the active payload a caller may receive: `T` for success and `E` for failure. For example, PHPStan reads `Result<int, string>` as an integer on success or a string on failure.
 
-This section is for exact lookup.
+| Core methods | Contract |
+| --- | --- |
+| `ok`, `fail`, `attempt` | [Construction and exception capture](/reference/construction) |
+| `map`, `andThen` | [Transforming a success](/reference/chaining) |
+| `mapError`, `orElse` | [Transforming or recovering a failure](/reference/failure-handling) |
+| `isOk`, `isFail`, `match`, `unwrap`, `unwrapOr` | [Inspection and consumption](/reference/boundaries) |
+| `meta`, `withMeta` | [Reading and replacing metadata](/reference/metadata-debugging) |
 
-## Method families
-
-- [Construction](/reference/construction)
-- [Chaining](/reference/chaining)
-- [Failure handling](/reference/failure-handling)
-- [Boundaries](/reference/boundaries)
-- [Metadata and debugging](/reference/metadata-debugging)
-- [Batch processing](/reference/batch-processing)
-
-## How to use this section
-
-- open the family page you need
-- scan the signature
-- check the behavior notes and edge cases
-- jump back to the related concept page if you need the mental model
-
-Structured domain errors are documented across:
-
-- [Construction](/reference/construction) for `failTagged(...)` and named error creation
-- [Failure handling](/reference/failure-handling) for `matchError(...)` / `catchError(...)` and flexible `ResultError` callbacks
-- [Boundaries](/reference/boundaries) for serialization and finalization behavior
+For collections, see [ResultBatch](/reference/batch-processing). For output, choose between [serialization and HTTP problem details](/reference/boundaries#explicit-adapters) and [sanitized diagnostics](/reference/metadata-debugging#debug-output). [Retries](/guides/retries) and [resource scopes](/recipes/resource-cleanup) own their own callback and exception policies.

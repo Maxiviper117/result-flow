@@ -1,34 +1,42 @@
----
-title: Laravel Boost
----
-
 # Laravel Boost
 
-Result Flow ships Boost assets for downstream Laravel applications that use AI-assisted code generation.
+The package ships downstream application guidance in `resources/boost/guidelines/core.blade.php` and a central skill in `resources/boost/skills/result-flow/` with a local `references/api.md`. The guidance recommends explicit Result chains, exception boundaries, and response field mapping. Consult the [Laravel Boost documentation](https://laravel.com/docs/12.x/boost) for installation and discovery in your application.
 
-## What is shipped
+Returning a Fail from a Laravel transaction does not cause rollback. See [transaction rollback](/guides/transaction-rollback) and the [reference](/reference/).
 
-- `resources/boost/guidelines/core.blade.php`
-- `resources/boost/skills/result-flow/SKILL.md`
-- `resources/boost/skills/result-flow/references/*.md`
+## Return a response from a controller
 
-## What those assets do
+Keep the action responsible for its domain outcome and let the controller choose HTTP status codes and public fields. In this example your application's `CreateOrder` action returns a success containing an order ID or an expected validation failure. The client receives a fixed public message even if the underlying failure carries internal details.
 
-- the guideline describes app-level conventions for using `Result`
-- the skill orchestrates ResultFlow-related tasks
-- the reference files give task-specific guidance for construction, chaining, failure handling, retries, batches, boundaries, and observability
+```php
+use App\Actions\CreateOrder;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-## What app teams should remember
+final class OrderController
+{
+    public function __invoke(Request $request, CreateOrder $create): JsonResponse
+    {
+        return $create($request->string('name')->toString())->match(
+            onSuccess: fn (int $id): JsonResponse => response()->json(['id' => $id], 201),
+            onFailure: fn (mixed $error): JsonResponse => response()->json(['error' => 'Invalid order'], 422),
+        );
+    }
+}
+```
 
-- use public APIs only
-- keep metadata intact
-- normalize failures at boundaries
-- prefer `toDebugArray()` for logs
-- use `thenUnsafe()` only when exception bubbling is intended
+If an action can also report a conflict or a missing record, select the corresponding status by inspecting its error in the failure callback. For database actions that must undo writes, follow the [transaction guide](/guides/transaction-rollback).
 
-Official Boost docs: [Laravel Boost](https://laravel.com/docs/12.x/boost)
+## Configure diagnostic output
 
-## Related pages
+The package service provider merges the default settings when Laravel boots. To customize redaction and traversal limits, publish the config in your Laravel application:
 
-- [Getting started](/getting-started)
-- [Reference overview](/reference/)
+```sh
+php artisan vendor:publish --tag=result-flow-config
+```
+
+Edit `config/result-flow.php` and include application-specific sensitive keys alongside the defaults. The [debug reference](/reference/metadata-debugging) describes which fields are sanitized and how array and object limits work.
+
+## Use the packaged guidance with Boost
+
+Once Boost is installed in the consuming application, use its package discovery during setup and select Result Flow guidance when offered. The guideline describes conventions for everyday action code. The bundled skill includes callback contracts and detailed API guidance for tasks such as chaining fallible actions or mapping domain errors. Check generated controller code against the two response branches above and verify the database outcome separately for transactional actions.

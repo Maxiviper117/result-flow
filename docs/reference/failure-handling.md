@@ -1,74 +1,47 @@
----
-title: Failure Handling Reference
----
+# Failure handling
 
-# Failure Handling Reference
+Failure callbacks receive one error. They are skipped on Ok and do not catch exceptions. See [failure concepts](/concepts/failure-handling).
+
+## `mapError(callable $map): Result`
+
+`(E -> F) -> Result<T, F>`. Transforms a Fail without recovering, preserving metadata; an Ok is unchanged.
 
 ```php
-$result = Result::fail('timeout')
-    ->otherwise(fn ($error, array $meta) => Result::fail(['code' => 'TIMEOUT', 'message' => $error], $meta));
+$result = Result::fail('missing')->mapError(fn (string $e): string => strtoupper($e));
+// Fail('MISSING')
 ```
 
-## `otherwise(callable|object|array $next): Result`
+Related: [API boundary mapping](/recipes/api-boundary-mapping).
 
-Runs only on failure.
+## `orElse(callable $fn): Result`
 
-- plain return value -> recovery to success
-- returned `Result` -> kept as returned
-- success branch -> passed through unchanged
-
-## `catchException(array $handlers, ?callable $fallback = null): Result`
-
-Matches `Throwable` failures by class.
-
-- unmatched Throwable failure -> original result if no fallback is provided
-- non-Throwable failure -> original result if no fallback is provided
-- handlers and fallback may return a plain value or a `Result`
-- use this early to normalize `TFailure|Throwable` into one stable domain shape
-
-## `matchError(array $errorHandlers, callable $onSuccess, callable $onUnhandled): mixed`
-
-Matches structured domain errors by class.
-
-- handlers are keyed by `ResultError` class name (including `DataTaggedError` subclasses)
-- handlers are checked in array iteration order; the first matching class wins
-- matched handlers may accept either `(TError)` or `(TError, array $meta)`
-- `onSuccess` and `onUnhandled` may accept `()`, `(valueOrError)`, or `(valueOrError, array $meta)`
-- if the failure is not a `ResultError`, or no class matches, `$onUnhandled` runs
-- string codes are not used for dispatch
+`(E -> Result<U, F>) -> Result<T|U, F>`. Lazily replaces a Fail with the returned Result; any other return raises `TypeError`. The original error is discarded unless the callback explicitly retains it. Returned metadata is shallow-merged with child keys winning; an Ok is unchanged.
 
 ```php
-$message = $result->matchError(
-    [UserPersistError::class => fn (UserPersistError $e) => $e->code()],
-    onSuccess: fn ($value) => 'ok',
-    onUnhandled: fn ($error) => 'unhandled',
+$result = Result::fail('unavailable')->orElse(fn (string $e): Result => Result::ok('cached'));
+```
+
+Related: [validate then persist](/guides/validate-then-persist).
+
+## Give callers a stable error code
+
+Use a structured error when several callers need to distinguish failure reasons. A CLI can display the message while an HTTP handler switches on the code. Keep diagnostic details in the payload or cause, and choose which fields each caller may see.
+
+```php
+use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
+
+$error = new DataTaggedError('stock.empty', 'Item is out of stock', ['sku' => 'A42']);
+$result = Result::fail($error);
+$status = $result->match(
+    onSuccess: fn ($order): int => 201,
+    onFailure: fn (DataTaggedError $e): int => $e->code() === 'stock.empty' ? 409 : 400,
 );
+// $status === 409
 ```
 
-## `catchError(array $handlers, ?callable $fallback = null): Result`
+`code()` returns the string domain code. `message()`, `payload()`, and `cause()` expose the other parts. A tagged error is throwable, so calling `unwrap()` on this failure throws the same error object.
 
-Handles structured domain errors by class and keeps the flow inside `Result`.
+## Preserve a cause when translating errors
 
-- handlers are keyed by `ResultError` class name (including `DataTaggedError` subclasses)
-- handlers are checked in array iteration order; the first matching class wins
-- handlers and fallback may accept `()`, `(error)`, or `(error, array $meta)`
-- each callback may return either a plain recovered success value or a `Result`
-- if the failure is not a `ResultError`, class handlers are skipped and fallback is used when provided
-- unmatched failures return unchanged when no fallback is provided
-- fallback can handle both unmatched structured errors and legacy non-`ResultError` failures
-
-```php
-$result = $result->catchError([
-    UserPersistError::class => fn (UserPersistError $e) => 'retry-later',
-]);
-```
-
-## `recover(callable $fn): Result`
-
-Converts any failure into a success result.
-
-## Related pages
-
-- [Failure handling concepts](/concepts/failure-handling)
-- [Finalization boundaries](/concepts/finalization-boundaries)
-- [Error normalization guide](/guides/error-normalization)
+A boundary can give a failure a public code while retaining its internal reason for diagnostics. For example, construct a `Cause` with code `'stock.empty'` and the original message, then pass it as the named `cause` argument of a new `DataTaggedError`. A caller can inspect `cause()?->code()`; the [debug adapter](/reference/metadata-debugging#debug-output) also exposes the sanitized cause chain.

@@ -1,19 +1,11 @@
----
-title: Guides
----
+# Solve a workflow problem
 
-# Guides
+| When your application needs to… | Follow this guide |
+| --- | --- |
+| Normalize input and save only valid records | [Validate then persist](/guides/validate-then-persist) |
+| Undo database writes after a domain failure | [Roll back a Laravel transaction](/guides/transaction-rollback) |
+| Choose between stopping early and reporting every invalid field | [Choose a batch strategy](/guides/batch-strategy) |
+| Repeat an operation after a temporary error | [Configure retries](/guides/retries) |
+| Find calls whose failure the caller could silently discard | [Enable the PHPStan rule](/guides/unused-results) |
 
-These pages show how multiple parts of Result Flow fit together in real flows.
-
-## Guides
-
-- [Validate then persist](/guides/validate-then-persist)
-- [Error normalization](/guides/error-normalization)
-- [Transaction rollback](/guides/transaction-rollback)
-- [Observability](/guides/observability)
-- [Batch strategy](/guides/batch-strategy)
-
-## When to use guides
-
-Use guides when you know the problem, but want a good composition pattern instead of a method-by-method explanation.
+For a short implementation you can adapt directly, browse the [recipes](/recipes/).

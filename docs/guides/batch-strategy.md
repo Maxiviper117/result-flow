@@ -1,28 +1,38 @@
----
-title: Batch Strategy
----
+# Batch strategy
 
-# Batch Strategy
+## What this page is for
 
-Choose the batch primitive based on the shape of the problem, not on convenience.
+Choose whether to stop at the first failure or collect all validation errors, and whether work is already evaluated.
 
-| Need                                                                          | Use                     |
-| ----------------------------------------------------------------------------- | ----------------------- |
-| Per-item status                                                               | `mapItems(...)`         |
-| Fail fast on the first bad item                                               | `mapAll(...)`           |
-| Return every failure                                                          | `mapCollectErrors(...)` |
-| Aggregate existing `Result[]` fail fast                                       | `combine(...)`          |
-| Aggregate existing `Result[]` and keep all failures (no successes on failure) | `combineAll(...)`       |
+## When to use this
 
-## Rule of thumb
+Use `ResultBatch` for keyed collections when every callback returns a Result.
 
-- validation screens usually want collect-all
-- write pipelines usually want fail-fast
-- keyed UI errors should stay keyed
-- existing `Result[]` should use `combine` or `combineAll`
-- `combineAll(...)` returns only the collected failures when any input fails
+```php
+use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\ResultBatch;
+
+$result = ResultBatch::mapAllErrors(['a' => '', 'b' => 'Ada'],
+    fn (string $name): Result => $name === '' ? Result::fail('Required') : Result::ok($name));
+// Fail(['a' => 'Required']); successes are not included in a failure.
+```
+
+## Choose an operation
+
+| Inputs | First failure | All errors |
+| --- | --- | --- |
+| Already-evaluated Results | `firstFailure` | `allErrors` |
+| Items and callback | `mapFirstFailure` | `mapAllErrors` |
+
+Keys are preserved; callback exceptions propagate. Metadata is shallow-merged in iteration order through the results visited. `mapFirstFailure` never invokes later callbacks.
+
+
+For field validation, callbacks can return arrays of messages as failures, such as `Result::fail(['required', 'invalid format'])`. `mapAllErrors` then returns an array keyed by field, with every field's messages and no partial successes. No separate validation Result type is required.
+
+## Keep validation ahead of writes
+
+For a form, run `mapAllErrors` over the submitted fields and put persistence in an `andThen` on the combined Result. The user sees all invalid fields in one response, and a failed field prevents persistence from starting. Performing writes inside the validation callback would allow earlier fields to be saved before a later field fails.
 
 ## Related pages
 
-- [Batch processing](/concepts/batch-processing)
-- [Batch processing reference](/reference/batch-processing)
+[Batch reference](/reference/batch-processing) and [collect errors recipe](/recipes/collecting-batch-errors).

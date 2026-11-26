@@ -20,10 +20,12 @@ final class Serialization
      *
      * @param  Result<TSuccess, TFailure>  $result
      * @return array{ok: bool, value: mixed, error: mixed, meta: array<string,mixed>}
+     *
+     * @throws \LengthException When a structured cause exceeds its traversal limits.
      */
     public static function toArray(Result $result): array
     {
-        $error = $result->error();
+        $error = $result->match(fn ($value) => null, fn ($error) => $error);
 
         if ($error instanceof ResultError) {
             $errorOut = $error->toArray();
@@ -33,7 +35,7 @@ final class Serialization
 
         return [
             'ok' => $result->isOk(),
-            'value' => $result->value(),
+            'value' => $result->match(fn ($value) => $value, fn ($error) => null),
             'error' => $errorOut,
             'meta' => $result->meta(),
         ];
@@ -48,10 +50,16 @@ final class Serialization
      * @param  Result<TSuccess, TFailure>  $result
      * @param  int  $options  JSON encoding options
      *
+     * @throws \InvalidArgumentException When partial output is requested.
      * @throws \JsonException
+     * @throws \LengthException When a structured cause exceeds its traversal limits.
      */
     public static function toJson(Result $result, int $options = 0): string
     {
+        if (($options & JSON_PARTIAL_OUTPUT_ON_ERROR) !== 0) {
+            throw new \InvalidArgumentException('JSON_PARTIAL_OUTPUT_ON_ERROR is incompatible with throwing on encoding failure');
+        }
+
         return json_encode(self::toArray($result), $options | JSON_THROW_ON_ERROR);
     }
 
@@ -62,11 +70,19 @@ final class Serialization
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
+     *
+     * @throws \InvalidArgumentException When the data contains invalid XML text or recursive or excessively nested arrays.
+     * @throws \LengthException When a structured cause exceeds its traversal limits.
+     * @throws \RuntimeException When SimpleXML is unavailable.
      */
     public static function toXml(Result $result, string $rootElement = 'result'): string
     {
+        if (! class_exists(\SimpleXMLElement::class)) {
+            throw new \RuntimeException('XML output requires the SimpleXML extension');
+        }
         $xml = new \SimpleXMLElement('<'.self::normalizeXmlElementName($rootElement).'/>');
-        self::arrayToXml(self::toArray($result), $xml);
+        $references = [];
+        self::arrayToXml(self::toArray($result), $xml, 0, $references);
 
         return (string) $xml->asXML();
     }
@@ -74,17 +90,37 @@ final class Serialization
     /**
      * Recursively write array data to an XML element.
      *
-     * @param  array<mixed, mixed>  $data
+     * @param  array<array-key, mixed>  $data
+     * @param  array<string, bool>  $references
      */
-    private static function arrayToXml(array $data, \SimpleXMLElement $xml): void
+    private static function arrayToXml(array $data, \SimpleXMLElement $xml, int $depth, array &$references): void
     {
+        if ($depth >= 128) {
+            throw new \InvalidArgumentException('XML output exceeds maximum array depth');
+        }
+
         foreach ($data as $key => $value) {
+            $reference = is_array($value) ? \ReflectionReference::fromArrayElement($data, $key) : null;
+            $referenceId = $reference?->getId();
             $key = self::normalizeXmlElementName((string) $key);
             if (is_array($value)) {
+                if ($referenceId !== null && isset($references[$referenceId])) {
+                    throw new \InvalidArgumentException('XML output contains a recursive array');
+                }
+                if ($referenceId !== null) {
+                    $references[$referenceId] = true;
+                }
                 $subnode = $xml->addChild($key);
-                self::arrayToXml($value, $subnode);
+                self::arrayToXml($value, $subnode, $depth + 1, $references);
+                if ($referenceId !== null) {
+                    unset($references[$referenceId]);
+                }
             } else {
-                $xml->addChild($key, htmlspecialchars(self::stringifyValue($value)));
+                $text = self::stringifyValue($value);
+                if (preg_match('/\A[\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]*\z/u', $text) !== 1) {
+                    throw new \InvalidArgumentException('XML output contains invalid UTF-8 or XML 1.0 characters');
+                }
+                $xml->addChild($key, htmlspecialchars($text, ENT_XML1 | ENT_QUOTES, 'UTF-8'));
             }
         }
     }
@@ -112,7 +148,7 @@ final class Serialization
      */
     private static function normalizeXmlElementName(string $name): string
     {
-        if ($name !== '' && ctype_digit($name)) {
+        if (preg_match('/\A[0-9]+\z/', $name) === 1) {
             return 'item'.$name;
         }
 

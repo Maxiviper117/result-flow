@@ -1,54 +1,52 @@
----
-title: Batch Processing Reference
----
+# Batch helpers
 
-# Batch Processing Reference
+`ResultBatch` preserves keys and merges visited metadata shallowly in iteration order, later results winning collisions. It does not catch callback exceptions. See the [batch guide](/guides/batch-strategy).
+
+- `firstFailure(array $results): Result` combines already-evaluated Results, stopping its inspection at the first failure. Successful output is the keyed values; failure is the first error.
+- `allErrors(array $results): Result` inspects every already-evaluated Result. If any fail, returns keyed errors only, with no partial successes; otherwise returns keyed values.
+- `mapFirstFailure(array $items, callable $fn): Result` calls `fn($item, $key)` until the first Fail, leaving later callbacks unevaluated.
+- `mapAllErrors(array $items, callable $fn): Result` calls every callback and returns all keyed failures or all keyed successes.
 
 ```php
-$result = Result::mapCollectErrors($rows, fn (array $row, string $key) => validateRow($row, $key));
+$results = ['x' => Result::fail('required'), 'y' => Result::ok(1)];
+$combined = ResultBatch::allErrors($results); // Fail(['x' => 'required'])
 ```
 
-## `combine(array $results): Result`
+Related: [collecting batch errors](/recipes/collecting-batch-errors).
 
-Combines existing `Result` values.
+`firstSuccess(array $results)` returns the first success or the last failure, merging metadata from visited Results. Empty input throws `InvalidArgumentException`. `zip($first, $second)` combines two already-evaluated Results into a pair, or returns the first failure; metadata follows ordinary `andThen` semantics.
 
-- success values are collected into an array
-- the first failure stops processing
-- metadata from processed results is merged in order
+## Predict the result
 
-## `combineAll(array $results): Result`
+Given the inputs below, choose the operation by the answer you need. These snippets use `Maxiviper117\ResultFlow\Result` and `Maxiviper117\ResultFlow\ResultBatch`.
 
-Combines existing `Result` values, returns no success values when any failure exists, and collects all failures.
+```php
+$checks = [
+    'name' => Result::fail('Required'),
+    'age' => Result::ok(30),
+    'email' => Result::fail('Invalid address'),
+];
+```
 
-- success values are collected into an array
-- failures are collected into an array of errors
-- no success values are returned if any input fails
-- metadata from all processed results is merged in order
+| Call | Outcome |
+| --- | --- |
+| `ResultBatch::firstFailure($checks)` | Fail carrying `'Required'` |
+| `ResultBatch::allErrors($checks)` | Fail carrying `['name' => 'Required', 'email' => 'Invalid address']` |
+| `ResultBatch::firstSuccess($checks)` | Ok carrying `30` |
+| `ResultBatch::zip(Result::ok('Ada'), Result::ok(30))` | Ok carrying the positional pair `['Ada', 30]` |
 
-## `mapItems(array $items, callable $fn): array`
+Building an array of Results runs the expressions that produce them before aggregation starts. If a validation failure should prevent later work from running, pass raw inputs and a callback instead:
 
-Maps raw items to individual `Result` values.
+```php
+$check = fn (string $name, string $key): Result => trim($name) === ''
+    ? Result::fail("Missing $key")
+    : Result::ok(trim($name));
+$names = ['buyer' => '', 'seller' => ' Ada '];
 
-- keys are preserved
-- plain return values are wrapped as success
-- thrown exceptions become failure results
+ResultBatch::mapFirstFailure($names, $check); // Fail('Missing buyer'), seller skipped
+ResultBatch::mapAllErrors($names, $check);    // Fail(['buyer' => 'Missing buyer']), seller checked
+```
 
-## `mapAll(array $items, callable $fn): Result`
+## Empty inputs
 
-Maps raw items and fails fast on the first failure.
-
-- keyed success values are returned on success
-- metadata is merged in order
-
-## `mapCollectErrors(array $items, callable $fn): Result`
-
-Maps raw items and collects all failures by key.
-
-- keyed success values are returned on success
-- failure values stay keyed on the error branch
-- partial success is not exposed when any failure exists
-
-## Related pages
-
-- [Batch processing concepts](/concepts/batch-processing)
-- [Batch strategy guide](/guides/batch-strategy)
+`firstFailure([])` and `allErrors([])` both succeed with an empty array. Their mapped counterparts also succeed with an empty array and never call the mapper. This is useful for an optional list of fields. If a form requires at least one field, validate that requirement before aggregation. `firstSuccess([])` throws because there is neither a success to select nor a last failure to return.

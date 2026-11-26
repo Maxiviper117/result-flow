@@ -1,44 +1,25 @@
----
-title: Metadata
----
-
 # Metadata
 
-Metadata travels with the branch.
+`meta()` returns a string-keyed diagnostic bag. `withMeta($bag)` replaces it on a new Result. `map` and `mapError` preserve the bag. When `andThen` or `orElse` runs, it shallow-merges parent and returned bags: child keys win, even when the child value is null; nested arrays are replaced, not merged. An empty child bag does not delete parent keys. Call `withMeta([])` on the final result to clear it.
+
+Do not rely on metadata for audit data that must not be overwritten, and do not expose it to clients without an explicit allowlist. See [metadata reference](/reference/metadata-debugging).
+
+## Follow a request through two actions
 
 ```php
 use Maxiviper117\ResultFlow\Result;
 
-$value = ['id' => 1];
+$validated = Result::ok(42, ['trace' => 'req-7', 'step' => ['validate' => true]]);
+$saved = $validated->andThen(fn (int $id): Result =>
+    Result::ok($id, ['step' => ['save' => true]])
+);
 
-$result = Result::ok($value, ['request_id' => 'r-1'])
-    ->mergeMeta(['operation' => 'normalize']);
+$saved->meta();     // ['trace' => 'req-7', 'step' => ['save' => true]]
+$validated->meta(); // ['trace' => 'req-7', 'step' => ['validate' => true]]
 ```
 
-## What metadata is for
+The trace survives because the save action supplied no replacement for that key. The entire nested `step` array changes because both actions supplied that key. Give independent measurements distinct top-level keys if both must survive.
 
-- correlation IDs
-- operation names
-- failed input
-- retry counts
-- observability context
+## Clear context at the handoff
 
-## How it behaves
-
-- `meta()` returns the current map.
-- `tapMeta(...)` observes metadata without changing the result. On success the callback may also receive the value as a second argument.
-- `mapMeta(...)` replaces the metadata map.
-- `mergeMeta(...)` adds or overwrites keys.
-
-On `Ok`, `mapMeta(...)` and `mergeMeta(...)` may accept callbacks that also receive the current value as a second argument (callbacks receive metadata first).
-
-Note: When a callable accepts two parameters the library now passes the value as the second argument for `Ok` results and `null` for `Fail` results. Prefer an optional or nullable second parameter (e.g. `fn(array $meta, $value = null)` or `fn(array $meta, ?MyType $value = null)`) to handle both branches safely and avoid static analysis warnings.
-
-## A useful rule
-
-If a step changes the result shape, decide whether metadata should be preserved or updated at the same time. Do not silently drop it.
-
-## Related pages
-
-- [Metadata and debugging reference](/reference/metadata-debugging)
-- [Observability guide](/guides/observability)
+Clear metadata on the completed chain with `$public = $saved->withMeta([])`. Returning `Result::ok($id, [])` from inside a step still lets the parent trace flow through the merge. For HTTP responses, [select the public fields explicitly](/recipes/api-boundary-mapping) so the response format stays independent of logging decisions.

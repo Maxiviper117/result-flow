@@ -1,0 +1,8 @@
+includes:
+    - phpstan.neon.dist
+    - phpstan-result-flow.neon
+
+parameters:
+    paths:
+        - tests/Types/UnusedResult.php
+    tmpDir: build/phpstan-unused-result

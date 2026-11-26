@@ -1,112 +1,46 @@
-{{-- ResultFlow package guidelines for Laravel Boost (downstream app usage) --}}
+{{-- Result Flow guidance for downstream applications. --}}
 
-# ResultFlow Core Guidelines
+# Result Flow v2
 
-## Audience and intent
-
-- These guidelines are for agents generating code in Laravel applications that consume `maxiviper117/result-flow`.
-- Focus on app-level usage of public `Result` APIs.
-- Do not include package-maintainer workflow/tooling guidance in generated app code.
-- Keep examples compatible with PHP 8.2+ unless the host app explicitly targets a newer runtime.
-
-## When to use ResultFlow
-
-- Use `Maxiviper117\ResultFlow\Result` when failure is expected and should be handled explicitly in normal control flow.
-- Prefer ResultFlow for multi-step workflows (validation, persistence, side effects, response mapping).
-- Use the kitchen-sink docs for a full method tour when you need to compare related APIs; the pages use a consistent
-quick-map + method-by-method structure, and the reference docs stay best for exact signatures or edge behavior.
-- Keep exception throwing for truly exceptional conditions; use `Result::fail(...)` for expected domain/application
-failures.
-- Use `Result::failWithValue(...)` when the input that triggered failure should stay visible in metadata.
-- Use `Result::of(...)` when a callback returns a plain value on success and throws on failure; it always wraps the
-callback return value as success.
-- Use `Result::defer(...)` when a callback may return either a plain value or another `Result`; it preserves returned
-`Result` instances instead of wrapping them.
-- Use `Result::retryDefer(...)` or `Result::retrier()` for transient retries, not for validation or deterministic
-business rules.
-- Use `Result::combineAll(...)` when aggregating existing `Result[]` and you need every failure preserved; if any input
-fails, it returns only the collected failures and no success values.
-- Use `DataTaggedError` subclasses when you want distinct named domain error types that can be matched with
-`matchError()` / `catchError()` by class.
-
-## Canonical flow shape
-
-- Start with `Result::ok($input, $meta)`, `Result::fail($error, $meta)`, `Result::of(fn () => ...)`, `Result::defer(fn
-() => ...)`, or `Result::bracket(...)` when resource safety is required.
-- Compose steps with `->ensure(...)`, `->then(...)`, and `->otherwise(...)`.
-- Use `->thenUnsafe(...)` only when exception bubbling is the desired boundary behavior, such as transaction rollback.
-- Use `->recover(...)` only when you intentionally convert failure into success.
-- End branches explicitly with either:
-- `->toResponse()` in Laravel HTTP flows, or
-- `->match(onSuccess: ..., onFailure: ...)` for non-HTTP/custom boundaries.
-- Use `->matchException(...)` when the boundary needs Throwable-class-specific handling.
-- Use `->matchError(...)` and `->catchError(...)` for structured domain errors that implement `ResultError`; these
-methods match by class, not by string code. `matchError(...)` supports flexible callback arity for success,
-unhandled, and matched-error handlers. `catchError(...)` handlers/fallback may return either a recovered value or a
-`Result`.
+Use `Maxiviper117\ResultFlow\Result` for expected outcomes. Construct with `ok($value, $meta)` or `fail($error, $meta)`; null is valid on either branch. Use `map` for a value transformation and `andThen` for a callable returning another Result. Use `mapError` to transform a failure and `orElse` for Result-returning recovery. All callbacks receive one active payload and ordinary callbacks do not catch exceptions.
 
 ```php
-use Maxiviper117\ResultFlow\Result;
+$result = Result::ok($input, ['trace_id' => $traceId])
+    ->map($normalizer->normalize(...))
+    ->andThen($validator->validate(...))
+    ->andThen($orders->save(...));
 
-$result = Result::ok($request->validated(), ['request_id' => (string) $request->header('X-Request-Id')])
-->ensure(fn (array $input) => isset($input['email']), 'Email is required')
-->then(fn (array $input) => $userService->create($input))
-->otherwise(fn ($error, array $meta) => Result::fail([
-'message' => (string) $error,
-'request_id' => $meta['request_id'] ?? null,
-], $meta));
-
-return $result->toResponse();
+return $result->match(
+    onSuccess: fn ($order) => response()->json(['id' => $order->id], 201),
+    onFailure: fn ($error) => $responses->forOrderError($error),
+);
 ```
 
-## Metadata discipline
+`andThen` and `orElse` shallow-merge metadata, with returned Result keys taking precedence, including null. `withMeta` replaces the bag. Do not expose diagnostic metadata to clients unless explicitly allowlisted.
 
-- Metadata is part of the contract. Treat it as `array<string,mixed>`.
-- Preserve metadata across steps; when transforming failure, forward existing `$meta`.
-- Use stable keys like `request_id`, `trace_id`, `operation`, and `context`.
-- If a pipeline step throws, prefer the built-in `failed_step` metadata over ad-hoc duplicate step labels.
-- `mapMeta()` and `mergeMeta()` can inspect the current success value when the result is `Ok`.
-- `Result::retry(...)` and `Result::retryDefer(...)` can expose retry attempt metadata when the builder enables it.
-- Do not silently discard metadata inside `then`, `otherwise`, or `recover` handlers.
+At an exception boundary, use `Result::attempt($fn, catch: ExpectedException::class)` to capture only that exception type and its subclasses. It wraps the returned value, even another Result. `unwrap()` rethrows a Throwable failure or throws `UnwrapFailure` containing the original failure in `failure`. Returning a failure from a Laravel transaction does not cause rollback: throw inside the transaction when rollback is required.
 
-## Laravel response and transaction patterns
+`ResultBatch` provides keyed batch operations. `Retry::config()` and `ResourceScope::run()` capture exceptions; configure retry predicates for transient failures. `Output\Serialization` includes metadata, so map public responses explicitly. `Output\DebugOutput` provides diagnostic serialization.
 
-- For HTTP endpoints, return `Result` from service/action layers and convert once at the edge with `->toResponse()`.
-- Keep `toResponse()` payloads JSON-encodable; the non-Laravel fallback serializes to a JSON string body and can
-fail on invalid encoding.
-- For transactions that must rollback on `Result` failure, call `->throwIfFail()` inside the transaction closure.
-- Map low-level errors to user-safe structures in `otherwise(...)`, while keeping diagnostic details in metadata.
-- Use `Result::retryDefer(...)` for transient operations that may return value/Result or throw.
-- Use `Result::bracket(...)` for acquire/use/release flows where cleanup must always run.
-- If you serialize to XML, remember tag names are normalized for XML safety; treat XML output as a transport format,
-not a lossless mirror of arbitrary array keys.
-- Use `toDebugArray()` for logs and diagnostics instead of `toArray()` when payloads may contain secrets or large
-strings.
-- By default, `toDebugArray()` sanitizes arrays and strings.
-- Object internals are traversed only when `result-flow.debug.sanitize_objects` is enabled.
-- The sanitizer applies the configured object depth guard.
+For a runnable validate/save example and explicit boundary mapping, consult the package's v2 quickstart and recipes.
 
-## Error payload conventions
+This package requires PHP 8.4 or later.
+- Configure debug sanitization explicitly for the application; it is diagnostic output and must not be treated as a public response format.
+- Core Result chains work without Laravel; use framework integration only at the application boundary.
+- `ResourceScope::run` releases an acquired resource even when the use callback throws; inspect `bracket.release_exception` if cleanup also fails.
+- Fallible callbacks passed to `andThen` and `orElse` must return an actual `Result`; an invalid return raises `TypeError`.
+- A null failure is still a failure and skips `andThen`; selective `attempt` capture lets unrelated exceptions propagate unchanged.
+- The core remains framework-independent; when using Laravel, follow the integration and transaction behavior of the application's installed Laravel version.
+- The default debug sanitizer detects array cycles and limits array depth (`array_max_depth`, default 32); disabled or custom sanitizers must provide their own safeguards. XML requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters.
+- Retry defaults to retrying every failure. Filter permanent failures and use idempotency keys for repeated writes; delays block the current PHP process.
+- Applications using PHPStan may opt into `phpstan-result-flow.neon` to flag standalone calls whose inferred return is a Result. Assigning a Result does not itself prove it was handled; use `@phpstan-ignore resultFlow.ignoredResult` for intentional discards.
+- `ResultBatch::firstSuccess` selects the first success (or last failure) from non-empty evaluated results; `zip` combines two evaluated results. For validation, return arrays of messages as keyed failures.
+- Structured `ResultError` causes appear in diagnostic `error_cause` after sanitization; they are not automatically added to client responses.
+- For problem JSON responses, explicitly map domain failures to public fields with `Output\ProblemDetails::response`; it never includes Result metadata automatically.
+- A controller can consume an action with `match`, selecting public fields and a status for each outcome. Publish diagnostic settings in a Laravel app with `php artisan vendor:publish --tag=result-flow-config`.
+- For keyed form validation, aggregate the field checks first and put writes in an `andThen` on the combined Result.
+- The built-in diagnostic sanitizer matches sensitive keys across line breaks and truncates valid UTF-8 on character boundaries without mbstring.
 
-- Use predictable error payloads (`string` or structured array) and be consistent per workflow.
-- If using arrays, include at least a user-facing `message` key and forward correlation keys from metadata.
-- Avoid mixing many unrelated error shapes in the same chain unless the call site normalizes them.
-- Prefer named classes extending `DataTaggedError` for app/domain failures that need stable API payloads and
-explicit branch handling.
-- Treat `code()` as the stable domain/API identifier for structured errors; matching should be based on the error
-class, with the first matching `matchError(...)` / `catchError(...)` handler winning in array order.
-- For `of(...)`, `defer(...)`, `retryDefer(...)`, and batch helpers, assume failure may widen to
-  `TFailure|Throwable` until you normalize it.
-
-## Type-safety defaults
-
-- Prefer typed callback arguments and returns whenever concrete types are known.
-- Return `Result` from chain handlers when behavior is branch-aware; avoid unnecessary `mixed` widening.
-- Use only documented public `Result` methods.
-
-## Anti-patterns to avoid
-
-- Do not model expected validation/business failures only with thrown exceptions.
-- Do not drop metadata when converting one failure shape to another.
-- Do not leave a flow without explicit branch completion (`match`, `toResponse`, `unwrap*`, etc.) at the app
-boundary.
+- Serialization rejects recursive XML arrays and arrays at 128 nesting levels, and rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. Debug cause expansion stops at 32 levels or 256 nodes before any sanitizer.
+- Structured cause serialization throws `LengthException` when it exceeds 32 levels or 256 nodes; debug output truncates instead. Retry callbacks may return raw values or Results, and captured exceptions are failures.
+- Retry rejects a maximum possible delay including jitter over 2,147,483,647 ms with `OverflowException` before the retry hook. ProblemDetails rejects 1xx, 204, 205, and 304 because it emits a body. ResourceScope accepts raw or Result values from acquisition and use callbacks.

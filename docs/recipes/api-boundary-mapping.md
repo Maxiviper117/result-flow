@@ -1,34 +1,20 @@
----
-title: API Boundary Mapping
----
+# API boundary mapping
 
-# API Boundary Mapping
-
-Goal: finish a `Result` at an HTTP boundary without leaking internal control flow into the response layer.
+Map domain outcomes to explicitly chosen response fields, keeping diagnostic metadata private.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
 
-return $result->match(
-    onSuccess: fn (array $value, array $meta) => response()->json([
-        'ok' => true,
-        'data' => $value,
-        'meta' => $meta,
-    ], 200),
-    onFailure: fn ($error, array $meta) => response()->json([
-        'ok' => false,
-        'error' => $error,
-        'meta' => $meta,
-    ], 400),
+$result = Result::fail('invalid email', ['trace_id' => 'internal']);
+$response = $result->match(
+    onSuccess: fn ($user) => ['status' => 201, 'body' => ['id' => $user['id']]],
+    onFailure: fn ($error) => ['status' => 422, 'body' => ['error' => $error]],
 );
+// ['status' => 422, 'body' => ['error' => 'invalid email']]
 ```
 
-## Why this pattern works
+Related: [boundary reference](/reference/boundaries) and [validate then persist](/guides/validate-then-persist).
 
-- the boundary is explicit
-- the caller sees one response shape
-- metadata stays available for tracing
+## Verify what crosses the boundary
 
-## Variation
-
-If you want the package to build the response shape for you, use [`toResponse()`](/reference/boundaries).
+Run `php examples/v2/boundary.php` from the checkout. The sample prints `{"status":422,"body":{"error":"Invalid input"}}`. The Result carries a trace ID internally. The failure handler accepts only the active error and explicitly builds the response, so that identifier stays out of the JSON. For a Laravel response object, use the [controller example](/laravel-boost#return-a-response-from-a-controller).

@@ -1,34 +1,25 @@
----
-title: FAQ
----
-
 # FAQ
 
-## Why use Result Flow instead of throwing everywhere?
+## Is a null payload a failure?
 
-Use exceptions for exceptional conditions. Use Result Flow when failure is expected, part of normal flow, and should stay explicit.
+No. `ok(null)` and `fail(null)` have different tags. Inspect with `isOk` / `isFail` or consume with `match`.
 
-## When should I use `thenUnsafe()`?
+## Do chain callbacks catch exceptions?
 
-Only when exception bubbling is the intended boundary behavior, such as transaction rollback.
+No. Use `attempt` with an explicit Throwable class when capture is appropriate. `Retry` and `ResourceScope` are separate helpers and do capture exceptions.
 
-## What is the difference between `map`, `then`, and `flatMap`?
+## Does an empty child metadata bag clear the parent?
 
-- `map` transforms a success value
-- `then` chains a step that may return a value or a `Result`
-- `flatMap` is an alias of `then`
+No. Missing keys do not delete; use `withMeta([])` on the output to replace the bag.
 
-## Does metadata survive chaining?
+## How do I create an HTTP response?
 
-Yes, unless you replace it with `mapMeta(...)` or return a new result with different metadata.
+Map the Result to your public response explicitly. See [boundaries](/reference/boundaries).
 
-## What should I use for logs?
+## Why did my save run even though validation failed?
 
-Use `toDebugArray()`, not `toArray()`, when the output may contain secrets or long values.
+Check where the save function is called. `andThen($save)` invokes it only on success. An earlier call to `$save($input)` has already performed the work before the chain can select a branch. See [chaining](/concepts/chaining).
 
-## How do I choose between `mapAll`, `mapCollectErrors`, `combine`, and `combineAll`?
+## Why does my failed lookup look successful?
 
-- raw items and fail fast -> `mapAll`
-- raw items and collect all errors -> `mapCollectErrors`
-- existing `Result[]` and fail fast -> `combine`
-- existing `Result[]` and collect all errors -> `combineAll` (returns only failures if any input fails)
+A callback returning `Result::fail(...)` inside `map` produces a successful outer Result containing the failed inner Result. Use `andThen` when the lookup should decide the next branch. The [worked lookup example](/concepts/chaining) shows both outcomes.

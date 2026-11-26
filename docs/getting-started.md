@@ -1,64 +1,44 @@
----
-title: Getting Started
----
+# Save your first order
 
-# Getting Started
+Build a command that accepts a customer name, trims whitespace, and saves an order only if the name is present. A blank name is an expected outcome that the caller can handle. The example uses an in-memory save action so you can run both paths without a database.
 
-Install the package:
+## Run the example
 
-```bash
-composer require maxiviper117/result-flow
+From a checkout of the v2 branch, use PHP 8.4 or later and Composer:
+
+```sh
+composer install
+php examples/v2/action.php ' Ada '
+php examples/v2/action.php '   '
 ```
 
-Then start with the smallest useful flow:
+The first command that runs PHP prints `Saved Ada`. The second prints `Failed: Name is required`. Here is the complete file those commands run:
 
-```php
-use Maxiviper117\ResultFlow\Result;
+<<< ../examples/v2/action.php
 
-$result = Result::ok(['total' => 42], ['request_id' => 'r-1'])
-    ->ensure(fn (array $order) => $order['total'] > 0, 'Total must be positive')
-    ->then(fn (array $order) => Result::ok([
-        'status' => 'queued',
-        'total' => $order['total'],
-    ], ['operation' => 'queue-order']))
-    ->otherwise(fn ($error, array $meta) => Result::fail([
-        'message' => (string) $error,
-        'request_id' => $meta['request_id'] ?? null,
-    ], $meta));
+## Follow the two inputs
+
+| Step | Input `' Ada '` | Input `'   '` |
+| --- | --- | --- |
+| `map` trims the name | Success carrying `'Ada'` | Success carrying `''` |
+| `andThen($validate)` checks the name | Success carrying `'Ada'` | Failure carrying the validation message |
+| `andThen($save)` builds the order | Success carrying the order array | Save is skipped |
+| `match` selects the output | The success callback receives the order | The failure callback receives the message |
+
+An empty string is still a successful value after trimming. The validator makes the business decision to reject it. Keeping that decision in the action lets a CLI print a message while an HTTP controller can return a validation response for the same failure.
+
+## Use it in your application
+
+Once the [v2 release](https://github.com/Maxiviper117/result-flow/releases) is available on Packagist, install it in your application.
+
+```sh
+composer require 'maxiviper117/result-flow:^2.0'
 ```
 
-## How to read it
+Before the release, run the example from a repository checkout as shown above. In your own script, load Composer's `vendor/autoload.php` relative to your project root.
 
-- `ok(...)` starts a success branch.
-- `ensure(...)` keeps success only when the predicate passes.
-- `then(...)` runs the next step only on success.
-- `otherwise(...)` runs only on failure.
-- `match(...)` finishes the flow with an explicit output.
+Continue with [validate then persist](/guides/validate-then-persist) to write an action, or [map a result to HTTP](/recipes/api-boundary-mapping) to expose it to clients.
 
-`meta` is part of the result, not an afterthought. Carry request IDs, operation names, and other correlation data from the start.
+## Try a value PHP treats as falsy
 
-## Core rules
-
-- Success methods skip failures.
-- Failure methods skip successes.
-- `then(...)` catches thrown exceptions and turns them into failure.
-- `thenUnsafe(...)` lets exceptions bubble.
-- `of(...)` is for callbacks that return a plain value on success and throw on failure.
-- `defer(...)` is for callbacks that may return a plain value, return a `Result`, or throw.
-- `of(...)` wraps a returned `Result` as a success value; `defer(...)` preserves a returned `Result` as the active branch.
-
-## Read this next
-
-1. [Result model](/concepts/result-model)
-2. [Constructing results](/concepts/constructing)
-3. [Chaining](/concepts/chaining)
-4. [Failure handling](/concepts/failure-handling)
-5. [Finalization boundaries](/concepts/finalization-boundaries)
-
-## Reference pages
-
-- [Construction reference](/reference/construction)
-- [Chaining reference](/reference/chaining)
-- [Failure handling reference](/reference/failure-handling)
-- [Metadata and debugging reference](/reference/metadata-debugging)
-- [Batch processing reference](/reference/batch-processing)
+Run `php examples/v2/action.php '0'`. The command prints `Saved 0`. The validator compares the trimmed name with the empty string, so this input satisfies its rule. If your own action must reject numeric names, put that decision in validation. The rest of the chain can stay the same.

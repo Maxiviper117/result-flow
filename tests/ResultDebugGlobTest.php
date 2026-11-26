@@ -1,5 +1,6 @@
 <?php
 
+use Maxiviper117\ResultFlow\Output\DebugOutput;
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Tests\Support\ConfigStub;
 
@@ -11,7 +12,7 @@ describe('sensitive key glob matching', function () {
         ]);
 
         $result = Result::fail('err', ['mytoken' => 'secret', 'tokenmy' => 'safe']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['mytoken'])->toBe('***REDACTED***');
         expect($debug['meta']['tokenmy'])->toBe('safe');
@@ -24,7 +25,7 @@ describe('sensitive key glob matching', function () {
         ]);
 
         $result = Result::fail('err', ['token123' => 'secret', '123token' => 'safe']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['token123'])->toBe('***REDACTED***');
         expect($debug['meta']['123token'])->toBe('safe');
@@ -37,7 +38,7 @@ describe('sensitive key glob matching', function () {
         ]);
 
         $result = Result::fail('err', ['a_token_b' => 'secret', 'ak' => 'safe']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['a_token_b'])->toBe('***REDACTED***');
         expect($debug['meta']['ak'])->toBe('safe');
@@ -50,7 +51,7 @@ describe('sensitive key glob matching', function () {
         ]);
 
         $result = Result::fail('err', ['xid' => 'secret', 'id' => 'safe']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['xid'])->toBe('***REDACTED***');
         expect($debug['meta']['id'])->toBe('safe');
@@ -63,7 +64,7 @@ describe('sensitive key glob matching', function () {
         ]);
 
         $result = Result::fail('err', ['api_user' => 'secret', 'session_key' => 'secret2', 'apikey' => 'safe']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['api_user'])->toBe('***REDACTED***');
         expect($debug['meta']['session_key'])->toBe('***REDACTED***');
@@ -77,7 +78,7 @@ describe('sensitive key glob matching', function () {
         ]);
 
         $result = Result::fail('err', ['token' => 'secret', 'TOKEN' => 'secret2']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['token'])->toBe('***REDACTED***');
         expect($debug['meta']['TOKEN'])->toBe('***REDACTED***');
@@ -90,7 +91,7 @@ describe('sensitive key glob matching', function () {
         ]);
 
         $result = Result::fail('err', [123 => 'secret', 'x123' => 'secret2']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta'][123])->toBe('secret');
         expect($debug['meta']['x123'])->toBe('***REDACTED***');
@@ -103,9 +104,27 @@ describe('sensitive key glob matching', function () {
         ]);
 
         $result = Result::fail('err', ['user_password' => 'secret', 'pass' => 'safe']);
-        $debug = $result->toDebugArray();
+        $debug = DebugOutput::toArray($result);
 
         expect($debug['meta']['user_password'])->toBe('***REDACTED***');
         expect($debug['meta']['pass'])->toBe('safe');
+    });
+
+    it('redacts substring and wildcard matches across line breaks', function () {
+        ConfigStub::set('result-flow.debug', ['sensitive_keys' => ['password', 'api_*_key', 'id?token']]);
+
+        $result = Result::ok(null, [
+            "Password\nlabel" => 'private',
+            "api_header\r\n_key" => 'private',
+            "id\ntoken" => 'private',
+            "visible\nlabel" => 'public',
+        ]);
+
+        expect(DebugOutput::toArray($result)['meta'])->toBe([
+            "Password\nlabel" => '***REDACTED***',
+            "api_header\r\n_key" => '***REDACTED***',
+            "id\ntoken" => '***REDACTED***',
+            "visible\nlabel" => 'public',
+        ]);
     });
 });

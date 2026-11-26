@@ -36,13 +36,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip
+          extensions: dom, curl, libxml, mbstring, pdo_sqlite, sqlite3, zip
           coverage: none
 
       - name: Setup problem matchers
@@ -58,3 +58,22 @@ jobs:
 
       - name: Execute tests
         run: vendor/bin/pest --ci
+
+      - name: Check consumer type contracts
+        run: composer analyse:types
+
+  standalone:
+    name: Standalone PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [8.4, 8.5]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - run: composer install --no-dev --no-interaction --prefer-dist
+      - name: Exercise core without framework dependencies
+        run: php scripts/standalone-smoke.php

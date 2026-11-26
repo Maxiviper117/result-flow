@@ -1,29 +1,12 @@
----
-title: Concepts
----
+# Understand a Result
 
-# Concepts
+When a function returns `Result`, the next line of code has two possible inputs: a value from a successful operation, or the reason it failed. Start with the question you have about that handoff.
 
-This section explains the mental model behind Result Flow.
+| Question | Read |
+| --- | --- |
+| Can a successful lookup return null? | [The Result model](/concepts/result-model) |
+| Which callback runs next, and what must it return? | [Chaining actions](/concepts/chaining) |
+| How can a caller recover without losing the original reason? | [Handling failure](/concepts/failure-handling) |
+| Where does a trace ID go when a step returns another Result? | [Metadata](/concepts/metadata) |
 
-If you only need exact method signatures, go to [Reference](/reference/). If you need to solve a concrete problem, go to [Guides](/guides/) or [Recipes](/recipes/).
-
-## Reading order
-
-1. [Result model](/concepts/result-model)
-2. [Constructing results](/concepts/constructing)
-3. [Chaining](/concepts/chaining)
-4. [Failure handling](/concepts/failure-handling)
-5. [Metadata](/concepts/metadata)
-6. [Deferred execution](/concepts/deferred-execution)
-7. [Retries](/concepts/retries)
-8. [Resource safety](/concepts/resource-safety)
-9. [Batch processing](/concepts/batch-processing)
-10. [Finalization boundaries](/concepts/finalization-boundaries)
-
-## What this section is for
-
-- Understand why the library is branch-aware.
-- Understand how values, errors, and metadata move through a flow.
-- Understand where to keep composing and where to stop.
-- Learn the tradeoffs behind the opinionated APIs.
+To see all four ideas in a running PHP script, follow [Save your first order](/getting-started).

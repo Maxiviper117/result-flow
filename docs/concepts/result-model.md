@@ -1,64 +1,23 @@
----
-title: Result Model
----
+# Result model
 
-# Result Model
+`Result::ok($value)` and `Result::fail($error)` use an explicit branch tag. Both payloads may be null, false, zero, an empty string, or an empty array. `isOk()` and `isFail()` inspect the tag; use `match` to consume the active payload.
 
-Result Flow models work as one of two branches:
+Results and their metadata arrays are shallowly immutable: replacing the bag returns another Result, while objects inside it can still be mutable. See [construction](/reference/construction) and [boundaries](/reference/boundaries).
 
-```text
-Ok(value, meta)
-Fail(error, meta)
-```
+## Represent an optional value
 
-That is the core idea. Everything else in the library preserves, transforms, or finalizes one of those two branches.
+A successful search can find zero matches. A failed search means the caller could not obtain an answer. Preserve both meanings even if your application represents a missing match with null.
 
 ```php
 use Maxiviper117\ResultFlow\Result;
 
-$success = Result::ok(['id' => 1], ['request_id' => 'r-1']);
-$failure = Result::fail('Invalid state', ['request_id' => 'r-1']);
+$describe = fn (Result $lookup): string => $lookup->match(
+    onSuccess: fn (?string $name): string => $name ?? 'No match',
+    onFailure: fn (string $reason): string => "Lookup failed: $reason",
+);
+
+echo $describe(Result::ok(null));        // No match
+echo $describe(Result::fail('offline')); // Lookup failed: offline
 ```
 
-## Why it exists
-
-Exceptions are good for exceptional conditions. They are less useful when failure is expected and should be part of normal control flow.
-
-Result Flow is for cases where you want:
-
-- explicit success and failure branches
-- typed chaining
-- metadata that survives the flow
-- a deliberate boundary where the flow becomes a plain value, a response, or a thrown exception
-
-## How it behaves
-
-- `value()` returns the success payload on `Ok`, otherwise `null`.
-- `error()` returns the failure payload on `Fail`, otherwise `null`.
-- `meta()` is always available.
-- Branch-specific methods skip the other branch entirely.
-
-## Why metadata is part of the model
-
-Metadata carries context that should survive the chain:
-
-- request IDs
-- operation names
-- source keys
-- retry information
-- debug context
-
-Treat it as branch data, not logging decoration.
-
-## Common mistakes
-
-- Using `Result` only as a wrapper around exceptions.
-- Dropping metadata too early.
-- Unwrapping before the actual boundary.
-
-## Related pages
-
-- [Constructing results](/concepts/constructing)
-- [Chaining](/concepts/chaining)
-- [Metadata](/concepts/metadata)
-- [Finalization boundaries](/concepts/finalization-boundaries)
+This distinction matters when choosing a fallback. `unwrapOr('Guest')` on a successful null returns null. Use `match` if both a missing match and a failure require their own response.
