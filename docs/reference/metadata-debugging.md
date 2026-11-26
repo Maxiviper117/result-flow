@@ -42,7 +42,7 @@ echo $debug['meta']['trace_id'];  // r7
 echo $debug['meta']['api_token']; // ***REDACTED*** with default settings
 ```
 
-Use the sanitized array for diagnosis. For an HTTP response, choose client-visible fields with [explicit boundary mapping](/recipes/api-boundary-mapping).
+Use the sanitized array for diagnosis. The [logging recipe](/recipes/logging-failures) maps error codes to application-owned log levels and selects fields for a PSR-3 logger. For an HTTP response, choose client-visible fields with [explicit boundary mapping](/recipes/api-boundary-mapping).
 
 ## Interpret truncation markers
 

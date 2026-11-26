@@ -46,3 +46,5 @@ Structured error causes can be nested with `Cause`. Serialization throws `Length
 Follow the [order tutorial](docs/getting-started.md) to run both a successful save and a rejected input, or see the [Laravel controller example](docs/laravel-boost.md) for HTTP response mapping.
 
 JSON serialization rejects `JSON_PARTIAL_OUTPUT_ON_ERROR` so encoding failures throw. XML serialization rejects recursive arrays and arrays at 128 nesting levels. Debug output bounds structured cause expansion before sanitization. See [boundary serialization](docs/reference/boundaries.md) and [metadata and debugging](docs/reference/metadata-debugging.md).
+
+See the [logging recipe](docs/recipes/logging-failures.md) for application-owned PSR-3 severity mapping and selected diagnostic context.

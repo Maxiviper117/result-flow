@@ -45,3 +45,5 @@ Structured cause serialization throws `LengthException` beyond 32 levels or 256 
 The default debug sanitizer matches sensitive key substrings and globs across line breaks. For valid UTF-8 strings, `max_string_length` counts code points even when mbstring is unavailable.
 
 Retry throws `OverflowException` before the retry hook if the maximum delay including jitter exceeds 2,147,483,647 ms. ResourceScope accepts raw or Result acquisition and use values and preserves typed failures along with captured exceptions. ProblemDetails rejects bodyless statuses 1xx, 204, 205, and 304.
+
+Map failure codes or classes to application-owned log levels and select sanitized debug fields for logging. See the package logging recipe.

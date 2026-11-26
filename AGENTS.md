@@ -115,3 +115,5 @@
 - Structured cause serialization shares the debug traversal limits (32 levels, 256 visited nodes) and throws `LengthException` when exceeded; debug truncates before sanitization. Retry callback types preserve raw and Result success values and Result failures, adding `Throwable` for captured exceptions.
 
 - Retry delay arithmetic is integer-only and rejects maximum possible waits including jitter above 2,147,483,647 ms with `OverflowException` before the retry hook; sleep uses whole seconds and a subsecond remainder. ResourceScope preserves typed raw/Result callback unions. ProblemDetails rejects 1xx, 204, 205, and 304 because it always emits a body.
+
+- Keep the logging recipe aligned with application-owned PSR-3 severity mapping and selected sanitized diagnostic context.
