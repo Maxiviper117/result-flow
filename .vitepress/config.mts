@@ -35,6 +35,7 @@ export default defineConfig({
       { text: 'Recipes', items: [
         { text: 'Overview', link: '/recipes/' },
         { text: 'API boundary', link: '/recipes/api-boundary-mapping' },
+        { text: 'Log failures', link: '/recipes/logging-failures' },
         { text: 'Collect errors', link: '/recipes/collecting-batch-errors' },
         { text: 'Resource cleanup', link: '/recipes/resource-cleanup' },
       ] },
