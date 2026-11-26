@@ -254,12 +254,8 @@ final class Debug
             unset($seen[$objectId]);
         }
 
-        if (is_string($value)) {
-            if ($truncateStrings && self::stringLength($value) > $maxStringLength) {
-                return self::stringSlice($value, 0, $maxStringLength).'…';
-            }
-
-            return $value;
+        if (is_string($value) && $truncateStrings) {
+            return self::truncateString($value, $maxStringLength);
         }
 
         return $value;
@@ -312,7 +308,7 @@ final class Debug
                 $hasGlob = strpbrk($p, '*?') !== false;
                 $pattern = $hasGlob ? $p : '*'.$p.'*';
                 $escaped = preg_quote($pattern, '/');
-                $regex = '/^'.str_replace(['\\*', '\\?'], ['.*', '.'], $escaped).'$/i';
+                $regex = '/\A'.str_replace(['\\*', '\\?'], ['.*', '.'], $escaped).'\z/is';
                 $regexes[] = $regex;
             }
             $cache[$cacheKey] = $regexes;
@@ -331,18 +327,26 @@ final class Debug
     }
 
     /**
-     * Calculate string length with multibyte support when available.
+     * Limit valid UTF-8 by character without relying on optional extensions.
      */
-    private static function stringLength(string $value): int
+    private static function truncateString(string $value, int $limit): string
     {
-        return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
-    }
+        $limit = max(0, $limit);
+        if (strlen($value) <= $limit) {
+            return $value;
+        }
 
-    /**
-     * Slice strings with multibyte support when available.
-     */
-    private static function stringSlice(string $value, int $start, int $length): string
-    {
-        return function_exists('mb_substr') ? mb_substr($value, $start, $length) : substr($value, $start, $length);
+        // The last part holds the remainder whenever the string exceeds the limit.
+        $characters = preg_split('//u', $value, $limit + 1, PREG_SPLIT_NO_EMPTY);
+        if ($characters === false) {
+            return substr($value, 0, $limit).'…';
+        }
+        if (count($characters) <= $limit) {
+            return $value;
+        }
+
+        array_pop($characters);
+
+        return implode('', $characters).'…';
     }
 }

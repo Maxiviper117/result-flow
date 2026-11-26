@@ -97,6 +97,7 @@
 - Development tooling uses Pest 5, PHPStan 2.3.7, Rector 2.9.2, Laravel database 12 or 13, and the pinned VitePress 2.0.0-alpha.21 with pnpm 12; verify both lowest and stable dependency resolution on supported PHP versions.
 - PHPBench 1.7 currently requires the abandoned development-only `doctrine/annotations` package; Composer audit reports this separately from security advisories.
 - The built-in debug sanitizer detects recursive array references and limits nested arrays independently with `array_max_depth` (default 32, clamped 1–128); disabled/custom sanitizers bypass the built-in limit. XML requires SimpleXML and rejects invalid UTF-8 or XML 1.0 text.
+- Debug key patterns span line breaks. For valid UTF-8, the sanitizer truncates at code point boundaries without requiring mbstring. Preserve coverage for multiline keys and JSON encoding without mbstring or Composer polyfills.
 - Retry uses a retry-all default; document transient predicates, blocking delays and idempotency, and test thrown retry policy callbacks.
 - `phpstan-result-flow.neon` enables the optional discarded-Result rule; `composer analyse:types` checks positive, negative, and explicit-suppression fixtures. The rule is static analysis only and is not a runtime dependency.
 - `ResultBatch::firstSuccess` rejects empty input and preserves metadata from visited results; `zip` combines two already-evaluated Results. Field-level validation can aggregate arrays of messages with `mapAllErrors`.

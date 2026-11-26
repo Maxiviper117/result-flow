@@ -34,6 +34,18 @@ final class DebugTestCycleNode
 }
 
 describe('toDebugArray()', function () {
+    it('preserves valid UTF-8 when truncating without mbstring', function () {
+        $command = escapeshellarg(PHP_BINARY).' -d disable_functions=mb_strlen,mb_substr '.escapeshellarg(__DIR__.'/Support/DebugWithoutMbstring.php');
+        exec($command, $output, $status);
+
+        expect($status)->toBe(0);
+        $debug = json_decode(implode("\n", $output), true, flags: JSON_THROW_ON_ERROR);
+        $atLimit = str_repeat('a', 199).'é';
+
+        expect($debug['error_message'])->toBe($atLimit.'…')
+            ->and($debug['meta']['caption'])->toBe($atLimit);
+    });
+
     it('sanitizes sensitive keys and truncates long strings with defaults', function () {
         ConfigStub::reset();
 

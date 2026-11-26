@@ -28,6 +28,8 @@ Related: [metadata concepts](/concepts/metadata).
 
 For a `ResultError` with a `Cause`, `error_cause` contains the nested cause data after the configured sanitizer runs, including redaction of matching metadata keys. It is `null` when no structured cause is present. Custom or disabled sanitization may expose sensitive data.
 
+Sensitive key matching is case-insensitive. Plain patterns match substrings, and wildcards can span line breaks in keys. The string limit counts UTF-8 code points for valid UTF-8 text and preserves complete characters even without `mbstring`.
+
 ### Inspect a sanitized field
 
 ```php

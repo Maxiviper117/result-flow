@@ -31,7 +31,7 @@ The VitePress documentation is in [docs](docs/). Laravel Boost guidance ships in
 
 Development tests include a real SQLite-backed Laravel transaction. The Laravel database component is a development dependency only; it is not required to use the core package.
 
-The built-in debug sanitizer bounds nested arrays by default. XML output requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters. Retry delays block execution and throw `OverflowException` before the retry hook when the maximum possible delay including jitter exceeds 2,147,483,647 ms; filter permanent failures and use idempotency keys for retried writes.
+The built-in debug sanitizer bounds nested arrays by default. It redacts matching keys across line breaks and truncates valid UTF-8 at character boundaries. XML output requires SimpleXML and rejects invalid UTF-8 or XML 1.0 characters. Retry delays block execution and throw `OverflowException` before the retry hook when the maximum possible delay including jitter exceeds 2,147,483,647 ms. Filter permanent failures and use idempotency keys for retried writes.
 
 Applications using PHPStan can opt into `phpstan-result-flow.neon` to detect discarded Result-returning calls; see the [guide](docs/guides/unused-results.md) for limitations and intentional suppression.
 

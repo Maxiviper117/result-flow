@@ -109,4 +109,22 @@ describe('sensitive key glob matching', function () {
         expect($debug['meta']['user_password'])->toBe('***REDACTED***');
         expect($debug['meta']['pass'])->toBe('safe');
     });
+
+    it('redacts substring and wildcard matches across line breaks', function () {
+        ConfigStub::set('result-flow.debug', ['sensitive_keys' => ['password', 'api_*_key', 'id?token']]);
+
+        $result = Result::ok(null, [
+            "Password\nlabel" => 'private',
+            "api_header\r\n_key" => 'private',
+            "id\ntoken" => 'private',
+            "visible\nlabel" => 'public',
+        ]);
+
+        expect(DebugOutput::toArray($result)['meta'])->toBe([
+            "Password\nlabel" => '***REDACTED***',
+            "api_header\r\n_key" => '***REDACTED***',
+            "id\ntoken" => '***REDACTED***',
+            "visible\nlabel" => 'public',
+        ]);
+    });
 });
