@@ -52,6 +52,10 @@ final class Serialization
      */
     public static function toJson(Result $result, int $options = 0): string
     {
+        if (($options & JSON_PARTIAL_OUTPUT_ON_ERROR) !== 0) {
+            throw new \InvalidArgumentException('JSON_PARTIAL_OUTPUT_ON_ERROR is incompatible with throwing on encoding failure');
+        }
+
         return json_encode(self::toArray($result), $options | JSON_THROW_ON_ERROR);
     }
 
@@ -69,7 +73,8 @@ final class Serialization
             throw new \RuntimeException('XML output requires the SimpleXML extension');
         }
         $xml = new \SimpleXMLElement('<'.self::normalizeXmlElementName($rootElement).'/>');
-        self::arrayToXml(self::toArray($result), $xml);
+        $references = [];
+        self::arrayToXml(self::toArray($result), $xml, 0, $references);
 
         return (string) $xml->asXML();
     }
@@ -78,14 +83,30 @@ final class Serialization
      * Recursively write array data to an XML element.
      *
      * @param  array<array-key, mixed>  $data
+     * @param  array<string, bool>  $references
      */
-    private static function arrayToXml(array $data, \SimpleXMLElement $xml): void
+    private static function arrayToXml(array $data, \SimpleXMLElement $xml, int $depth, array &$references): void
     {
+        if ($depth >= 128) {
+            throw new \InvalidArgumentException('XML output exceeds maximum array depth');
+        }
+
         foreach ($data as $key => $value) {
+            $reference = is_array($value) ? \ReflectionReference::fromArrayElement($data, $key) : null;
+            $referenceId = $reference?->getId();
             $key = self::normalizeXmlElementName((string) $key);
             if (is_array($value)) {
+                if ($referenceId !== null && isset($references[$referenceId])) {
+                    throw new \InvalidArgumentException('XML output contains a recursive array');
+                }
+                if ($referenceId !== null) {
+                    $references[$referenceId] = true;
+                }
                 $subnode = $xml->addChild($key);
-                self::arrayToXml($value, $subnode);
+                self::arrayToXml($value, $subnode, $depth + 1, $references);
+                if ($referenceId !== null) {
+                    unset($references[$referenceId]);
+                }
             } else {
                 $text = self::stringifyValue($value);
                 if (preg_match('/\A[\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]*\z/u', $text) !== 1) {

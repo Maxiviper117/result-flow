@@ -100,3 +100,24 @@ it('reports a clear error when SimpleXML is unavailable', function () {
     exec($command, $output, $status);
     expect($status)->toBe(0)->and(implode("\n", $output))->toBe('XML output requires the SimpleXML extension');
 });
+
+it('rejects partial JSON output even for valid values', function () {
+    expect(fn () => Serialization::toJson(Result::ok(1), JSON_PARTIAL_OUTPUT_ON_ERROR))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => Serialization::toJson(Result::ok(INF), JSON_PARTIAL_OUTPUT_ON_ERROR))->toThrow(InvalidArgumentException::class);
+});
+
+it('rejects recursive and excessively deep XML arrays but accepts shared siblings', function () {
+    $recursive = [];
+    $recursive['self'] = &$recursive;
+    $deep = 'end';
+    for ($i = 0; $i < 130; $i++) {
+        $deep = ['child' => $deep];
+    }
+    $shared = ['name' => 'same'];
+    $siblings = ['first' => &$shared, 'second' => &$shared];
+    expect(fn () => Serialization::toXml(Result::ok($recursive)))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => Serialization::toXml(Result::ok($deep)))->toThrow(InvalidArgumentException::class);
+    $xml = new SimpleXMLElement(Serialization::toXml(Result::ok($siblings)));
+    expect((string) $xml->value->first->name)->toBe('same')
+        ->and((string) $xml->value->second->name)->toBe('same');
+});

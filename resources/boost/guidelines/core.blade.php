@@ -39,3 +39,5 @@ This package requires PHP 8.4 or later.
 - For problem JSON responses, explicitly map domain failures to public fields with `Output\ProblemDetails::response`; it never includes Result metadata automatically.
 - A controller can consume an action with `match`, selecting public fields and a status for each outcome. Publish diagnostic settings in a Laravel app with `php artisan vendor:publish --tag=result-flow-config`.
 - For keyed form validation, aggregate the field checks first and put writes in an `andThen` on the combined Result.
+
+- Serialization rejects recursive XML arrays and arrays at 128 nesting levels, and rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. Debug cause expansion stops at 32 levels or 256 nodes before any sanitizer.

@@ -107,3 +107,5 @@
 - The documentation preview uses the normal site base; maintainers control releases and tags.
 - The getting-started tutorial includes the runnable source from `examples/v2/action.php`. Verify the documented command with both a name and whitespace after changing the example.
 - Keep the method finder organized by the caller's starting point. Keep the reference index mapped to the public core methods and helper pages.
+
+- XML serialization rejects recursive arrays and arrays at 128 nesting levels; JSON rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. Debug cause expansion is bounded to 32 levels and 256 nodes before any sanitizer. The discarded-Result rule ignores never-returning calls.

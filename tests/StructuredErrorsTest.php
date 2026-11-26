@@ -48,3 +48,25 @@ it('preserves an error cause explicitly when normalizing a failure', function ()
     $cause = DebugOutput::toArray($result)['error_cause'];
     expect($cause['code'])->toBe('DB')->and($cause['causes'][0]['code'])->toBe('SOCKET');
 });
+
+it('bounds cause expansion before invoking a custom sanitizer', function () {
+    $cause = new Cause('LEAF', 'leaf');
+    for ($i = 0; $i < 40; $i++) {
+        $cause = new Cause('NODE', 'node', [], [$cause, $cause]);
+    }
+    $result = Result::fail(new DataTaggedError('FAIL', 'failure', cause: $cause));
+    $debug = DebugOutput::toArray($result, fn ($value) => $value);
+    $encoded = json_encode($debug, JSON_THROW_ON_ERROR);
+    expect($encoded)->toContain('[cause_limit_exceeded]')->and(strlen($encoded))->toBeLessThan(30000);
+});
+
+it('limits wide cause lists at the depth boundary', function () {
+    $leaf = new Cause('LEAF', 'leaf');
+    $cause = new Cause('WIDE', 'wide', [], array_fill(0, 10000, $leaf));
+    for ($i = 0; $i < 31; $i++) {
+        $cause = new Cause('NODE', 'node', [], [$cause]);
+    }
+    $debug = DebugOutput::toArray(Result::fail(new DataTaggedError('FAIL', 'failure', cause: $cause)), fn ($value) => $value);
+    $encoded = json_encode($debug, JSON_THROW_ON_ERROR);
+    expect($encoded)->toContain('[cause_limit_exceeded]')->and(strlen($encoded))->toBeLessThan(5000);
+});

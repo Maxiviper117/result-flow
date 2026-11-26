@@ -37,3 +37,5 @@ Structured error causes appear in `DebugOutput::toArray()` under `error_cause`, 
 Use the getting-started order example to compare valid and blank inputs. A failed validator skips the save action and reaches the failure handler directly.
 
 An empty validation batch succeeds with an empty array. Validate required cardinality separately before collecting per-field errors.
+
+JSON serialization rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. XML rejects recursive arrays and nesting at 128 levels, while allowing shared children. Debug cause expansion stops at 32 levels or 256 nodes before invoking any sanitizer, marking omitted branches with `[cause_limit_exceeded]`.
