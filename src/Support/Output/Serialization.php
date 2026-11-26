@@ -20,6 +20,8 @@ final class Serialization
      *
      * @param  Result<TSuccess, TFailure>  $result
      * @return array{ok: bool, value: mixed, error: mixed, meta: array<string,mixed>}
+     *
+     * @throws \LengthException When a structured cause exceeds its traversal limits.
      */
     public static function toArray(Result $result): array
     {
@@ -48,7 +50,9 @@ final class Serialization
      * @param  Result<TSuccess, TFailure>  $result
      * @param  int  $options  JSON encoding options
      *
+     * @throws \InvalidArgumentException When partial output is requested.
      * @throws \JsonException
+     * @throws \LengthException When a structured cause exceeds its traversal limits.
      */
     public static function toJson(Result $result, int $options = 0): string
     {
@@ -66,6 +70,10 @@ final class Serialization
      * @template TFailure
      *
      * @param  Result<TSuccess, TFailure>  $result
+     *
+     * @throws \InvalidArgumentException When the data contains invalid XML text or recursive or excessively nested arrays.
+     * @throws \LengthException When a structured cause exceeds its traversal limits.
+     * @throws \RuntimeException When SimpleXML is unavailable.
      */
     public static function toXml(Result $result, string $rootElement = 'result'): string
     {
