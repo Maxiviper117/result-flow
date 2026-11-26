@@ -45,3 +45,10 @@ if (random_int(0, 1) === 1) {
 }
 // @phpstan-ignore resultFlow.ignoredResult
 saveResult();
+
+function terminateExecution(): never
+{
+    throw new RuntimeException('terminated');
+}
+
+terminateExecution();

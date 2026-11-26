@@ -14,6 +14,7 @@ use PhpParser\Node\Stmt\Expression;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\Type\NeverType;
 use PHPStan\Type\ObjectType;
 
 /** @implements Rule<Expression> */
@@ -31,7 +32,8 @@ final class UnusedResultRule implements Rule
             return [];
         }
 
-        if (! new ObjectType(Result::class)->isSuperTypeOf($scope->getType($expression))->yes()) {
+        $type = $scope->getType($expression);
+        if ($type instanceof NeverType || ! new ObjectType(Result::class)->isSuperTypeOf($type)->yes()) {
             return [];
         }
 
