@@ -57,3 +57,14 @@ Related: [Result model](/concepts/result-model).
 `Output\Serialization::toArray`, `toJson`, and `toXml` serialize the Result including metadata. JSON encoding throws `JsonException` on failure. XML requires SimpleXML and throws `RuntimeException` when it is unavailable. Invalid UTF-8 or XML 1.0 characters raise `InvalidArgumentException` rather than silently losing text; numeric keys become `item` plus digits, invalid characters become underscores, surrounding underscores are trimmed, empty names become `item`, and names starting with a digit or `xml` get an `item_` prefix.
 
 `Output\ProblemDetails::response($status, $title, $type = 'about:blank', $detail = null, $instance = null, $extensions = [])` builds an explicit [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem JSON response with `application/problem+json`. The caller chooses public fields; Result payloads and metadata are never included automatically. Standard fields cannot be overridden by extensions. Invalid status codes or extension collisions throw `InvalidArgumentException`; JSON encoding errors throw `JsonException`.
+
+For example, tell a client that an order conflicts with current inventory. The application chooses the public explanation.
+
+```php
+use Maxiviper117\ResultFlow\Output\ProblemDetails;
+
+$response = ProblemDetails::response(409, 'Out of stock', detail: 'Choose a smaller quantity.');
+// $response['status'] === 409
+// $response['headers']['Content-Type'] === 'application/problem+json'
+// Decode $response['body'] to read the title, detail, type, and status.
+```

@@ -24,6 +24,20 @@ Related: [metadata concepts](/concepts/metadata).
 
 ## Debug output
 
-`Output\DebugOutput::toArray($result, ?callable $sanitizer = null)` returns types, selected error details, and sanitized metadata. Defaults redact sensitive keys and truncate long strings. Laravel configuration lives under `result-flow.debug`: `enabled`, `redaction`, `sensitive_keys`, `max_string_length`, `truncate_strings`, `sanitize_objects`, and `object_max_depth`, and `array_max_depth`. Arrays are bounded independently (default 32, clamped to 1–128) and truncated with `[array_depth_exceeded]`; recursive array references are replaced with `[circular_reference]`. Disabling sanitization or supplying a custom sanitizer bypasses this built-in bound. Object traversal is opt-in; review its configuration before logging. Diagnostic output is not a public response contract.
+`Output\DebugOutput::toArray($result, ?callable $sanitizer = null)` returns types, selected error details, and sanitized metadata. Defaults redact sensitive keys and truncate long strings. Laravel configuration lives under `result-flow.debug`: `enabled`, `redaction`, `sensitive_keys`, `max_string_length`, `truncate_strings`, `sanitize_objects`, `object_max_depth`, and `array_max_depth`. Arrays are bounded independently (default 32, clamped to 1–128) and truncated with `[array_depth_exceeded]`; recursive array references are replaced with `[circular_reference]`. Disabling sanitization or supplying a custom sanitizer bypasses this built-in bound. Object traversal is opt-in; review its configuration before logging. Diagnostic output is not a public response contract.
 
 For a `ResultError` with a `Cause`, `error_cause` contains the nested cause data after the configured sanitizer runs, including redaction of matching metadata keys. It is `null` when no structured cause is present. Custom or disabled sanitization may expose sensitive data.
+
+### Inspect a sanitized field
+
+```php
+use Maxiviper117\ResultFlow\Output\DebugOutput;
+use Maxiviper117\ResultFlow\Result;
+
+$result = Result::fail('timeout', ['trace_id' => 'r7', 'api_token' => 'private']);
+$debug = DebugOutput::toArray($result);
+echo $debug['meta']['trace_id'];  // r7
+echo $debug['meta']['api_token']; // ***REDACTED*** with default settings
+```
+
+Use the sanitized array for diagnosis. For an HTTP response, choose client-visible fields with [explicit boundary mapping](/recipes/api-boundary-mapping).

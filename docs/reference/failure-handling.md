@@ -22,3 +22,22 @@ $result = Result::fail('unavailable')->orElse(fn (string $e): Result => Result::
 ```
 
 Related: [validate then persist](/guides/validate-then-persist).
+
+## Give callers a stable error code
+
+Use a structured error when several callers need to distinguish failure reasons. A CLI can display the message while an HTTP handler switches on the code. Keep diagnostic details in the payload or cause, and choose which fields each caller may see.
+
+```php
+use Maxiviper117\ResultFlow\Result;
+use Maxiviper117\ResultFlow\Support\Errors\DataTaggedError;
+
+$error = new DataTaggedError('stock.empty', 'Item is out of stock', ['sku' => 'A42']);
+$result = Result::fail($error);
+$status = $result->match(
+    onSuccess: fn ($order): int => 201,
+    onFailure: fn (DataTaggedError $e): int => $e->code() === 'stock.empty' ? 409 : 400,
+);
+// $status === 409
+```
+
+`code()` returns the string domain code. `message()`, `payload()`, and `cause()` expose the other parts. A tagged error is throwable, so calling `unwrap()` on this failure throws the same error object.

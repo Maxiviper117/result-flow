@@ -38,3 +38,5 @@ Applications using PHPStan can opt into `phpstan-result-flow.neon` to detect dis
 Structured error causes can be nested with `Cause`; `DebugOutput` exposes them in the sanitized `error_cause` field.
 
 `Output\ProblemDetails::response()` builds an explicit RFC 9457 problem JSON response from fields chosen by the application; it does not automatically expose Result errors or metadata.
+
+Follow the [order tutorial](docs/getting-started.md) to run both a successful save and a rejected input, or see the [Laravel controller example](docs/laravel-boost.md) for HTTP response mapping.

@@ -33,3 +33,5 @@ An optional PHPStan rule in `phpstan-result-flow.neon` flags discarded standalon
 Structured error causes appear in `DebugOutput::toArray()` under `error_cause`, sanitized with the same configured sanitizer as metadata.
 
 `Output\ProblemDetails::response` builds an explicit RFC 9457 problem JSON response. Map domain errors to safe public fields; metadata is not automatically included.
+
+Use the getting-started order example to compare valid and blank inputs. A failed validator skips the save action and reaches the failure handler directly.
