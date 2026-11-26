@@ -41,3 +41,4 @@ This package requires PHP 8.4 or later.
 - For keyed form validation, aggregate the field checks first and put writes in an `andThen` on the combined Result.
 
 - Serialization rejects recursive XML arrays and arrays at 128 nesting levels, and rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. Debug cause expansion stops at 32 levels or 256 nodes before any sanitizer.
+- Structured cause serialization throws `LengthException` when it exceeds 32 levels or 256 nodes; debug output truncates instead. Retry callbacks may return raw values or Results, and captured exceptions are failures.

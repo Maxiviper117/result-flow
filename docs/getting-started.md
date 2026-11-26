@@ -29,7 +29,13 @@ An empty string is still a successful value after trimming. The validator makes 
 
 ## Use it in your application
 
-Once a v2 beta is published, install it with `composer require 'maxiviper117/result-flow:^2.0@beta'`. In your own script, load Composer's `vendor/autoload.php` relative to your project root.
+Once the [v2 release](https://github.com/Maxiviper117/result-flow/releases) is available on Packagist, install it in your application.
+
+```sh
+composer require 'maxiviper117/result-flow:^2.0'
+```
+
+Before the release, run the example from a repository checkout as shown above. In your own script, load Composer's `vendor/autoload.php` relative to your project root.
 
 Continue with [validate then persist](/guides/validate-then-persist) to write an action, or [map a result to HTTP](/recipes/api-boundary-mapping) to expose it to clients.
 

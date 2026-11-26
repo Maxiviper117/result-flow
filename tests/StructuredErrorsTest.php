@@ -70,3 +70,28 @@ it('limits wide cause lists at the depth boundary', function () {
     $encoded = json_encode($debug, JSON_THROW_ON_ERROR);
     expect($encoded)->toContain('[cause_limit_exceeded]')->and(strlen($encoded))->toBeLessThan(5000);
 });
+
+it('rejects excessive structured cause expansion at every serialization boundary', function () {
+    $cause = new Cause('LEAF', 'leaf');
+    for ($i = 0; $i < 20; $i++) {
+        $cause = new Cause('NODE', 'node', [], [$cause, $cause]);
+    }
+    $error = new DataTaggedError('FAIL', 'failure', cause: $cause);
+    $result = Result::fail($error);
+    expect(fn () => $cause->toArray())->toThrow(LengthException::class)
+        ->and(fn () => $error->toArray())->toThrow(LengthException::class)
+        ->and(fn () => Serialization::toArray($result))->toThrow(LengthException::class)
+        ->and(fn () => Serialization::toJson($result))->toThrow(LengthException::class)
+        ->and(fn () => Serialization::toXml($result))->toThrow(LengthException::class);
+});
+
+it('rejects deep structured causes while allowing shared causes within the limit', function () {
+    $leaf = new Cause('LEAF', 'leaf');
+    $shared = new Cause('ROOT', 'root', [], [$leaf, $leaf]);
+    expect($shared->toArray()['causes'])->toHaveCount(2);
+    $deep = $leaf;
+    for ($i = 0; $i < 32; $i++) {
+        $deep = new Cause('NODE', 'node', [], [$deep]);
+    }
+    expect(fn () => $deep->toArray())->toThrow(LengthException::class);
+});

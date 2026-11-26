@@ -121,8 +121,10 @@ final class Retry
     /**
      * Execute the operation with retry behavior.
      *
-     * @param  callable(): (Result<mixed, mixed>|mixed)  $fn
-     * @return Result<mixed, mixed>
+     * @template TReturn
+     *
+     * @param  callable(): TReturn  $fn
+     * @return Result<(TReturn is Result<mixed, mixed> ? template-type<TReturn, Result, 'TSuccess'> : TReturn), (TReturn is Result<mixed, mixed> ? template-type<TReturn, Result, 'TFailure'> : never)|Throwable>
      */
     public function attempt(callable $fn): Result
     {

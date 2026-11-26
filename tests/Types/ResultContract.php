@@ -7,6 +7,7 @@ namespace Maxiviper117\ResultFlow\Tests\Types;
 use JsonException;
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\ResultBatch;
+use Maxiviper117\ResultFlow\Retry;
 
 use function PHPStan\Testing\assertType;
 
@@ -67,3 +68,15 @@ function checkNullable(Result $nullable): void
 {
     assertType('null', $nullable->match(fn ($value) => $value, fn ($error) => $error));
 }
+
+$retryResult = Retry::config()->attempt(fn () => validate('input'));
+assertType('Maxiviper117\\ResultFlow\\Result<int, Maxiviper117\\ResultFlow\\Tests\\Types\\ValidationError|Throwable>', $retryResult);
+$retryRaw = Retry::config()->attempt(fn (): int => 42);
+assertType('Maxiviper117\\ResultFlow\\Result<int, Throwable>', $retryRaw);
+
+/** @return Result<string, ValidationError>|int */
+function retryMixed(): Result|int
+{
+    return random_int(0, 1) ? validate('input')->map(fn (int $value): string => (string) $value) : 42;
+}
+assertType('Maxiviper117\\ResultFlow\\Result<int|string, Maxiviper117\\ResultFlow\\Tests\\Types\\ValidationError|Throwable>', Retry::config()->attempt(retryMixed(...)));

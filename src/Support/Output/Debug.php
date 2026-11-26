@@ -7,6 +7,7 @@ namespace Maxiviper117\ResultFlow\Support\Output;
 use JsonSerializable;
 use Maxiviper117\ResultFlow\Result;
 use Maxiviper117\ResultFlow\Support\Errors\Cause;
+use Maxiviper117\ResultFlow\Support\Errors\CauseTraversal;
 use Maxiviper117\ResultFlow\Support\Errors\ResultError;
 use Throwable;
 
@@ -41,8 +42,7 @@ final class Debug
                 $errorMessage = $sanitizer($error->message());
                 $cause = $error->cause();
                 if ($cause instanceof Cause) {
-                    $remaining = 256;
-                    $errorCause = $sanitizer(self::expandCause($cause, 0, $remaining));
+                    $errorCause = $sanitizer(CauseTraversal::expand($cause, truncate: true));
                 }
             } elseif ($error instanceof Throwable) {
                 $errorMessage = $sanitizer($error->getMessage());
@@ -60,28 +60,6 @@ final class Debug
             'error_cause' => $errorCause,
             'meta' => $sanitizer($result->meta()),
         ];
-    }
-
-    /** @return array<string, mixed>|string */
-    private static function expandCause(Cause $cause, int $depth, int &$remaining): array|string
-    {
-        if ($depth >= 32 || $remaining <= 0) {
-            return '[cause_limit_exceeded]';
-        }
-        $remaining--;
-        $out = ['code' => $cause->code(), 'message' => $cause->message(), 'metadata' => $cause->metadata()];
-        if ($cause->causes() !== []) {
-            $out['causes'] = [];
-            foreach ($cause->causes() as $child) {
-                if ($remaining <= 0 || $depth + 1 >= 32) {
-                    $out['causes'][] = '[cause_limit_exceeded]';
-                    break;
-                }
-                $out['causes'][] = self::expandCause($child, $depth + 1, $remaining);
-            }
-        }
-
-        return $out;
     }
 
     /**

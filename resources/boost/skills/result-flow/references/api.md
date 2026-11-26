@@ -39,3 +39,5 @@ Use the getting-started order example to compare valid and blank inputs. A faile
 An empty validation batch succeeds with an empty array. Validate required cardinality separately before collecting per-field errors.
 
 JSON serialization rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. XML rejects recursive arrays and nesting at 128 levels, while allowing shared children. Debug cause expansion stops at 32 levels or 256 nodes before invoking any sanitizer, marking omitted branches with `[cause_limit_exceeded]`.
+
+Structured cause serialization throws `LengthException` beyond 32 levels or 256 visited nodes; debug truncates instead. Retry callbacks may return raw values or Results; their failures include captured `Throwable` values.

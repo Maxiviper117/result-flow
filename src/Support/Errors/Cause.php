@@ -49,23 +49,11 @@ final class Cause
 
     /**
      * @return array<string,mixed>
+     *
+     * @throws \LengthException When the cause graph exceeds its traversal limits.
      */
     public function toArray(): array
     {
-        $out = [
-            'code' => $this->code,
-            'message' => $this->message,
-            'metadata' => $this->metadata,
-        ];
-
-        if ($this->causes !== []) {
-            $causesArr = [];
-            foreach ($this->causes as $c) {
-                $causesArr[] = $c->toArray();
-            }
-            $out['causes'] = $causesArr;
-        }
-
-        return $out;
+        return CauseTraversal::expand($this);
     }
 }

@@ -29,7 +29,7 @@ echo $result->unwrap(); // available
 echo $result->meta()['retry']['attempts']; // 2
 ```
 
-By default all failures are eligible for retry, up to `maxAttempts` (one attempt by default). `attempt` captures exceptions from the operation; exceptions from `when` and `onRetry` propagate. Delays block the current PHP process. `delay`, `exponential`, and `jitter` control the wait, and `attachAttemptMeta` records the number of attempts.
+By default all failures are eligible for retry, up to `maxAttempts` (one attempt by default). `attempt` accepts callbacks returning a raw value or a Result, preserves the success and failure types, and adds `Throwable` to the failure type for captured exceptions; exceptions from `when` and `onRetry` propagate. Delays block the current PHP process. `delay`, `exponential`, and `jitter` control the wait, and `attachAttemptMeta` records the number of attempts.
 
 - [Failure handling](/concepts/failure-handling)
 

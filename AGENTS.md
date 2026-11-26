@@ -82,6 +82,7 @@
 ## Release hygiene
 - Releases update `CHANGELOG.md` via GitHub workflows.
 - Avoid changing package version metadata in PRs.
+- Use a Conventional Commit title with `!` for a breaking PR so its default squash commit triggers the next major release. The v2 quickstart uses a checkout before publication and a stable `^2.0` constraint after publication.
 
 ## V2 transition
 - V2 exposes a 14-method core and standalone helpers. Chaining merges metadata shallowly with the returned result taking precedence.
@@ -109,3 +110,5 @@
 - Keep the method finder organized by the caller's starting point. Keep the reference index mapped to the public core methods and helper pages.
 
 - XML serialization rejects recursive arrays and arrays at 128 nesting levels; JSON rejects `JSON_PARTIAL_OUTPUT_ON_ERROR`. Debug cause expansion is bounded to 32 levels and 256 nodes before any sanitizer. The discarded-Result rule ignores never-returning calls.
+
+- Structured cause serialization shares the debug traversal limits (32 levels, 256 visited nodes) and throws `LengthException` when exceeded; debug truncates before sanitization. Retry callback types preserve raw and Result success values and Result failures, adding `Throwable` for captured exceptions.

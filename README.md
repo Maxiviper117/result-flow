@@ -19,7 +19,9 @@ $message = Result::ok(' 42 ')
 // Accepted: 42
 ```
 
-After a v2 beta is published, install it with `composer require 'maxiviper117/result-flow:^2.0@beta'`. `map` transforms a value; `andThen` requires a Result-returning callback. `mapError` transforms a failure, and `orElse` provides Result-returning recovery. Callbacks receive one payload and thrown exceptions propagate. `Result::attempt($callback, catch: ExpectedException::class)` selectively captures an exception and wraps the callback's return without flattening it.
+After v2 is available on Packagist, install it with `composer require 'maxiviper117/result-flow:^2.0'`. To try v2 before release, follow the checkout instructions in the [order tutorial](docs/getting-started.md).
+
+`map` transforms a value. `andThen` requires a Result-returning callback. `mapError` transforms a failure, and `orElse` provides Result-returning recovery. Callbacks receive one payload and thrown exceptions propagate. `Result::attempt($callback, catch: ExpectedException::class)` selectively captures an exception and wraps the callback's return without flattening it.
 
 `andThen` and `orElse` shallow-merge metadata, with returned Result keys taking precedence. Use `withMeta()` to replace the bag. Diagnostic metadata should not be exposed to clients unless explicitly allowlisted. `unwrap()` throws failed results; non-Throwable failure values are retained by `UnwrapFailure`.
 
@@ -35,7 +37,9 @@ Applications using PHPStan can opt into `phpstan-result-flow.neon` to detect dis
 
 `ResultBatch::firstSuccess()` selects the first success from a non-empty collection, and `zip()` combines two evaluated Results. For field-level validation, `mapAllErrors()` can collect arrays of messages by field.
 
-Structured error causes can be nested with `Cause`; `DebugOutput` exposes them in the sanitized `error_cause` field.
+Structured error causes can be nested with `Cause`. Serialization throws `LengthException` beyond 32 levels or 256 visited cause nodes. `DebugOutput` truncates the cause and exposes it in the sanitized `error_cause` field.
+
+`Retry::attempt()` preserves the inferred success and failure types of the operation. Its failure type also includes `Throwable` for captured exceptions.
 
 `Output\ProblemDetails::response()` builds an explicit RFC 9457 problem JSON response from fields chosen by the application; it does not automatically expose Result errors or metadata.
 
